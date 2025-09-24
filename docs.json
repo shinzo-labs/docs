@@ -1,68 +1,75 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Shinzo Platform",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#2563eb",
+    "light": "#3b82f6",
+    "dark": "#1d4ed8"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Overview",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "concepts/opentelemetry",
+              "concepts/mcp"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "SDK",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "TypeScript SDK",
             "pages": [
-              "api-reference/introduction"
+              "sdk/typescript/installation",
+              "sdk/typescript/configuration",
+              "sdk/typescript/examples",
+              "sdk/typescript/api-reference"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Platform",
+        "groups": [
+          {
+            "group": "Platform Features",
+            "pages": [
+              "platform/overview",
+              "platform/dashboard",
+              "platform/resources",
+              "platform/traces",
+              "platform/spans",
+              "platform/metrics"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Configuration",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "platform/ingest-tokens",
+              "platform/authentication"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Telemetry Ingestion",
+            "pages": [
+              "api-reference/telemetry/overview",
+              "api-reference/telemetry/traces",
+              "api-reference/telemetry/metrics"
             ]
           }
         ]
@@ -71,14 +78,14 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "GitHub",
+          "href": "https://github.com/shinzo-labs",
+          "icon": "github"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Platform",
+          "href": "https://app.shinzo.ai",
+          "icon": "chart-line"
         }
       ]
     }
@@ -91,13 +98,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:austin@shinzolabs.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Get Started",
+      "href": "https://app.shinzo.ai"
     }
   },
   "contextual": {
@@ -114,9 +121,8 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/shinzo-labs",
+      "x": "https://x.com/shinzolabs"
     }
   }
 }

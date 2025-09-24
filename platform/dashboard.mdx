@@ -1,0 +1,186 @@
+---
+title: "Dashboard"
+description: "Guide to using the Shinzo Platform dashboard for monitoring your MCP servers"
+---
+
+# Dashboard
+
+The Shinzo Platform dashboard provides real-time visibility into your MCP server's performance, health, and usage patterns. This comprehensive interface helps you monitor, debug, and optimize your MCP infrastructure.
+
+## Overview
+
+The dashboard is your central hub for observability data, featuring:
+- **Real-time metrics** showing current server performance
+- **Interactive charts** with customizable time ranges
+- **Alert indicators** for issues requiring attention
+- **Navigation** to detailed views for traces, resources, and configuration
+
+<Frame>
+  <img src="/images/dashboard-overview.png" alt="Shinzo Platform Dashboard Overview" />
+</Frame>
+
+## Key Metrics
+
+### Server Health
+Monitor the overall health and availability of your MCP servers:
+- **Uptime percentage**: Current availability status
+- **Request success rate**: Percentage of successful tool executions
+- **Error rate**: Failed requests over time
+- **Average response time**: Performance indicators
+
+### Traffic Patterns
+Understand how your MCP server is being used:
+- **Requests per minute**: Current load and traffic patterns
+- **Tool usage distribution**: Which tools are called most frequently
+- **Peak usage times**: When your server experiences high load
+- **Geographic distribution**: Where requests are coming from (if available)
+
+### Performance Metrics
+Track your server's performance characteristics:
+- **P50/P95/P99 response times**: Latency percentiles
+- **Throughput**: Requests processed per second
+- **Resource utilization**: Memory, CPU, and other server resources
+- **Queue depth**: Pending requests waiting for processing
+
+## Time Range Controls
+
+Customize the dashboard view with flexible time range options:
+- **Last hour**: Recent activity and current performance
+- **Last 24 hours**: Daily patterns and trends
+- **Last 7 days**: Weekly usage patterns
+- **Last 30 days**: Monthly trends and growth
+- **Custom range**: Specific time periods for detailed analysis
+
+Use the time picker in the top-right corner to adjust the view timeframe.
+
+## Dashboard Sections
+
+### Server Overview
+The main dashboard provides a high-level view of your MCP server ecosystem:
+- Active servers and their status
+- Aggregate metrics across all servers
+- Recent alerts and notifications
+- Quick links to detailed views
+
+### Real-time Activity
+Monitor current activity with live updates:
+- Active tool executions
+- Current request rates
+- Live error notifications
+- Resource access patterns
+
+### Historical Trends
+Analyze patterns over time with historical charts:
+- Performance trends
+- Usage growth patterns
+- Error rate changes
+- Seasonal variations
+
+## Filtering and Search
+
+### Server Filtering
+When monitoring multiple MCP servers:
+- Filter by server name or version
+- View specific environments (dev, staging, prod)
+- Focus on servers with issues
+- Compare performance across servers
+
+### Metric Filtering
+Customize which metrics are displayed:
+- Hide/show specific metric categories
+- Focus on performance vs. usage metrics
+- Filter by tool names or types
+- Show only errors or successful operations
+
+## Alerts and Notifications
+
+### Visual Indicators
+The dashboard uses color coding and icons to highlight:
+- 🟢 **Green**: Healthy servers and normal operation
+- 🟡 **Yellow**: Warning conditions requiring attention
+- 🔴 **Red**: Critical issues needing immediate action
+- 🔵 **Blue**: Information and status updates
+
+### Alert Types
+Common alerts you might see:
+- High error rates
+- Slow response times
+- Server unavailability
+- Unusual traffic patterns
+- Configuration issues
+
+## Customization
+
+### Dashboard Layout
+Personalize your dashboard experience:
+- Resize and rearrange metric widgets
+- Add or remove specific charts
+- Set default time ranges
+- Configure refresh intervals
+
+### Saved Views
+Create custom dashboard configurations:
+- Save frequently used filter combinations
+- Create views for different scenarios (debugging, monitoring, reporting)
+- Share dashboard configurations with team members
+
+## Quick Actions
+
+### From the Dashboard
+Quickly access common tasks:
+- Jump to detailed traces for investigation
+- View resource details and configurations
+- Access server logs and diagnostics
+- Generate reports for specific time periods
+
+### Keyboard Shortcuts
+Efficient navigation with keyboard shortcuts:
+- `R`: Refresh dashboard data
+- `T`: Open time range picker
+- `F`: Focus search/filter box
+- `?`: Show help and shortcuts
+
+## Mobile Responsiveness
+
+The dashboard is optimized for mobile devices:
+- Responsive design adapts to screen size
+- Touch-friendly interface elements
+- Simplified mobile layout for key metrics
+- Offline capability for cached data
+
+## Next Steps
+
+From the dashboard, you can dive deeper into your data:
+
+<CardGroup cols={2}>
+  <Card title="View Traces" icon="magnifying-glass" href="/platform/traces">
+    Analyze individual requests and tool executions
+  </Card>
+  <Card title="Monitor Resources" icon="server" href="/platform/resources">
+    Track server resources and performance characteristics
+  </Card>
+  <Card title="Manage Settings" icon="gear" href="/platform/ingest-tokens">
+    Configure ingest tokens and authentication
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/telemetry/overview">
+    Technical documentation for API integration
+  </Card>
+</CardGroup>
+
+## Tips for Effective Monitoring
+
+### Best Practices
+1. **Set up alerts** for critical metrics like error rate and response time
+2. **Monitor trends** rather than just current values
+3. **Use multiple time ranges** to understand both immediate and long-term patterns
+4. **Filter by server** when managing multiple MCP servers
+5. **Save custom views** for different monitoring scenarios
+
+### Common Patterns to Watch
+- Sudden spikes in error rates
+- Gradual increases in response time
+- Unusual tool usage patterns
+- Resource exhaustion indicators
+- Traffic pattern changes
+
+The dashboard is your window into MCP server health and performance. Use it regularly to stay informed about your infrastructure and quickly identify areas needing attention.

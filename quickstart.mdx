@@ -1,80 +1,206 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Quick Start Guide"
+description: "Get your MCP server instrumented and sending data to Shinzo Platform in under 5 minutes"
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
+Get up and running with Shinzo Platform in just a few minutes. This guide will walk you through instrumenting your MCP server and viewing telemetry data in the dashboard.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+- Node.js 18 or higher
+- An existing MCP server using `@modelcontextprotocol/sdk`
+- A Shinzo Platform account (sign up at [app.shinzo.ai](https://app.shinzo.ai))
 
-### Step 2: Deploy your changes
+## Step 1: Install the SDK
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Install the Shinzo instrumentation SDK in your MCP server project:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+<CodeGroup>
+```bash npm
+npm install @shinzolabs/instrumentation-mcp
+```
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+```bash pnpm
+pnpm add @shinzolabs/instrumentation-mcp
+```
 
-### Step 3: Go live
+```bash yarn
+yarn add @shinzolabs/instrumentation-mcp
+```
+</CodeGroup>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Step 2: Get Your Ingest Token
 
-## Next steps
+1. Sign up or log in at [app.shinzo.ai](https://app.shinzo.ai)
+2. Navigate to Settings → Ingest Tokens
+3. Copy your ingest token (it will look like `abc123def456...`)
 
-Now that you have your docs running, explore these key features:
+## Step 3: Instrument Your Server
+
+Add telemetry to your MCP server with just a few lines of code:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const server = new McpServer({
+  name: "my-awesome-server",
+  version: "1.0.0",
+  description: "My MCP server with telemetry"
+})
+
+// Add this after creating your server
+const telemetry = instrumentServer(server, {
+  serverName: server.name,
+  serverVersion: server.version,
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: "your-ingest-token-here" // Replace with your actual token
+  }
+})
+
+// Continue with your existing server setup
+server.tool("example_tool", {
+  description: "An example tool",
+  inputSchema: {
+    type: "object",
+    properties: {
+      message: { type: "string" }
+    }
+  }
+}, async (args) => {
+  return { content: `Hello, ${args.message}!` }
+})
+```
+
+<Warning>
+Replace `your-ingest-token-here` with your actual ingest token from Step 2.
+</Warning>
+
+## Step 4: Start Your Server
+
+Run your instrumented MCP server as usual. Telemetry data will automatically be collected and sent to Shinzo Platform whenever:
+
+- Tools are executed
+- Resources are accessed
+- Errors occur
+- The server starts or stops
+
+## Step 5: View Your Data
+
+1. Go to [app.shinzo.ai](https://app.shinzo.ai)
+2. Navigate to the Dashboard to see real-time metrics
+3. Check the Traces page to see individual tool executions
+4. Visit Resources to monitor server performance
+
+## Example: Complete MCP Server
+
+Here's a complete example of an instrumented MCP server:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const server = new McpServer({
+  name: "weather-server",
+  version: "1.0.0",
+  description: "Weather information MCP server"
+})
+
+// Instrument the server
+const telemetry = instrumentServer(server, {
+  serverName: "weather-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+
+// Add a weather tool
+server.tool("get_weather", {
+  description: "Get weather for a city",
+  inputSchema: {
+    type: "object",
+    properties: {
+      city: { type: "string" }
+    },
+    required: ["city"]
+  }
+}, async (args) => {
+  // Simulate API call
+  const weather = {
+    city: args.city,
+    temperature: Math.round(Math.random() * 30 + 10),
+    condition: "sunny"
+  }
+
+  return {
+    content: `Weather in ${weather.city}: ${weather.temperature}°C, ${weather.condition}`
+  }
+})
+
+// Start the server
+async function main() {
+  const transport = new StdioServerTransport()
+  await server.connect(transport)
+}
+
+main().catch(console.error)
+```
+
+## What Gets Collected?
+
+By default, Shinzo Platform collects:
+
+✅ **Tool execution metrics**: Response times, success/failure rates
+✅ **Resource access patterns**: Which resources are accessed and how often
+✅ **Server health metrics**: Memory usage, request rates
+✅ **Error tracking**: Exceptions and error rates
+
+❌ **Tool arguments**: Not collected by default (privacy-first)
+❌ **Response data**: Not collected by default
+❌ **PII**: Automatically sanitized when detected
+
+## Next Steps
+
+Now that your server is instrumented:
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Configure SDK" icon="gear" href="/sdk/typescript/configuration">
+    Learn about advanced configuration options including PII sanitization and custom processors
+  </Card>
+  <Card title="Explore Dashboard" icon="chart-line" href="/platform/dashboard">
+    Discover all the insights available in the Shinzo Platform dashboard
+  </Card>
+  <Card title="View Traces" icon="magnifying-glass" href="/platform/traces">
+    Deep dive into individual requests with distributed tracing
+  </Card>
+  <Card title="API Reference" icon="code" href="/sdk/typescript/api-reference">
+    Complete SDK documentation and configuration options
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Troubleshooting
+
+### Not seeing data?
+
+1. **Check your ingest token**: Make sure it's correct and active
+2. **Verify network access**: Ensure your server can reach `api.app.shinzo.ai`
+3. **Check console logs**: The SDK logs important information about telemetry export
+4. **Test with console exporter**: Use `exporterType: "console"` to see telemetry locally
+
+### Performance concerns?
+
+The SDK is designed to be lightweight with minimal performance impact:
+- Telemetry is exported in batches
+- Network calls are non-blocking
+- Sampling can be configured to reduce data volume
+- Memory usage is optimized for production use
+
+Need help? Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com)

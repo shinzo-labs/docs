@@ -1,0 +1,392 @@
+---
+title: "Configuration"
+description: "Complete configuration guide for the Shinzo TypeScript SDK"
+---
+
+# Configuration
+
+The Shinzo TypeScript SDK provides extensive configuration options to customize telemetry collection, data processing, and export behavior for your MCP server.
+
+## Basic Configuration
+
+The minimal configuration requires only a few essential parameters:
+
+```typescript
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: "your-ingest-token-here"
+  }
+})
+```
+
+## TelemetryConfig Interface
+
+The `TelemetryConfig` interface provides comprehensive configuration options:
+
+### Required Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `serverName` | `string` | Name of your MCP server |
+| `serverVersion` | `string` | Version of your MCP server |
+
+### Export Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `exporterEndpoint` | `string` | - | OpenTelemetry collector endpoint URL |
+| `exporterType` | `'otlp-http' \| 'otlp-grpc' \| 'console'` | `'otlp-http'` | Type of telemetry exporter |
+| `exporterAuth` | `ExporterAuth` | - | Authentication configuration |
+
+### Data Collection
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `enableTracing` | `boolean` | `true` | Enable trace collection |
+| `enableMetrics` | `boolean` | `true` | Enable metrics collection |
+| `enableArgumentCollection` | `boolean` | `false` | Collect tool arguments in traces |
+| `samplingRate` | `number` | `1.0` | Trace sampling rate (0.0 to 1.0) |
+
+### Privacy & Processing
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `enablePIISanitization` | `boolean` | `true` | Enable automatic PII sanitization |
+| `PIISanitizer` | `PIISanitizer` | - | Custom PII sanitizer instance |
+| `dataProcessors` | `((data: any) => any)[]` | `[]` | Custom data processing functions |
+
+### Performance
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `metricExportIntervalMs` | `number` | `5000` | Metric export interval in milliseconds |
+| `batchTimeoutMs` | `number` | `2000` | Batch timeout in milliseconds |
+
+## Authentication Configuration
+
+### Bearer Token Authentication
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### API Key Authentication
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://custom-endpoint.com/v1",
+  exporterAuth: {
+    type: "apiKey",
+    apiKey: process.env.API_KEY
+  }
+})
+```
+
+### Basic Authentication
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://custom-endpoint.com/v1",
+  exporterAuth: {
+    type: "basic",
+    username: process.env.USERNAME,
+    password: process.env.PASSWORD
+  }
+})
+```
+
+## Exporter Types
+
+### OTLP HTTP Exporter (Default)
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: "otlp-http",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http"
+})
+```
+
+### OTLP gRPC Exporter
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: "otlp-grpc",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_grpc"
+})
+```
+
+### Console Exporter (Development)
+
+Perfect for development and debugging:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: "console",
+  enableMetrics: false, // Console exporter doesn't support metrics
+  samplingRate: 1.0 // Sample all traces in development
+})
+```
+
+## Privacy Configuration
+
+### Built-in PII Sanitization
+
+The SDK automatically detects and sanitizes common PII patterns:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  enablePIISanitization: true, // Default
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### Custom PII Sanitizer
+
+Implement your own PII sanitization logic:
+
+```typescript
+import { PIISanitizer } from "@shinzolabs/instrumentation-mcp"
+
+class CustomPIISanitizer implements PIISanitizer {
+  sanitize(data: any): any {
+    // Your custom sanitization logic
+    if (typeof data === 'string') {
+      return data.replace(/\b\d{4}-\d{4}-\d{4}-\d{4}\b/g, '****-****-****-****')
+    }
+    return data
+  }
+}
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  PIISanitizer: new CustomPIISanitizer(),
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+## Data Processing
+
+### Custom Data Processors
+
+Add custom logic to process telemetry data before export:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  dataProcessors: [
+    // Remove sensitive tool arguments
+    (data) => {
+      if (data['mcp.tool.name'] === 'sensitive_operation') {
+        for (const key of Object.keys(data)) {
+          if (key.startsWith('mcp.request.argument')) {
+            delete data[key]
+          }
+        }
+      }
+      return data
+    },
+
+    // Add custom metadata
+    (data) => {
+      data['environment'] = process.env.NODE_ENV || 'development'
+      data['deployment.version'] = process.env.DEPLOYMENT_VERSION
+      return data
+    },
+
+    // Filter out health check spans
+    (data) => {
+      if (data['mcp.tool.name'] === 'health_check') {
+        return null // Return null to skip this data
+      }
+      return data
+    }
+  ],
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+## Sampling Configuration
+
+### Fixed Sampling Rate
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  samplingRate: 0.1, // Sample 10% of traces
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### Environment-based Sampling
+
+```typescript
+const getSamplingRate = () => {
+  switch (process.env.NODE_ENV) {
+    case 'production': return 0.05 // 5% in production
+    case 'staging': return 0.25    // 25% in staging
+    case 'development': return 1.0 // 100% in development
+    default: return 0.1            // 10% default
+  }
+}
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  samplingRate: getSamplingRate(),
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+## Performance Tuning
+
+### Batch Configuration
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  batchTimeoutMs: 1000,        // Export every 1 second
+  metricExportIntervalMs: 10000, // Export metrics every 10 seconds
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### Memory Optimization
+
+For high-throughput servers:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  samplingRate: 0.01,           // Low sampling rate
+  enableArgumentCollection: false, // Skip argument collection
+  batchTimeoutMs: 500,          // Frequent exports
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+## Environment-Specific Configuration
+
+### Development Configuration
+
+```typescript
+const isDevelopment = process.env.NODE_ENV === 'development'
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: isDevelopment ? "console" : "otlp-http",
+  exporterEndpoint: isDevelopment ? undefined : "https://api.app.shinzo.ai/telemetry/ingest_http",
+  enableMetrics: !isDevelopment, // Disable metrics for console output
+  samplingRate: isDevelopment ? 1.0 : 0.1,
+  enableArgumentCollection: isDevelopment,
+  exporterAuth: isDevelopment ? undefined : {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### Production Configuration
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: process.env.APP_VERSION || "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  samplingRate: 0.05,
+  enableArgumentCollection: false,
+  enablePIISanitization: true,
+  batchTimeoutMs: 2000,
+  metricExportIntervalMs: 30000,
+  dataProcessors: [
+    (data) => {
+      data['environment'] = 'production'
+      data['service.instance.id'] = process.env.HOSTNAME
+      return data
+    }
+  ]
+})
+```
+
+## Configuration Validation
+
+The SDK validates configuration at startup and will log warnings for common issues:
+
+- Missing required parameters
+- Invalid sampling rates (must be between 0.0 and 1.0)
+- Incompatible exporter/configuration combinations
+- Network connectivity issues
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Examples" icon="code" href="/sdk/typescript/examples">
+    See real-world configuration examples
+  </Card>
+  <Card title="API Reference" icon="book" href="/sdk/typescript/api-reference">
+    Complete API documentation
+  </Card>
+</CardGroup>

@@ -1,0 +1,275 @@
+---
+title: "Ingest Tokens"
+description: "Manage authentication tokens for secure telemetry data ingestion to Shinzo Platform"
+---
+
+# Ingest Tokens
+
+Ingest tokens provide secure authentication for sending telemetry data from your MCP servers to Shinzo Platform. These tokens ensure that only authorized servers can submit data to your account while providing fine-grained access control.
+
+## Overview
+
+Ingest tokens are the primary authentication mechanism for the Shinzo Platform telemetry ingestion API. Each token:
+- **Authenticates** your MCP server with the platform
+- **Authorizes** data submission to your account
+- **Isolates** your data from other users
+- **Enables** secure telemetry transmission
+
+<Frame>
+  <img src="/images/settings-page.png" alt="Shinzo Platform Settings - Ingest Tokens" />
+</Frame>
+
+## Token Management
+
+### Creating Tokens
+Generate new ingest tokens from the Settings page:
+
+1. Navigate to **Settings** → **Ingest Tokens**
+2. Click **Generate New Token**
+3. Provide a descriptive name for the token
+4. Copy the generated token immediately (it won't be shown again)
+5. Store the token securely in your environment variables
+
+### Token Properties
+Each ingest token has several important characteristics:
+- **Unique identifier**: Each token is cryptographically unique
+- **Account association**: Tokens are tied to your specific user account
+- **Creation timestamp**: When the token was generated
+- **Last used**: When the token was last used for data ingestion
+- **Status**: Active, inactive, or revoked
+
+### Token Names
+Use descriptive names to organize your tokens:
+- `production-api-server`
+- `development-weather-mcp`
+- `staging-environment`
+- `team-shared-token`
+
+## Security Best Practices
+
+### Token Storage
+Store tokens securely using environment variables:
+
+```bash
+# .env file
+SHINZO_TOKEN=your-actual-token-here
+```
+
+```typescript
+// In your MCP server
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN // Use environment variable
+  }
+})
+```
+
+### Token Rotation
+Regularly rotate tokens for enhanced security:
+1. **Generate** a new token with a descriptive name
+2. **Update** your MCP server configuration
+3. **Test** that telemetry data flows correctly
+4. **Revoke** the old token
+5. **Monitor** for any authentication errors
+
+### Access Control
+Use separate tokens for different purposes:
+- **Per environment**: Different tokens for dev, staging, production
+- **Per team**: Separate tokens for different development teams
+- **Per service**: Individual tokens for each MCP server
+- **Per deployment**: Unique tokens for each deployment pipeline
+
+## Token Usage
+
+### SDK Integration
+Configure the TypeScript SDK with your ingest token:
+
+```typescript
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const telemetry = instrumentServer(server, {
+  serverName: "weather-mcp-server",
+  serverVersion: "1.2.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: "03b23d7e6f878ac9011e74d12a439002" // Your actual token
+  }
+})
+```
+
+### Direct API Usage
+For custom integrations, use the token in HTTP headers:
+
+```bash
+curl -X POST \
+  https://api.app.shinzo.ai/telemetry/ingest_http \
+  -H "Authorization: Bearer 03b23d7e6f878ac9011e74d12a439002" \
+  -H "Content-Type: application/x-protobuf" \
+  --data-binary @telemetry-data.pb
+```
+
+### OpenTelemetry Collector
+Configure the OTLP exporter with your token:
+
+```yaml
+exporters:
+  otlphttp:
+    endpoint: https://api.app.shinzo.ai/telemetry/ingest_http
+    headers:
+      Authorization: "Bearer 03b23d7e6f878ac9011e74d12a439002"
+```
+
+## Monitoring Token Usage
+
+### Usage Analytics
+Track how your tokens are being used:
+- **Request volume**: Number of telemetry submissions per token
+- **Data volume**: Amount of data ingested via each token
+- **Error rates**: Authentication or ingestion failures
+- **Usage patterns**: When and how often tokens are used
+
+### Security Monitoring
+Watch for suspicious token activity:
+- Unexpected usage patterns
+- High volume from unknown sources
+- Authentication attempts from unauthorized IPs
+- Unusual error rates or failure patterns
+
+## Troubleshooting
+
+### Authentication Errors
+Common token-related issues and solutions:
+
+#### Invalid Token
+```
+HTTP 401 Unauthorized: Invalid or expired token
+```
+**Solution**: Verify the token is correct and hasn't been revoked
+
+#### Missing Authorization Header
+```
+HTTP 401 Unauthorized: Missing authorization header
+```
+**Solution**: Ensure the `Authorization: Bearer <token>` header is included
+
+#### Token Format Error
+```
+HTTP 400 Bad Request: Invalid token format
+```
+**Solution**: Check that the token doesn't contain extra spaces or characters
+
+### SDK Configuration Issues
+
+#### Environment Variable Not Set
+```typescript
+// This will cause an error if SHINZO_TOKEN is undefined
+token: process.env.SHINZO_TOKEN
+```
+**Solution**: Set the environment variable or provide a fallback
+
+#### Token in Source Code
+```typescript
+// Don't do this - tokens should never be hardcoded
+token: "03b23d7e6f878ac9011e74d12a439002"
+```
+**Solution**: Use environment variables or secure configuration management
+
+## API Reference
+
+### Token Authentication
+All telemetry ingestion endpoints require token authentication:
+
+```http
+POST /telemetry/ingest_http
+Authorization: Bearer <your-ingest-token>
+Content-Type: application/x-protobuf
+```
+
+### Supported Auth Types
+The SDK supports multiple authentication methods:
+
+```typescript
+// Bearer token (recommended)
+exporterAuth: {
+  type: "bearer",
+  token: "your-token"
+}
+
+// API key header
+exporterAuth: {
+  type: "apiKey",
+  apiKey: "your-api-key"
+}
+
+// Basic authentication
+exporterAuth: {
+  type: "basic",
+  username: "user",
+  password: "pass"
+}
+```
+
+## Token Lifecycle
+
+### Creation
+1. User generates token in dashboard
+2. Token is created with unique identifier
+3. Token is displayed once for user to copy
+4. Token becomes active immediately
+
+### Usage
+1. MCP server includes token in telemetry requests
+2. Platform validates token authenticity
+3. Data is accepted and associated with user account
+4. Usage is tracked for monitoring
+
+### Revocation
+1. User revokes token in dashboard
+2. Token is immediately invalidated
+3. Future requests with token are rejected
+4. Historical data remains accessible
+
+## Best Practices Summary
+
+### Security
+- Store tokens in environment variables
+- Use separate tokens per environment
+- Rotate tokens regularly
+- Monitor token usage patterns
+- Revoke unused or compromised tokens
+
+### Organization
+- Use descriptive token names
+- Document token purposes and owners
+- Maintain an inventory of active tokens
+- Set up alerts for authentication failures
+
+### Operational
+- Test new tokens before revoking old ones
+- Have a token rotation procedure
+- Monitor token usage in production
+- Plan for token lifecycle management
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Use your token to instrument an MCP server
+  </Card>
+  <Card title="SDK Configuration" icon="gear" href="/sdk/typescript/configuration">
+    Advanced token configuration options
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/telemetry/overview">
+    Technical documentation for token usage
+  </Card>
+  <Card title="Dashboard" icon="chart-line" href="/platform/dashboard">
+    Monitor your instrumented servers
+  </Card>
+</CardGroup>
+
+Ingest tokens are the foundation of secure telemetry data submission to Shinzo Platform. Proper token management ensures your data remains secure while enabling comprehensive observability for your MCP servers.
