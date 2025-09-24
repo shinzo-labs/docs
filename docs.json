@@ -7,7 +7,7 @@
     "light": "#3b82f6",
     "dark": "#1d4ed8"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
     "tabs": [
       {
@@ -17,9 +17,14 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
-              "quickstart",
-              "concepts/opentelemetry",
-              "concepts/mcp"
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/mcp",
+              "concepts/opentelemetry"
             ]
           }
         ]
@@ -31,45 +36,7 @@
             "group": "TypeScript SDK",
             "pages": [
               "sdk/typescript/installation",
-              "sdk/typescript/configuration",
-              "sdk/typescript/examples",
-              "sdk/typescript/api-reference"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Platform",
-        "groups": [
-          {
-            "group": "Platform Features",
-            "pages": [
-              "platform/overview",
-              "platform/dashboard",
-              "platform/resources",
-              "platform/traces",
-              "platform/spans",
-              "platform/metrics"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "platform/ingest-tokens",
-              "platform/authentication"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Telemetry Ingestion",
-            "pages": [
-              "api-reference/telemetry/overview",
-              "api-reference/telemetry/traces",
-              "api-reference/telemetry/metrics"
+              "sdk/typescript/configuration"
             ]
           }
         ]
@@ -91,8 +58,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
   },
   "navbar": {
     "links": [
