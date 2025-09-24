@@ -17,9 +17,14 @@
             "group": "Getting Started",
             "pages": [
               "introduction",
-              "quickstart",
-              "concepts/opentelemetry",
-              "concepts/mcp"
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/mcp",
+              "concepts/opentelemetry"
             ]
           }
         ]
@@ -31,32 +36,7 @@
             "group": "TypeScript SDK",
             "pages": [
               "sdk/typescript/installation",
-              "sdk/typescript/configuration",
-              "sdk/typescript/examples",
-              "sdk/typescript/api-reference"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Platform",
-        "groups": [
-          {
-            "group": "Platform Features",
-            "pages": [
-              "platform/overview",
-              "platform/dashboard",
-              "platform/resources",
-              "platform/traces",
-              "platform/spans",
-              "platform/metrics"
-            ]
-          },
-          {
-            "group": "Configuration",
-            "pages": [
-              "platform/ingest-tokens",
-              "platform/authentication"
+              "sdk/typescript/configuration"
             ]
           }
         ]
