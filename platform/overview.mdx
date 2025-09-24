@@ -39,28 +39,26 @@ Secure telemetry ingestion with managed authentication:
 
 ## Architecture
 
-Shinzo Platform consists of several integrated components:
+Shinzo Platform provides a seamless observability experience built on industry standards:
 
 ```mermaid
 graph TB
     A[Your MCP Server] --> B[Shinzo TypeScript SDK]
-    B --> C[Telemetry Ingestion API]
-    C --> D[Data Processing Pipeline]
-    D --> E[PostgreSQL Database]
-    E --> F[Web Dashboard]
-    F --> G[You - Developer]
+    B --> C[OpenTelemetry Protocol]
+    C --> D[Shinzo Platform]
+    D --> E[Web Dashboard]
+    E --> F[You - Developer]
 
-    C --> H[OpenTelemetry Collector]
-    H --> D
+    G[OpenTelemetry Collector] --> C
+    G --> D
 ```
 
 ### Components
 
-- **Telemetry Ingestion API**: Receives OpenTelemetry data via HTTP/gRPC
-- **Data Processing Pipeline**: Processes and stores telemetry data
-- **PostgreSQL Database**: Stores traces, metrics, and resource data
-- **Web Dashboard**: React-based frontend for data visualization
-- **TypeScript SDK**: Automatic instrumentation for MCP servers
+- **TypeScript SDK**: Automatic instrumentation for MCP servers using OpenTelemetry
+- **OpenTelemetry Protocol**: Industry-standard telemetry data format
+- **Shinzo Platform**: Secure cloud platform for processing and storing observability data
+- **Web Dashboard**: Interactive interface for monitoring and analyzing your MCP servers
 
 ## Getting Started
 
@@ -111,7 +109,7 @@ Metadata about your MCP servers:
 ### Access Control
 - **Token-based Authentication**: Secure ingest tokens for data submission
 - **User Isolation**: Each user's data is completely isolated
-- **Session Management**: Secure web sessions with JWT tokens
+- **Secure Sessions**: Protected web sessions for dashboard access
 
 ## Supported Platforms
 

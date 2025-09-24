@@ -7,7 +7,7 @@
     "light": "#3b82f6",
     "dark": "#1d4ed8"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
     "tabs": [
       {
@@ -57,19 +57,6 @@
             "pages": [
               "platform/ingest-tokens",
               "platform/authentication"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Telemetry Ingestion",
-            "pages": [
-              "api-reference/telemetry/overview",
-              "api-reference/telemetry/traces",
-              "api-reference/telemetry/metrics"
             ]
           }
         ]
