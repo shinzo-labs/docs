@@ -1,0 +1,60 @@
+---
+title: Platform Dashboard
+description: Overview of the Shinzo Platform dashboard for monitoring telemetry data, user statistics, and system performance.
+---
+
+# Dashboard Analytics
+
+The Shinzo Platform dashboard provides a comprehensive overview of your OpenTelemetry data, system health metrics, and service performance. Access the dashboard through the main navigation after logging into your Shinzo Platform account.
+
+![Dashboard Overview](/images/dashboard-overview.png)
+
+## Dashboard Overview
+
+The Shinzo Platform dashboard shows key telemetry and system metrics from your instrumented services.
+
+### Main Metrics
+
+- **Total Traces**: Number of traces received in the last 24 hours
+- **Active Services**: Count of services sending data
+- **Error Rate**: Percentage of failed traces in the last 24 hours
+- **Average Response Time**: Mean execution time for traces
+
+These update automatically as new data arrives.
+
+### Services
+
+You can see a list of active services, their names, versions, and when they last sent data.
+
+### Tool and Operation Usage
+
+The dashboard includes charts for:
+
+- Trace counts by operation (time series)
+- Distribution of traces by operation (pie chart)
+- Session activity (trace counts by session)
+
+You can filter by time range and focus on specific operations or sessions.
+
+### Performance and Errors
+
+- View average response times and trace durations
+- See error rates and trends over time
+- Identify which operations or sessions have the most errors
+
+### Interactivity
+
+- Select time ranges (preset or custom)
+- Hover for details, toggle chart series, zoom, and export charts
+- Data refreshes automatically every 30 seconds, or you can refresh manually
+
+### Getting Started
+
+To see data in your dashboard:
+
+1. Install the Shinzo SDK in your application
+2. Use your ingest token to send telemetry
+3. Run your MCP server to start generating tool traces
+4. Return to the dashboard to view your data
+
+See the [Quickstart Guide](/quickstart) or [SDK Documentation](/sdk/typescript/installation) for setup instructions.
