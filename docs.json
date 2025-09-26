@@ -26,6 +26,12 @@
               "concepts/mcp",
               "concepts/opentelemetry"
             ]
+          },
+          {
+            "group": "Platform",
+            "pages": [
+              "platform/dashboard"
+            ]
           }
         ]
       },
