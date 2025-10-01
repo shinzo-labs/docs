@@ -1,16 +1,16 @@
 ---
 title: "Quick Start Guide"
-description: "Get your MCP server instrumented and sending data to Shinzo Platform in under 5 minutes"
+description: "Get your MCP server instrumented and sending data to Shinzo in under 5 minutes."
 ---
 
 # Quick Start Guide
 
-Get up and running with Shinzo Platform in just a few minutes. This guide will walk you through instrumenting your MCP server and viewing telemetry data in the dashboard.
+Get up and running with Shinzo Platform in just a few minutes. This guide will walk you through instrumenting your MCP server and viewing product insights in the dashboard.
 
 ## Prerequisites
 
-- Node.js 18 or higher
-- An existing MCP server using `@modelcontextprotocol/sdk`
+- [Node.js 18](https://nodejs.org/en/download) or higher
+- An existing MCP server using [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
 - A Shinzo Platform account (sign up at [app.shinzo.ai](https://app.shinzo.ai))
 
 ## Step 1: Install the SDK
@@ -33,9 +33,9 @@ yarn add @shinzolabs/instrumentation-mcp
 
 ## Step 2: Get Your Ingest Token
 
-1. Sign up or log in at [app.shinzo.ai](https://app.shinzo.ai)
-2. Navigate to Settings → Ingest Tokens
-3. Copy your ingest token (it will look like `abc123def456...`)
+1. Sign up or log in at [app.shinzo.ai](https://app.shinzo.ai).
+2. Navigate to Settings → Ingest Tokens.
+3. Copy your ingest token (it will look like `abc123def456...`).
 
 ## Step 3: Instrument Your Server
 
@@ -82,19 +82,18 @@ Replace `your-ingest-token-here` with your actual ingest token from Step 2.
 
 ## Step 4: Start Your Server
 
-Run your instrumented MCP server as usual. Telemetry data will automatically be collected and sent to Shinzo Platform whenever:
+Run your instrumented MCP server as usual. Telemetry data will automatically be collected and sent to Shinzo whenever tools are executed.
 
-- Tools are executed
-- Resources are accessed
-- Errors occur
-- The server starts or stops
+<Note>
+Support for other capabilities like Resources, Prompts, and User Elicitation is coming soon!
+</Note>
 
 ## Step 5: View Your Data
 
-1. Go to [app.shinzo.ai](https://app.shinzo.ai)
-2. Navigate to the Dashboard to see real-time metrics
-3. Check the Traces page to see individual tool executions
-4. Visit Resources to monitor server performance
+1. Go to [app.shinzo.ai](https://app.shinzo.ai).
+2. Navigate to the Dashboard to see real-time metrics.
+3. Check the Traces page to see individual tool executions.
+4. Visit Resources to monitor server performance.
 
 ## Example: Complete MCP Server
 
@@ -160,10 +159,6 @@ By default, Shinzo Platform collects:
 
 ✅ **Tool execution metrics**: Response times, success/failure rates
 
-✅ **Resource access patterns**: Which resources are accessed and how often
-
-✅ **Server health metrics**: Memory usage, request rates
-
 ✅ **Error tracking**: Exceptions and error rates
 
 ❌ **Tool arguments**: Not collected by default (privacy-first)
@@ -178,10 +173,10 @@ Now that your server is instrumented:
 
 <CardGroup cols={1}>
   <Card title="Configure SDK" icon="gear" href="/sdk/typescript/configuration">
-    Learn about advanced configuration options including PII sanitization and custom processors
+    Learn about advanced configuration options including PII sanitization and custom processors.
   </Card>
   <Card title="Explore Dashboard" icon="chart-line" href="/platform/dashboard">
-    Discover all the insights available in the Shinzo Platform dashboard
+    Discover all the insights available in the Shinzo Platform dashboard.
   </Card>
 </CardGroup>
 
@@ -189,10 +184,9 @@ Now that your server is instrumented:
 
 ### Not seeing data?
 
-1. **Check your ingest token**: Make sure it's correct and active
-2. **Verify network access**: Ensure your server can reach `api.app.shinzo.ai`
-3. **Check console logs**: The SDK logs important information about telemetry export
-4. **Test with console exporter**: Use `exporterType: "console"` to see telemetry locally
+1. **Check your ingest token**: Make sure it's correct and active.
+2. **Verify network access**: Ensure your server can reach `api.app.shinzo.ai`.
+3. **Check console logs**: Use `exporterType: "console"` to check logs for anomalies.
 
 ### Performance concerns?
 
@@ -200,6 +194,5 @@ The SDK is designed to be lightweight with minimal performance impact:
 - Telemetry is exported in batches
 - Network calls are non-blocking
 - Sampling can be configured to reduce data volume
-- Memory usage is optimized for production use
 
 Need help? Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com)

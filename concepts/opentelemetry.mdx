@@ -1,15 +1,13 @@
 ---
 title: "OpenTelemetry Foundation"
-description: "Understanding OpenTelemetry and why it's the foundation of Shinzo Platform's telemetry system"
+description: "Understanding OpenTelemetry and why it's the foundation of Shinzo's analytics services."
 ---
 
-# OpenTelemetry Foundation
+# What is OpenTelemetry?
 
-OpenTelemetry (OTel) is an open-source observability framework that provides a unified approach to collecting, processing, and exporting telemetry data (traces, metrics, and logs) from applications and services. Shinzo Platform is built on OpenTelemetry principles to ensure compatibility, standardization, and interoperability. Currently, Shinzo Platform focuses on traces and metrics collection for MCP servers.
+OpenTelemetry (OTel) is a Cloud Native Computing Foundation (CNCF) project that merges OpenTracing and OpenCensus to provide a single, vendor-neutral framework for observability. It offers a unified approach to collecting, processing, and exporting telemetry data (traces, metrics, and logs) from applications and services.
 
-## What is OpenTelemetry?
-
-OpenTelemetry is a Cloud Native Computing Foundation (CNCF) project that merges OpenTracing and OpenCensus to provide a single, vendor-neutral standard for observability. It consists of:
+ In particular, OTel consists of:
 
 - **APIs and SDKs** for instrumenting applications
 - **Specification** defining data formats and protocols
@@ -22,7 +20,7 @@ OpenTelemetry is a Cloud Native Computing Foundation (CNCF) project that merges 
 OpenTelemetry provides consistent telemetry formats and conventions across different programming languages and platforms. This means your MCP server telemetry follows the same patterns used by millions of other applications.
 
 ### Vendor Neutrality
-By using OpenTelemetry, your telemetry data isn't locked into any specific vendor. You can send data to Shinzo Platform, other observability providers, or even run your own collection infrastructure.
+By using OpenTelemetry, your telemetry data isn't locked into any specific vendor (including Shinzo). You can send data to Shinzo, other observability providers, or even run your own collection infrastructure.
 
 ### Rich Ecosystem
 The OpenTelemetry ecosystem includes automatic instrumentation for popular libraries, extensive documentation, and community support.
@@ -64,24 +62,20 @@ Key-value pairs that provide additional context about spans and metrics:
 - `mcp.request.id`: Unique identifier for the request
 - `user.id`: User making the request (if available)
 
-## OpenTelemetry in Shinzo Platform
+## OpenTelemetry in the Shinzo Platform
 
 ### Automatic Instrumentation
-Our TypeScript SDK automatically creates spans for:
-- MCP tool executions
-- Resource requests
-- Server startup and shutdown
-- Error conditions
+Our TypeScript SDK automatically creates spans for MCP tool executions and error conditions, with plans to expand to other capabilities in the MCP specification.
 
 ### Custom Attributes
 We add MCP-specific attributes to provide context about:
 - Tool names and parameters
-- Resource types and identifiers
 - Request metadata
+- Anonymous user data
 - Performance characteristics
 
 ### Semantic Conventions
-Shinzo Platform follows OpenTelemetry semantic conventions while extending them for MCP-specific concepts:
+The Shinzo Platform follows OpenTelemetry semantic conventions while extending them for MCP-specific concepts:
 
 | Attribute | Description | Example |
 |-----------|-------------|---------|
@@ -104,10 +98,10 @@ Telemetry data is exported using OpenTelemetry's OTLP (OpenTelemetry Protocol) o
 Your telemetry data can be sent to any OpenTelemetry-compatible backend, giving you the freedom to switch providers or run your own infrastructure.
 
 ### Industry Standards
-Using established patterns and conventions means less learning curve and more community resources.
+Using established patterns and conventions means a lower learning curve and more community resources.
 
 ### Rich Context
-OpenTelemetry's attribute system provides the flexibility to add context specific to your MCP server's domain.
+OpenTelemetry's attribute system provides the flexibility to add context specific to your MCP server.
 
 ### Performance Optimization
 Standardized metrics and tracing help identify performance bottlenecks and optimization opportunities.
@@ -117,4 +111,4 @@ Distributed traces provide end-to-end visibility into request flows, making it e
 
 ## Next Steps
 
-Now that you understand the OpenTelemetry foundation, learn about [Model Context Protocol](/concepts/mcp) and how Shinzo Platform combines both technologies to provide comprehensive MCP server observability.
+Now that you understand the OpenTelemetry foundation, learn about our [Analytics Dashboard](/platform/dashboard) and how the Shinzo Platform unlocks product insights using this telemetry.

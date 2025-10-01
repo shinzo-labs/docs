@@ -1,6 +1,6 @@
 ---
-title: Platform Dashboard
-description: Overview of the Shinzo Platform dashboard for monitoring telemetry data, user statistics, and system performance.
+title: Analytics Dashboard
+description: Overview of the Shinzo Platform dashboard for monitoring user statistics, system performance, and product telemetry.
 ---
 
 # Dashboard Analytics
@@ -11,30 +11,28 @@ The Shinzo Platform dashboard provides a comprehensive overview of your OpenTele
 
 ## Dashboard Overview
 
-The Shinzo Platform dashboard shows key telemetry and system metrics from your instrumented services.
+The Shinzo Platform analytics dashboard shows key telemetry and system metrics from your instrumented services.
 
 ### Main Metrics
 
-- **Total Traces**: Number of traces received in the last 24 hours
+- **Total Traces**: Number of tool calls received
 - **Active Services**: Count of services sending data
-- **Error Rate**: Percentage of failed traces in the last 24 hours
-- **Average Response Time**: Mean execution time for traces
-
-These update automatically as new data arrives.
-
-### Services
-
-You can see a list of active services, their names, versions, and when they last sent data.
+- **Error Rate**: Percentage of failed tool calls
+- **Average Response Time**: Mean execution time for tools within your servers
 
 ### Tool and Operation Usage
 
 The dashboard includes charts for:
 
-- Trace counts by operation (time series)
-- Distribution of traces by operation (pie chart)
-- Session activity (trace counts by session)
+- Tool counts by operation (time series)
+- Distribution of tools by operation (pie chart)
+- Session activity (tool counts by session)
 
 You can filter by time range and focus on specific operations or sessions.
+
+### Services
+
+You can see a list of active services, their names, versions, and when they last sent data.
 
 ### Performance and Errors
 
@@ -46,15 +44,15 @@ You can filter by time range and focus on specific operations or sessions.
 
 - Select time ranges (preset or custom)
 - Hover for details, toggle chart series, zoom, and export charts
-- Data refreshes automatically every 30 seconds, or you can refresh manually
+- Data refreshes automatically
 
 ### Getting Started
 
 To see data in your dashboard:
 
-1. Install the Shinzo SDK in your application
-2. Use your ingest token to send telemetry
-3. Run your MCP server to start generating tool traces
-4. Return to the dashboard to view your data
+1. Install the Shinzo SDK in your application.
+2. Use your ingest token to send telemetry.
+3. Run your MCP server to start generating tool traces.
+4. Return to the dashboard to view your data.
 
-See the [Quickstart Guide](/quickstart) or [SDK Documentation](/sdk/typescript/installation) for setup instructions.
+See the [Quickstart Guide](/quickstart) or [SDK Documentation](/sdk/typescript/installation) for more detailed instructions.

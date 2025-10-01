@@ -70,7 +70,7 @@ The `TelemetryConfig` interface provides comprehensive configuration options:
 
 ## Authentication Configuration
 
-### Bearer Token Authentication
+### Bearer Token Authentication (required for the Shinzo Platform)
 
 ```typescript
 const telemetry = instrumentServer(server, {
@@ -79,7 +79,7 @@ const telemetry = instrumentServer(server, {
   exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
   exporterAuth: {
     type: "bearer",
-    token: process.env.SHINZO_TOKEN
+    token: process.env.TOKEN
   }
 })
 ```
@@ -122,7 +122,8 @@ const telemetry = instrumentServer(server, {
   serverName: "my-server",
   serverVersion: "1.0.0",
   exporterType: "otlp-http",
-  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http"
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: ...
 })
 ```
 
@@ -133,7 +134,8 @@ const telemetry = instrumentServer(server, {
   serverName: "my-server",
   serverVersion: "1.0.0",
   exporterType: "otlp-grpc",
-  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_grpc"
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_grpc",
+  exporterAuth: ...
 })
 ```
 

@@ -1,17 +1,21 @@
 ---
 title: "Installation"
-description: "Install and set up the Shinzo TypeScript SDK for MCP server instrumentation"
+description: "Install and set up the Shinzo TypeScript SDK for MCP server instrumentation."
 ---
 
-# Installation
+# Using the TypeScript SDK
 
 The Shinzo TypeScript SDK provides automatic instrumentation for MCP servers built with the `@modelcontextprotocol/sdk`. Get started with comprehensive telemetry in just a few minutes.
 
+<Note>
+Support for other SDKs like Python, Go and Rust are coming soon.
+</Note>
+
 ## Requirements
 
-- **Node.js**: Version 18 or higher
-- **TypeScript**: Version 4.5 or higher (if using TypeScript)
-- **MCP SDK**: `@modelcontextprotocol/sdk` version 1.15.1 or higher
+- **Node.js**: Version [18 or higher](https://nodejs.org/en/download)
+- **TypeScript**: Version [4.5 or higher](https://www.typescriptlang.org/download/)
+- **MCP SDK**: [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk) version 1.15.1 or higher
 
 ## Package Installation
 
@@ -28,10 +32,6 @@ pnpm add @shinzolabs/instrumentation-mcp
 
 ```bash yarn
 yarn add @shinzolabs/instrumentation-mcp
-```
-
-```bash bun
-bun add @shinzolabs/instrumentation-mcp
 ```
 </CodeGroup>
 
@@ -93,9 +93,13 @@ server.tool("hello", {
 })
 ```
 
+<Warning>
+If your server does not call tools as above, please contact [austin@shinzolabs.com](mailto:austin@shinzolabs.com) so we can prioritize your method of calling server tools.
+</Warning>
+
 ## Environment Variables
 
-For better security and configuration management, use environment variables:
+For better security and configuration management, consider using environment variables:
 
 ```bash
 # .env file
@@ -119,17 +123,7 @@ const telemetry = instrumentServer(server, {
 
 ## Verification
 
-To verify the installation is working correctly:
-
-### 1. Check Console Output
-The SDK logs initialization information:
-
-```
-[INFO] Shinzo telemetry initialized for server: my-mcp-server
-[INFO] Exporting to: https://api.app.shinzo.ai/telemetry/ingest_http
-```
-
-### 2. Test with Console Exporter
+### 1. Test with Console Exporter
 For development, use the console exporter to see telemetry locally:
 
 ```typescript
@@ -141,76 +135,10 @@ const telemetry = instrumentServer(server, {
 })
 ```
 
-### 3. Execute a Tool
+### 2. Execute a Tool
 Run your server and execute any tool. You should see telemetry data in:
 - Console output (if using console exporter)
 - Shinzo Platform dashboard (if using HTTP exporter)
-
-## TypeScript Configuration
-
-If you're using TypeScript, ensure your `tsconfig.json` includes the correct settings:
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true
-  }
-}
-```
-
-## Build Configuration
-
-### ES Modules
-The SDK is built as ES modules. Ensure your `package.json` includes:
-
-```json
-{
-  "type": "module"
-}
-```
-
-### CommonJS Support
-If you need CommonJS support, you can use dynamic imports:
-
-```javascript
-// CommonJS usage
-async function initTelemetry() {
-  const { instrumentServer } = await import("@shinzolabs/instrumentation-mcp")
-
-  const telemetry = instrumentServer(server, {
-    // configuration
-  })
-}
-```
-
-## Docker Installation
-
-If deploying with Docker, include the SDK in your Dockerfile:
-
-```dockerfile
-FROM node:18
-
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies including Shinzo SDK
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build if using TypeScript
-RUN npm run build
-
-CMD ["node", "dist/server.js"]
-```
 
 ## Troubleshooting Installation
 
@@ -218,25 +146,24 @@ CMD ["node", "dist/server.js"]
 
 If you encounter module resolution errors:
 
-1. **Check Node.js version**: Ensure you're using Node.js 18+
-2. **Verify package.json**: Make sure `type: "module"` is set
-3. **Update dependencies**: Run `npm update` to get latest versions
+1. **Check Node.js version**: Ensure you're using Node.js 18+.
+2. **Update dependencies**: Run `npm update` to get latest versions.
 
 ### Type Errors
 
 For TypeScript type errors:
 
-1. **Install type definitions**: `npm install @types/node`
-2. **Update TypeScript**: Ensure you're using TypeScript 4.5+
-3. **Check imports**: Use `.js` extensions in import paths
+1. **Install type definitions**: `npm install @types/node`.
+2. **Update TypeScript**: Ensure you're using TypeScript 4.5+.
+3. **Check imports**: You may need to use `.js` extensions in import paths, depending on your build setup.
 
 ### Network Issues
 
-If telemetry isn't reaching Shinzo Platform:
+If telemetry isn't reaching the Shinzo Platform:
 
-1. **Check firewall**: Ensure outbound HTTPS connections are allowed
-2. **Verify endpoint**: Confirm the endpoint URL is correct
-3. **Test connectivity**: Try `curl https://api.app.shinzo.ai/health`
+1. **Check firewall**: Ensure outbound HTTPS connections are allowed.
+2. **Verify endpoint**: Confirm the endpoint URL is correct.
+3. **Test connectivity**: Try `curl https://api.app.shinzo.ai/health`.
 
 ## Next Steps
 
@@ -244,7 +171,7 @@ Now that you have the SDK installed:
 
 <CardGroup cols={1}>
   <Card title="Configuration" icon="gear" href="/sdk/typescript/configuration">
-    Learn about all available configuration options
+    Learn about all available configuration options.
   </Card>
 </CardGroup>
 

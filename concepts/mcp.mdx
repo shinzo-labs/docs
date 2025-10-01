@@ -1,15 +1,13 @@
 ---
 title: "Model Context Protocol (MCP)"
-description: "Understanding the Model Context Protocol and why Shinzo Platform is purpose-built for MCP developers"
+description: "Understanding Model Context Protocol and how the Shinzo Platform is purpose-built for MCP developers."
 ---
 
 # Model Context Protocol (MCP)
 
-The Model Context Protocol (MCP) is an open standard that enables AI applications to securely connect with external data sources and tools. Developed by Anthropic, MCP provides a unified way to integrate AI models with various services, databases, and APIs through a standardized interface.
+MCP is an open standard that enables AI models to flexibly connect with external data sources and tools. Spearheaded by Anthropic, MCP provides a unified way to integrate AI models with various services, databases, and APIs through a standardized interface of servers and clients.
 
-## What is MCP?
-
-MCP defines a standard protocol for AI applications to access external resources through dedicated servers. These MCP servers act as bridges between AI models and external systems, providing:
+MCP servers act as bridges between AI models and external systems, providing:
 
 - **Tools**: Functions that AI models can call to perform actions
 - **Resources**: Data sources that AI models can read from
@@ -18,22 +16,22 @@ MCP defines a standard protocol for AI applications to access external resources
 ## Why MCP Matters
 
 ### Standardization
-Before MCP, each AI application had to implement custom integrations with external services. MCP provides a standard protocol that works across different AI platforms and tools.
+Before MCP, every AI application and framework had to implement custom integrations with external services. MCP provides a standard protocol that works across different AI platforms and tools, allowing developers to focus on building more capable agents quickly.
 
 ### Security
 MCP servers can implement authentication, authorization, and data filtering to ensure AI models only access appropriate data and functions.
 
 ### Composability
-Multiple MCP servers can be combined to provide comprehensive capabilities, allowing developers to build modular AI systems.
+Multiple MCP servers can be combined to provide comprehensive capabilities, allowing developers to build modular AI systems effortlessly.
 
 ### Ecosystem Growth
-As more services implement MCP servers, the ecosystem of available AI integrations grows rapidly.
+As more services implement MCP servers, the ecosystem of available AI integrations will make it exponentially easier to construct AI agents with MCP as opposed to without.
 
 ## MCP Architecture
 
 ```mermaid
 graph TB
-    A[AI Application<br/>Claude, ChatGPT, etc.] --> B[MCP Client]
+    A[User] --> B["MCP Client<br/>(Cursor, ChatGPT, Claude Code, etc.)"]
     B --> C[MCP Server 1<br/>Database Access]
     B --> D[MCP Server 2<br/>File System]
     B --> E[MCP Server 3<br/>API Integration]
@@ -41,6 +39,7 @@ graph TB
     C --> F[PostgreSQL]
     D --> G[Local Files]
     E --> H[External API]
+    I[AI Model] --> B
 ```
 
 ### MCP Servers
@@ -51,7 +50,7 @@ MCP servers implement the protocol and provide specific capabilities:
 - **Tool servers**: Provide specialized functions and utilities
 
 ### MCP Clients
-MCP clients (like Claude Desktop, custom AI applications) connect to servers to access their capabilities.
+MCP clients (like Claude Desktop and custom AI applications) connect to servers to access their capabilities.
 
 ## Key MCP Concepts
 
@@ -113,12 +112,12 @@ server.prompt("code_review", {
 
 ## MCP Server Development Challenges
 
-Building reliable MCP servers involves several challenges that Shinzo Platform addresses:
+Building reliable MCP servers involves several challenges that the Shinzo Platform addresses:
 
 ### Performance Monitoring
 - How long do tool calls take?
 - Which tools are called most frequently?
-- Are there performance bottlenecks?
+- How can servers reduce context consumption?
 
 ### Error Tracking
 - Which tools are failing and why?
@@ -140,12 +139,11 @@ Building reliable MCP servers involves several challenges that Shinzo Platform a
 ### MCP-Native Observability
 Unlike generic observability tools, Shinzo Platform understands MCP concepts:
 - **Tool Execution Tracking**: Monitor individual tool calls with parameters and results
-- **Resource Access Patterns**: Track which resources are accessed and how often
 - **Cross-Server Tracing**: Follow requests across multiple MCP servers
 - **Protocol-Level Metrics**: Monitor MCP-specific performance characteristics
 
 ### Automatic Instrumentation
-Our TypeScript SDK automatically instruments MCP servers built with the `@modelcontextprotocol/sdk`:
+Our TypeScript SDK automatically instruments MCP servers built with the [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk):
 
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
@@ -169,7 +167,7 @@ const telemetry = instrumentServer(server, {
 ```
 
 ### Privacy and Security
-MCP servers often handle sensitive data. Shinzo Platform includes:
+MCP servers may handle sensitive data. Shinzo also includes:
 - **Built-in PII Sanitization**: Automatically removes sensitive data from telemetry
 - **Configurable Data Processing**: Custom processors to filter or transform data
 - **Argument Collection Control**: Choose whether to collect tool arguments
@@ -184,11 +182,11 @@ Track MCP-specific attributes:
 ## MCP Ecosystem Examples
 
 ### Popular MCP Servers
-- **Database servers**: PostgreSQL, MySQL, SQLite integrations
-- **File system servers**: Local file access, cloud storage
-- **API servers**: GitHub, Slack, email services
-- **Development tools**: Git operations, code analysis
-- **Data processing**: CSV, JSON, XML processors
+- **Code Contextualization**: Context7, Sourcebot
+- **Browser Use**: Playwright, Browserbase, Stagehand
+- **Knowledge and Memory**: Graphiti, Cipher
+- **Computer Use**: Cua, Desktop Commander
+- **General Software Tools**: Blender, Figma, Excel, Postgres
 
 ### Use Cases
 - **Code assistance**: AI models accessing codebases, documentation, and development tools
@@ -196,14 +194,14 @@ Track MCP-specific attributes:
 - **Content creation**: AI models accessing templates, resources, and publishing tools
 - **Business automation**: AI models integrating with CRM, email, and workflow tools
 
-## Getting Started with MCP
+## Getting Started with MCP:
 
-Ready to build or instrument your MCP server? Check out:
+Ready to build and instrument your MCP server? Check out:
 
 <CardGroup cols={2}>
   <Card title="TypeScript SDK" icon="code" href="/sdk/typescript/installation">
-    Add observability to your MCP server in minutes
+    Add analytics to your MCP server in minutes.
   </Card>
 </CardGroup>
 
-The combination of OpenTelemetry's standardization with MCP's protocol creates powerful observability opportunities. Shinzo Platform bridges these technologies to provide comprehensive monitoring for the growing MCP ecosystem.
+The combination of OpenTelemetry's standardization with MCP creates powerful analytics opportunities. Shinzo Platform bridges these technologies to provide comprehensive monitoring for the growing MCP ecosystem.
