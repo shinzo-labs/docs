@@ -27,19 +27,19 @@ Choose one based on your language:
 Install the Shinzo instrumentation SDK in your MCP server project:
 
 <CodeGroup>
-```bash TypeScript - npm
+```bash npm
 npm install @shinzolabs/instrumentation-mcp
 ```
 
-```bash TypeScript - pnpm
+```bash pnpm
 pnpm add @shinzolabs/instrumentation-mcp
 ```
 
-```bash TypeScript - yarn
+```bash yarn
 yarn add @shinzolabs/instrumentation-mcp
 ```
 
-```bash Python - pip
+```bash pip
 pip install shinzo
 ```
 </CodeGroup>
@@ -90,7 +90,38 @@ server.tool("example_tool", {
 })
 ```
 
-```python Python
+```python Python (MCP SDK)
+from mcp.server import Server
+from shinzo import instrument_server
+
+# Create your MCP server
+server = Server("my-awesome-server")
+
+# Instrument it with Shinzo
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-awesome-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": "your-ingest-token-here"  # Replace with your actual token
+        }
+    }
+)
+
+# Define your tools
+@server.call_tool()
+async def example_tool(message: str) -> str:
+    """An example tool."""
+    return f"Hello, {message}!"
+
+# Clean shutdown
+async def shutdown():
+    await observability.shutdown()
+```
+
+```python Python (FastMCP)
 from mcp.server.fastmcp import FastMCP
 from shinzo import instrument_server
 
@@ -200,7 +231,53 @@ async function main() {
 main().catch(console.error)
 ```
 
-```python Python
+```python Python (MCP SDK)
+import os
+import random
+import asyncio
+from mcp.server import Server
+from shinzo import instrument_server
+
+# Create your MCP server
+server = Server("weather-server")
+
+# Instrument the server
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "weather-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+
+# Add a weather tool
+@server.call_tool()
+async def get_weather(city: str) -> str:
+    """Get weather for a city."""
+    # Simulate API call
+    temperature = random.randint(10, 40)
+    condition = "sunny"
+
+    return f"Weather in {city}: {temperature}°C, {condition}"
+
+# Run the server
+async def main():
+    # Your server setup and connection logic here
+    try:
+        # Server connection logic would go here
+        await asyncio.sleep(60)  # Keep server running
+    finally:
+        await observability.shutdown()
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+```python Python (FastMCP)
 import os
 import random
 from mcp.server.fastmcp import FastMCP
