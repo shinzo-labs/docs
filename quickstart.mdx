@@ -9,8 +9,17 @@ Get up and running with Shinzo Platform in just a few minutes. This guide will w
 
 ## Prerequisites
 
+Choose one based on your language:
+
+**TypeScript/JavaScript:**
 - [Node.js 18](https://nodejs.org/en/download) or higher
 - An existing MCP server using [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
+
+**Python:**
+- [Python 3.10](https://www.python.org/downloads/) or higher
+- An existing MCP server using [MCP Python SDK[(https://github.com/modelcontextprotocol/python-sdk) or [FastMCP](https://github.com/jlowin/fastmcp)
+
+**Both:**
 - A Shinzo Platform account (sign up at [app.shinzo.ai](https://app.shinzo.ai))
 
 ## Step 1: Install the SDK
@@ -18,16 +27,20 @@ Get up and running with Shinzo Platform in just a few minutes. This guide will w
 Install the Shinzo instrumentation SDK in your MCP server project:
 
 <CodeGroup>
-```bash npm
+```bash TypeScript - npm
 npm install @shinzolabs/instrumentation-mcp
 ```
 
-```bash pnpm
+```bash TypeScript - pnpm
 pnpm add @shinzolabs/instrumentation-mcp
 ```
 
-```bash yarn
+```bash TypeScript - yarn
 yarn add @shinzolabs/instrumentation-mcp
+```
+
+```bash Python - pip
+pip install shinzo
 ```
 </CodeGroup>
 
@@ -41,7 +54,8 @@ yarn add @shinzolabs/instrumentation-mcp
 
 Add telemetry to your MCP server with just a few lines of code:
 
-```typescript
+<CodeGroup>
+```typescript TypeScript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
 
@@ -76,6 +90,38 @@ server.tool("example_tool", {
 })
 ```
 
+```python Python
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+
+# Create FastMCP server
+mcp = FastMCP(name="my-awesome-server")
+
+# Instrument it with Shinzo
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "my-awesome-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": "your-ingest-token-here"  # Replace with your actual token
+        }
+    }
+)
+
+# Define your tools
+@mcp.tool()
+def example_tool(message: str) -> str:
+    """An example tool."""
+    return f"Hello, {message}!"
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run()
+```
+</CodeGroup>
+
 <Warning>
 Replace `your-ingest-token-here` with your actual ingest token from Step 2.
 </Warning>
@@ -99,7 +145,8 @@ Support for other capabilities like Resources, Prompts, and User Elicitation is 
 
 Here's a complete example of an instrumented MCP server:
 
-```typescript
+<CodeGroup>
+```typescript TypeScript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
@@ -153,6 +200,44 @@ async function main() {
 main().catch(console.error)
 ```
 
+```python Python
+import os
+import random
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+
+# Create FastMCP server
+mcp = FastMCP(name="weather-server")
+
+# Instrument the server
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "weather-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+
+# Add a weather tool
+@mcp.tool()
+def get_weather(city: str) -> str:
+    """Get weather for a city."""
+    # Simulate API call
+    temperature = random.randint(10, 40)
+    condition = "sunny"
+
+    return f"Weather in {city}: {temperature}°C, {condition}"
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run()
+```
+</CodeGroup>
+
 ## What Gets Collected?
 
 By default, Shinzo Platform collects:
@@ -171,9 +256,12 @@ By default, Shinzo Platform collects:
 
 Now that your server is instrumented:
 
-<CardGroup cols={1}>
-  <Card title="Configure SDK" icon="gear" href="/sdk/typescript/configuration">
-    Learn about advanced configuration options including PII sanitization and custom processors.
+<CardGroup cols={2}>
+  <Card title="TypeScript Configuration" icon="gear" href="/sdk/typescript/configuration">
+    Learn about advanced TypeScript SDK configuration options.
+  </Card>
+  <Card title="Python Configuration" icon="gear" href="/sdk/python/configuration">
+    Learn about advanced Python SDK configuration options.
   </Card>
   <Card title="Explore Dashboard" icon="chart-line" href="/platform/dashboard">
     Discover all the insights available in the Shinzo Platform dashboard.

@@ -43,6 +43,13 @@
               "sdk/typescript/installation",
               "sdk/typescript/configuration"
             ]
+          },
+          {
+            "group": "Python SDK",
+            "pages": [
+              "sdk/python/installation",
+              "sdk/python/configuration"
+            ]
           }
         ]
       }

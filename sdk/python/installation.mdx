@@ -1,0 +1,188 @@
+---
+title: "Installation"
+description: "Install and set up the Shinzo Python SDK for MCP server instrumentation."
+---
+
+# Using the Python SDK
+
+The Shinzo Python SDK provides automatic instrumentation for MCP servers built with Python. Get started with comprehensive telemetry in just a few minutes.
+
+## Requirements
+
+- **Python**: Version [3.10 or higher](https://www.python.org/downloads/)
+- **MCP SDK**: Compatible with both the main [MCP SDK](https://github.com/modelcontextprotocol/python-sdk) and [FastMCP](https://github.com/jlowin/fastmcp) implementations.
+
+## Package Installation
+
+Install the Shinzo instrumentation SDK using pip:
+
+```bash
+pip install shinzo
+```
+
+## Basic Setup
+
+Once installed, instrument your MCP server with just a few lines of code:
+
+### FastMCP Example
+
+```python
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+
+# Create FastMCP server
+mcp = FastMCP(name="my-mcp-server")
+
+# Instrument it with Shinzo
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": "your-ingest-token-here"
+        }
+    }
+)
+
+# Define your tools
+@mcp.tool()
+def get_weather(city: str) -> str:
+    """Get weather for a city."""
+    return f"Weather for {city}: Sunny"
+
+# Run the server
+if __name__ == "__main__":
+    mcp.run()
+```
+
+### Traditional MCP SDK Example
+
+```python
+from mcp.server import Server
+from shinzo import instrument_server
+
+# Create your MCP server
+server = Server("my-mcp-server")
+
+# Instrument it with Shinzo
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": "your-ingest-token-here"
+        }
+    }
+)
+
+# Define your tools
+@server.call_tool()
+async def get_weather(city: str) -> str:
+    return f"Weather for {city}: Sunny"
+
+# Clean shutdown
+async def shutdown():
+    await observability.shutdown()
+```
+
+## SDK Compatibility
+
+Shinzo automatically detects and instruments your MCP server regardless of which Python SDK you use:
+
+| SDK | Detection Method | Decorator | Use Case |
+|-----|-----------------|-----------|----------|
+| **FastMCP** | `server.tool` attribute | `@mcp.tool()` | Simpler API, modern Python patterns, recommended for new projects |
+| **Traditional MCP** | `server.call_tool` attribute | `@server.call_tool()` | Standard MCP specification, more configuration options |
+
+Both SDKs receive the same comprehensive instrumentation with no additional configuration needed.
+
+## Environment Variables
+
+For better security and configuration management, consider using environment variables:
+
+```bash
+# .env file
+SHINZO_TOKEN=your-ingest-token-here
+SHINZO_ENDPOINT=https://api.app.shinzo.ai/telemetry/ingest_http
+```
+
+```python
+import os
+from shinzo import instrument_server
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": os.getenv("SHINZO_ENDPOINT"),
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+## Verification
+
+### 1. Test with Console Exporter
+For development, use the console exporter to see telemetry locally:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_type": "console",  # Outputs to console instead of HTTP
+        "enable_metrics": False  # Console exporter doesn't support metrics
+    }
+)
+```
+
+### 2. Execute a Tool
+Run your server and execute any tool. You should see telemetry data in:
+- Console output (if using console exporter)
+- Shinzo Platform dashboard (if using HTTP exporter)
+
+## Troubleshooting Installation
+
+### Import Errors
+
+If you encounter import errors:
+
+1. **Check Python version**: Ensure you're using Python 3.10+.
+2. **Verify installation**: Run `pip show shinzo` to confirm it's installed.
+3. **Virtual environment**: Make sure you're in the correct virtual environment.
+
+### Type Errors
+
+For type checking issues:
+
+1. **Install type checker**: `pip install mypy`.
+2. **Check Python version**: Ensure you're using Python 3.10+ for proper type hints.
+
+### Network Issues
+
+If telemetry isn't reaching the Shinzo Platform:
+
+1. **Check firewall**: Ensure outbound HTTPS connections are allowed.
+2. **Verify endpoint**: Confirm the endpoint URL is correct.
+3. **Test connectivity**: Try `curl https://api.app.shinzo.ai/health`.
+
+## Next Steps
+
+Now that you have the SDK installed:
+
+<CardGroup cols={1}>
+  <Card title="Configuration" icon="gear" href="/sdk/python/configuration">
+    Learn about all available configuration options.
+  </Card>
+</CardGroup>
+
+Need help? Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com) or check our [GitHub repository](https://github.com/shinzo-labs/shinzo-py).
