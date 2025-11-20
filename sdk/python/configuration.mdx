@@ -1,0 +1,430 @@
+---
+title: "Configuration"
+description: "Complete configuration guide for the Shinzo Python SDK"
+---
+
+# Configuration
+
+The Shinzo Python SDK provides extensive configuration options to customize telemetry collection, data processing, and export behavior for your MCP server.
+
+## Basic Configuration
+
+The minimal configuration requires only a few essential parameters:
+
+```python
+from shinzo import instrument_server
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": "your-ingest-token-here"
+        }
+    }
+)
+```
+
+## TelemetryConfig Parameters
+
+The configuration dictionary provides comprehensive configuration options:
+
+### Required Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `server_name` | `str` | Name of your MCP server |
+| `server_version` | `str` | Version of your MCP server |
+
+### Export Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `exporter_endpoint` | `str` | `"https://api.app.shinzo.ai/telemetry/ingest_http"` | OpenTelemetry collector endpoint URL |
+| `exporter_type` | `"otlp-http" \| "console"` | `"otlp-http"` | Type of telemetry exporter |
+| `exporter_auth` | `dict` | `None` | Authentication configuration |
+
+### Data Collection
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `enable_tracing` | `bool` | `True` | Enable trace collection |
+| `enable_metrics` | `bool` | `True` | Enable metrics collection |
+| `enable_argument_collection` | `bool` | `True` | Collect tool arguments in traces |
+| `sampling_rate` | `float` | `1.0` | Trace sampling rate (0.0 to 1.0) |
+
+### Privacy & Processing
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `enable_pii_sanitization` | `bool` | `False` | Enable automatic PII sanitization |
+| `pii_sanitizer` | `PIISanitizer` | `None` | Custom PII sanitizer instance |
+| `data_processors` | `list[Callable]` | `None` | Custom data processing functions |
+
+### Performance
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `metric_export_interval_ms` | `int` | `60000` | Metric export interval in milliseconds |
+| `batch_timeout_ms` | `int` | `30000` | Batch timeout in milliseconds |
+
+## Authentication Configuration
+
+### Bearer Token Authentication (required for the Shinzo Platform)
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### API Key Authentication
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://custom-endpoint.com/v1",
+        "exporter_auth": {
+            "type": "apiKey",
+            "api_key": os.getenv("API_KEY")
+        }
+    }
+)
+```
+
+### Basic Authentication
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://custom-endpoint.com/v1",
+        "exporter_auth": {
+            "type": "basic",
+            "username": os.getenv("USERNAME"),
+            "password": os.getenv("PASSWORD")
+        }
+    }
+)
+```
+
+## Exporter Types
+
+### OTLP HTTP Exporter (Default)
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_type": "otlp-http",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### Console Exporter (Development)
+
+Perfect for development and debugging:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_type": "console",
+        "enable_metrics": False,  # Console exporter doesn't support metrics
+        "sampling_rate": 1.0  # Sample all traces in development
+    }
+)
+```
+
+## Privacy Configuration
+
+### Built-in PII Sanitization
+
+The SDK can automatically detect and sanitize common PII patterns:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "enable_pii_sanitization": True,
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### Custom PII Sanitizer
+
+Implement your own PII sanitization logic:
+
+```python
+from shinzo import PIISanitizer
+
+class CustomPIISanitizer:
+    def sanitize(self, data):
+        """Custom sanitization logic."""
+        if isinstance(data, str):
+            # Replace credit card numbers
+            import re
+            return re.sub(r'\b\d{4}-\d{4}-\d{4}-\d{4}\b', '****-****-****-****', data)
+        return data
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "pii_sanitizer": CustomPIISanitizer(),
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+## Data Processing
+
+### Custom Data Processors
+
+Add custom logic to process telemetry data before export:
+
+```python
+def remove_sensitive_args(data):
+    """Remove sensitive tool arguments."""
+    if data.get('mcp.tool.name') == 'sensitive_operation':
+        for key in list(data.keys()):
+            if key.startswith('mcp.request.argument'):
+                del data[key]
+    return data
+
+def add_custom_metadata(data):
+    """Add custom metadata to all telemetry."""
+    data['environment'] = os.getenv('ENVIRONMENT', 'development')
+    data['deployment.version'] = os.getenv('DEPLOYMENT_VERSION')
+    return data
+
+def filter_health_checks(data):
+    """Filter out health check spans."""
+    if data.get('mcp.tool.name') == 'health_check':
+        return None  # Return None to skip this data
+    return data
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "data_processors": [
+            remove_sensitive_args,
+            add_custom_metadata,
+            filter_health_checks
+        ],
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+## Sampling Configuration
+
+### Fixed Sampling Rate
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "sampling_rate": 0.1,  # Sample 10% of traces
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### Environment-based Sampling
+
+```python
+import os
+
+def get_sampling_rate():
+    env = os.getenv('ENVIRONMENT', 'development')
+    rates = {
+        'production': 0.05,   # 5% in production
+        'staging': 0.25,      # 25% in staging
+        'development': 1.0    # 100% in development
+    }
+    return rates.get(env, 0.1)  # 10% default
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "sampling_rate": get_sampling_rate(),
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+## Performance Tuning
+
+### Batch Configuration
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "batch_timeout_ms": 1000,           # Export every 1 second
+        "metric_export_interval_ms": 10000,  # Export metrics every 10 seconds
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### Memory Optimization
+
+For high-throughput servers:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "sampling_rate": 0.01,                # Low sampling rate
+        "enable_argument_collection": False,  # Skip argument collection
+        "batch_timeout_ms": 500,              # Frequent exports
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+## Environment-Specific Configuration
+
+### Development Configuration
+
+```python
+import os
+
+is_development = os.getenv('ENVIRONMENT') == 'development'
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_type": "console" if is_development else "otlp-http",
+        "exporter_endpoint": None if is_development else "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "enable_metrics": not is_development,  # Disable metrics for console output
+        "sampling_rate": 1.0 if is_development else 0.1,
+        "enable_argument_collection": is_development,
+        "exporter_auth": None if is_development else {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+### Production Configuration
+
+```python
+import os
+
+def add_production_metadata(data):
+    data['environment'] = 'production'
+    data['service.instance.id'] = os.getenv('HOSTNAME')
+    return data
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": os.getenv("APP_VERSION", "1.0.0"),
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        },
+        "sampling_rate": 0.05,
+        "enable_argument_collection": False,
+        "enable_pii_sanitization": True,
+        "batch_timeout_ms": 2000,
+        "metric_export_interval_ms": 30000,
+        "data_processors": [add_production_metadata]
+    }
+)
+```
+
+## Configuration Validation
+
+The SDK validates configuration at startup and will raise `ValueError` for common issues:
+
+- Missing required parameters (`server_name`, `server_version`)
+- Invalid sampling rates (must be between 0.0 and 1.0)
+- Incomplete authentication configuration
+- Invalid exporter types
+
+```python
+from shinzo import ConfigValidator
+
+# Manually validate configuration
+try:
+    ConfigValidator.validate(config)
+except ValueError as e:
+    print(f"Configuration error: {e}")
+```
