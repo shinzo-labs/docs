@@ -13,7 +13,7 @@
     </p>
     <div align="center">
     </div>
-    Welcome to the Shinzo Platform documentation repository. This documentation is built with [Mintlify](https://mintlify.com) and covers our OpenTelemetry-compatible observability platform designed specifically for Model Context Protocol (MCP) developers.
+    Welcome to the Shinzo Platform documentation repository. This documentation is built with Mintlify and covers our OpenTelemetry-compatible observability platform designed specifically for Model Context Protocol (MCP) developers.
     <p align=center>
         <a href="https://docs.shinzo.ai/"><strong>Explore the docs »</strong></a>
     </p>
