@@ -22,15 +22,18 @@
 <details>
   <summary>📋 Table of Contents</summary>
 
-  - [🤖 About Shinzo](#about-shinzo)
-    - [🏗️ System Architecture](#system-architecture)
-    - [✨ Key Features](#key-features)
-  - [⚙️ Setup](#setup)
-  - [🗺️ Roadmap](#roadmap)
-  - [🤝 Contributing](#contributing)
-  - [📄 License](#license)
-  - [📞 Contact](#contact)
-  - [📚 Additional Resources](##additional-resources)
+  - [What is Shinzo Platform?](#what-is-shinzo-platform)
+  - [Documentation Structure](#documentation-structure)
+    - [Getting Started](#getting-started)
+    - [Concepts](#concepts)
+    - [Platform](#platform)
+    - [SDK Documentation](#sdk-documentation)
+      - [TypeScript SDK](#typescript-sdk)
+      - [Python SDK](#python-sdk)
+  - [Local Development](#local-development)
+    - [Prerequisites](#prerequisites)
+    - [Setup](#setup)
+    - [Running Locally](#running-locally)
 </details>
 
 ## What is Shinzo Platform?
