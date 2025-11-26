@@ -1,131 +1,174 @@
-# Mintlify Starter Kit
+# Shinzo Platform Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Welcome to the Shinzo Platform documentation repository. This documentation is built with [Mintlify](https://mintlify.com) and covers our OpenTelemetry-compatible observability platform designed specifically for Model Context Protocol (MCP) developers.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## What is Shinzo Platform?
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+Shinzo Platform provides comprehensive observability for MCP servers, offering:
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+- **MCP-Native Observability**: Purpose-built monitoring for MCP tools, resources, and prompts
+- **OpenTelemetry Compatibility**: Industry-standard telemetry with MCP-specific insights
+- **Zero-Configuration Instrumentation**: Get started in minutes with our SDKs
+- **Privacy-First Design**: Built-in PII sanitization and configurable data processing
 
-## Development
+## Documentation Structure
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+The documentation is organized into the following sections:
 
-```
-npm i -g mint
-```
+### Getting Started
+- **[Quick Start Guide](/quickstart)** - Get your MCP server instrumented in under 5 minutes
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+### Concepts
+- **[Model Context Protocol (MCP)](/concepts/mcp)** - Understanding MCP and why observability matters for MCP developers
+- **[OpenTelemetry](/concepts/opentelemetry)** - How Shinzo leverages OpenTelemetry standards
 
-```
-mint dev
-```
+### Platform
+- **[Dashboard](/platform/dashboard)** - Guide to using the Shinzo Platform web dashboard
 
-View your local preview at `http://localhost:3000`.
+### SDK Documentation
 
-## Publishing changes
+#### TypeScript SDK
+- **[Installation](/sdk/typescript/installation)** - Installing and setting up the TypeScript SDK
+- **[Configuration](/sdk/typescript/configuration)** - Advanced configuration options for TypeScript
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+#### Python SDK
+- **[Installation](/sdk/python/installation)** - Installing and setting up the Python SDK
+- **[Configuration](/sdk/python/configuration)** - Advanced configuration options for Python
 
-## Need help?
+## Local Development
 
-### Troubleshooting
+### Prerequisites
+- Node.js version 19 or higher
+- npm, pnpm, or yarn
 
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
+### Setup
 
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
-
-
----
-title: 'Development'
-description: 'Preview changes locally to update your docs'
----
-
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
-
-Follow these steps to install and run Mintlify on your operating system.
-
-<Steps>
-<Step title="Install the Mintlify CLI">
+Install the Mintlify CLI globally:
 
 ```bash
 npm i -g mint
 ```
-</Step>
 
-<Step title="Preview locally">
+### Running Locally
 
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+Navigate to the docs directory and start the development server:
 
 ```bash
 mint dev
 ```
 
-A local preview of your documentation will be available at `http://localhost:3000`.
+Your local preview will be available at `http://localhost:3000`.
 
-</Step>
-</Steps>
+### Custom Ports
 
-## Custom ports
-
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
+To run Mintlify on a specific port:
 
 ```bash
 mint dev --port 3333
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
+If a port is already in use, Mintlify will automatically use the next available port.
 
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
+### Validating Links
 
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
-
-```bash
-npm mint update
-```
-
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
+Check for broken links in the documentation:
 
 ```bash
 mint broken-links
 ```
 
-## Code formatting
+### Keeping CLI Updated
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+Update to the latest Mintlify CLI version:
+
+```bash
+npm i -g mint@latest
+```
+
+## Contributing
+
+We welcome contributions to improve the Shinzo Platform documentation! Here's how you can help:
+
+### Reporting Issues
+
+If you find errors, broken links, or unclear explanations:
+
+1. Check [existing issues](https://github.com/shinzo-labs/docs/issues) to avoid duplicates
+2. Open a new issue with a clear description of the problem
+3. Include the page URL and suggested improvements
+
+### Submitting Changes
+
+1. **Fork the repository** and create a new branch for your changes
+2. **Make your edits** following our writing standards (see below)
+3. **Test locally** using `mint dev` to preview your changes
+4. **Validate** that all links work using `mint broken-links`
+5. **Submit a pull request** with a clear description of your changes
+
+### Writing Standards
+
+When contributing documentation:
+
+- **Voice**: Use passive voice for direct, clear instructions (avoid "you" and "your")
+- **Prerequisites**: List prerequisites at the start of procedural content
+- **Code examples**: Test all code examples before submitting
+- **Formatting**: Match the style and formatting of existing pages
+- **Language tags**: Include language tags on all code blocks
+- **Alt text**: Add descriptive alt text to all images
+- **Links**: Use relative paths for internal links (e.g., `/quickstart` not `https://docs.shinzo.ai/quickstart`)
+
+### Frontmatter Requirements
+
+Every MDX file must include frontmatter with:
+
+```yaml
+---
+title: "Clear, descriptive page title"
+description: "Concise summary for SEO and navigation"
+---
+```
+
+### Content Strategy
+
+- Document just enough for user success - avoid over-explaining
+- Prioritize accuracy and usability
+- Make content evergreen when possible
+- Search for existing information before adding new content
+- Check existing patterns for consistency
+- Start by making the smallest reasonable changes
+
+## Publishing Changes
+
+Changes to the documentation are automatically deployed to production when merged to the `main` branch through our GitHub integration.
 
 ## Troubleshooting
 
-<AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
+### Development Server Issues
 
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
-  </Accordion>
+**Error: Could not load the "sharp" module**
+- This may indicate an outdated Node.js version
+- Remove the CLI: `npm remove -g mint`
+- Upgrade to Node v19 or higher
+- Reinstall: `npm i -g mint`
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
-  </Accordion>
-</AccordionGroup>
+**Unknown errors**
+- Delete the `~/.mintlify` folder from your home directory
+- Run `mint dev` again
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+### Links Not Working
+
+Make sure you're using relative paths for internal links:
+
+- ✅ Good: `/quickstart`
+- ❌ Bad: `https://docs.shinzo.ai/quickstart`
+
+## Resources
+
+- [Mintlify Documentation](https://mintlify.com/docs)
+- [Shinzo Platform](https://app.shinzo.ai)
+- [GitHub Repository](https://github.com/shinzo-labs)
+- [Support](mailto:austin@shinzolabs.com)
+
+## License
+
+This documentation is maintained by Shinzo Labs under the MIT License.
