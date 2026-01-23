@@ -1,0 +1,562 @@
+---
+title: "Claude Code + Shinzo Integration"
+description: "Integrate Claude Code with Shinzo Platform for comprehensive MCP server observability and analytics."
+---
+
+# Claude Code + Shinzo Integration
+
+Connect Claude Code and your MCP servers to Shinzo Platform for unified observability across your AI development workflow. This guide covers both Claude Code telemetry integration and MCP server instrumentation.
+
+## Overview
+
+Shinzo Platform provides comprehensive observability for AI agents and MCP servers, complementing Claude Code's built-in analytics with:
+
+- **MCP-native monitoring**: Track tool executions, resources, and prompts
+- **Unified dashboard**: View both Claude Code metrics and MCP server performance
+- **Cross-platform analytics**: Monitor server usage across different AI clients
+- **Privacy-first design**: Built-in PII sanitization and configurable data collection
+- **OpenTelemetry compatibility**: Industry-standard telemetry format
+
+## Architecture
+
+```
+┌─────────────────┐
+│   Claude Code   │ ──────> OpenTelemetry ──────> Observability Backend
+│      CLI        │                                (Prometheus, Datadog, etc.)
+└─────────────────┘
+
+┌─────────────────┐
+│   MCP Server    │ ──────> Shinzo SDK ──────────> Shinzo Platform
+│  (Instrumented) │                                (app.shinzo.ai)
+└─────────────────┘
+```
+
+## Prerequisites
+
+Before starting, ensure:
+
+- **Claude Code installed**: See [Analytics Setup](/claude-code/analytics-setup)
+- **MCP server**: Existing MCP server built with official SDK or FastMCP
+- **Shinzo account**: Sign up at [app.shinzo.ai](https://app.shinzo.ai)
+- **Node.js 18+** (for TypeScript) or **Python 3.10+** (for Python)
+
+## Part 1: Connect Claude Code to Shinzo
+
+### Option A: Direct OTLP Integration
+
+Send Claude Code telemetry directly to Shinzo Platform:
+
+```bash
+# Enable Claude Code telemetry
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+
+# Configure OTLP exporters
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+
+# Point to Shinzo Platform endpoint
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.app.shinzo.ai/telemetry/ingest_http
+
+# Authenticate with Shinzo ingest token
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer YOUR_SHINZO_TOKEN"
+
+# Add organization context
+export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code,team=engineering"
+
+# Run Claude Code
+claude
+```
+
+<Note>
+  Replace `YOUR_SHINZO_TOKEN` with your actual ingest token from Shinzo Platform Settings → Ingest Tokens.
+</Note>
+
+### Option B: Via OpenTelemetry Collector
+
+For more complex deployments, route through an OTLP collector:
+
+1. **Configure local collector** to forward to Shinzo:
+
+```yaml
+# otel-collector-config.yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  otlphttp:
+    endpoint: https://api.app.shinzo.ai/telemetry/ingest_http
+    headers:
+      Authorization: "Bearer YOUR_SHINZO_TOKEN"
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      exporters: [otlphttp]
+    logs:
+      receivers: [otlp]
+      exporters: [otlphttp]
+```
+
+2. **Start the collector**:
+
+```bash
+docker run -d \
+  -v $(pwd)/otel-collector-config.yaml:/etc/otel/config.yaml \
+  -p 4317:4317 \
+  -p 4318:4318 \
+  otel/opentelemetry-collector \
+  --config=/etc/otel/config.yaml
+```
+
+3. **Configure Claude Code** to use local collector:
+
+```bash
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+claude
+```
+
+## Part 2: Instrument MCP Servers for Shinzo
+
+### Step 1: Sign Up for Shinzo Platform
+
+1. Visit [app.shinzo.ai](https://app.shinzo.ai)
+2. Create an account or sign in
+3. Navigate to **Settings → Ingest Tokens**
+4. Copy your ingest token (format: `abc123def456...`)
+
+### Step 2: Install Shinzo SDK
+
+Add the Shinzo instrumentation library to your MCP server:
+
+<CodeGroup>
+```bash npm
+npm install @shinzolabs/instrumentation-mcp
+```
+
+```bash pnpm
+pnpm add @shinzolabs/instrumentation-mcp
+```
+
+```bash pip
+pip install shinzo
+```
+</CodeGroup>
+
+### Step 3: Instrument Your MCP Server
+
+Add telemetry to your MCP server with minimal code changes:
+
+<CodeGroup>
+```typescript TypeScript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+// Create your MCP server
+const server = new McpServer({
+  name: "my-mcp-server",
+  version: "1.0.0",
+  description: "My MCP server with Shinzo observability"
+})
+
+// Instrument with Shinzo
+const telemetry = instrumentServer(server, {
+  serverName: server.name,
+  serverVersion: server.version,
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+
+// Define your tools
+server.tool("example_tool", {
+  description: "An example tool",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: { type: "string" }
+    }
+  }
+}, async (args) => {
+  // Tool implementation
+  return { content: `Result for: ${args.query}` }
+})
+```
+
+```python Python (MCP SDK)
+import os
+from mcp.server import Server
+from shinzo import instrument_server
+
+# Create your MCP server
+server = Server("my-mcp-server")
+
+# Instrument with Shinzo
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+
+# Define your tools
+@server.call_tool()
+async def example_tool(query: str) -> str:
+    """An example tool."""
+    return f"Result for: {query}"
+
+# Ensure clean shutdown
+async def shutdown():
+    await observability.shutdown()
+```
+
+```python Python (FastMCP)
+import os
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+
+# Create FastMCP server
+mcp = FastMCP(name="my-mcp-server")
+
+# Instrument with Shinzo
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+
+# Define your tools
+@mcp.tool()
+def example_tool(query: str) -> str:
+    """An example tool."""
+    return f"Result for: {query}"
+
+if __name__ == "__main__":
+    mcp.run()
+```
+</CodeGroup>
+
+### Step 4: Configure MCP Server in Claude Code
+
+Connect your instrumented MCP server to Claude Code:
+
+1. **Create MCP config file** at `~/.claude/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "my-mcp-server": {
+      "command": "node",
+      "args": ["/path/to/your/server/index.js"],
+      "env": {
+        "SHINZO_TOKEN": "your-shinzo-ingest-token"
+      }
+    }
+  }
+}
+```
+
+2. **For Python servers**:
+
+```json
+{
+  "mcpServers": {
+    "my-mcp-server": {
+      "command": "python",
+      "args": ["/path/to/your/server.py"],
+      "env": {
+        "SHINZO_TOKEN": "your-shinzo-ingest-token"
+      }
+    }
+  }
+}
+```
+
+3. **Restart Claude Code** to load the MCP server.
+
+## Viewing Analytics in Shinzo Platform
+
+### Access the Dashboard
+
+1. Log in to [app.shinzo.ai](https://app.shinzo.ai)
+2. Navigate to **Dashboard** for overview metrics
+3. Check **Traces** for detailed execution logs
+4. Visit **Resources** for server performance data
+
+### Available Metrics
+
+#### Claude Code Metrics (via OTLP)
+
+When Claude Code telemetry is forwarded to Shinzo:
+- Session counts and active time
+- Token usage and costs
+- Code modifications (lines added/removed)
+- Git operations (commits, PRs)
+- Tool execution decisions
+
+#### MCP Server Metrics (via Shinzo SDK)
+
+When MCP servers are instrumented:
+- Tool execution times and success rates
+- Error rates and exception tracking
+- Request throughput
+- Server performance metrics
+
+### Creating Custom Dashboards
+
+Combine metrics from both sources:
+
+1. **Cost Analysis**: Track total AI costs (Claude API + infrastructure)
+2. **Productivity**: Correlate code changes with tool usage
+3. **Performance**: Monitor end-to-end latency (Claude Code + MCP tools)
+4. **Team Analytics**: Segment by user, team, or project
+
+## Advanced Configuration
+
+### Multi-Environment Setup
+
+Separate development and production telemetry:
+
+```bash
+# Development
+export OTEL_RESOURCE_ATTRIBUTES="environment=dev,team=platform"
+
+# Production
+export OTEL_RESOURCE_ATTRIBUTES="environment=prod,team=platform"
+```
+
+### Custom Sampling
+
+Reduce data volume with sampling:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  // Sample 50% of requests
+  samplingRate: 0.5
+})
+```
+
+### Privacy Controls
+
+Configure what data is collected from MCP servers:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  // Privacy settings
+  collectToolArguments: false,  // Don't log tool parameters
+  collectToolResults: false,    // Don't log tool outputs
+  sanitizePII: true             // Enable PII detection and removal
+})
+```
+
+## Complete Example: Weather MCP Server
+
+Here's a complete example integrating Claude Code + MCP server + Shinzo:
+
+<CodeGroup>
+```typescript server.ts
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const server = new McpServer({
+  name: "weather-server",
+  version: "1.0.0"
+})
+
+// Instrument with Shinzo
+instrumentServer(server, {
+  serverName: "weather-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+
+// Weather tool
+server.tool("get_weather", {
+  description: "Get weather for a city",
+  inputSchema: {
+    type: "object",
+    properties: {
+      city: { type: "string" }
+    },
+    required: ["city"]
+  }
+}, async (args) => {
+  const temp = Math.round(Math.random() * 30 + 10)
+  return {
+    content: `Weather in ${args.city}: ${temp}°C, sunny`
+  }
+})
+
+async function main() {
+  const transport = new StdioServerTransport()
+  await server.connect(transport)
+}
+
+main().catch(console.error)
+```
+
+```json ~/.claude/mcp.json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "node",
+      "args": ["./dist/server.js"],
+      "env": {
+        "SHINZO_TOKEN": "your-shinzo-token-here"
+      }
+    }
+  }
+}
+```
+
+```bash Environment Setup
+# Enable Claude Code telemetry
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.app.shinzo.ai/telemetry/ingest_http
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-shinzo-token-here"
+export OTEL_RESOURCE_ATTRIBUTES="service.name=claude-code,environment=production"
+
+# Run Claude Code
+claude
+```
+</CodeGroup>
+
+## Troubleshooting
+
+### MCP Server Not Sending Data
+
+1. **Verify Shinzo token**:
+   ```bash
+   echo $SHINZO_TOKEN
+   ```
+
+2. **Check network connectivity**:
+   ```bash
+   curl -v https://api.app.shinzo.ai/telemetry/ingest_http
+   ```
+
+3. **Enable debug logging** in your server:
+   ```typescript
+   const telemetry = instrumentServer(server, {
+     // ... config
+     exporterType: "console"  // Temporarily output to console
+   })
+   ```
+
+### Claude Code Metrics Not Appearing
+
+1. **Verify telemetry is enabled**:
+   ```bash
+   env | grep CLAUDE_CODE_ENABLE_TELEMETRY
+   ```
+
+2. **Check exporter configuration**:
+   ```bash
+   env | grep OTEL_
+   ```
+
+3. **Test with console exporter first**:
+   ```bash
+   export OTEL_METRICS_EXPORTER=console
+   ```
+
+### Authentication Errors
+
+Ensure tokens are correctly formatted:
+
+```bash
+# Correct format (no extra quotes or spaces)
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer abc123..."
+
+# Check what's set
+echo $OTEL_EXPORTER_OTLP_HEADERS
+```
+
+## Best Practices
+
+### Security
+
+- **Store tokens securely**: Use environment variables or secret managers
+- **Rotate tokens regularly**: Update ingest tokens periodically
+- **Use HTTPS**: Always use encrypted transport (built-in with Shinzo)
+- **Limit token scope**: Use separate tokens for dev/staging/prod
+
+### Performance
+
+- **Use batching**: Default export intervals are optimized (don't change unnecessarily)
+- **Sample high-volume servers**: Reduce data for high-traffic MCP servers
+- **Monitor overhead**: Shinzo SDK adds minimal latency (<1ms per tool call)
+
+### Organization
+
+- **Consistent naming**: Use clear server names across environments
+- **Tag resources**: Use `OTEL_RESOURCE_ATTRIBUTES` for segmentation
+- **Document integrations**: Maintain inventory of instrumented servers
+- **Set up alerts**: Configure notifications for errors or performance issues
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="View Platform Dashboard" icon="chart-line" href="/platform/dashboard">
+    Explore the Shinzo Platform dashboard features and capabilities.
+  </Card>
+  <Card title="TypeScript SDK Reference" icon="code" href="/sdk/typescript/configuration">
+    Learn about advanced TypeScript SDK configuration options.
+  </Card>
+  <Card title="Python SDK Reference" icon="code" href="/sdk/python/configuration">
+    Learn about advanced Python SDK configuration options.
+  </Card>
+  <Card title="Analytics Setup" icon="gear" href="/claude-code/analytics-setup">
+    Deep dive into Claude Code analytics configuration.
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Claude Code MCP Documentation](https://code.claude.com/docs/en/mcp)
+- [Model Context Protocol Specification](https://spec.modelcontextprotocol.io/)
+- [Shinzo GitHub Repository](https://github.com/shinzo-labs/shinzo)
+- [OpenTelemetry Documentation](https://opentelemetry.io/docs/)

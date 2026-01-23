@@ -27,6 +27,7 @@
     - [Getting Started](#getting-started)
     - [Concepts](#concepts)
     - [Platform](#platform)
+    - [Claude Code](#claude-code)
     - [SDK Documentation](#sdk-documentation)
       - [TypeScript SDK](#typescript-sdk)
       - [Python SDK](#python-sdk)
@@ -58,6 +59,11 @@ The documentation is organized into the following sections:
 
 ### Platform
 - **[Dashboard](/platform/dashboard)** - Guide to using the Shinzo Platform web dashboard
+
+### Claude Code
+- **[Overview](/claude-code/overview)** - Understanding Claude Code and its analytics capabilities
+- **[Analytics Setup](/claude-code/analytics-setup)** - Complete guide to enabling Claude Code telemetry and monitoring
+- **[Shinzo Integration](/claude-code/shinzo-integration)** - Integrate Claude Code with Shinzo Platform for comprehensive observability
 
 ### SDK Documentation
 

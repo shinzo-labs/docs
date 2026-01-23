@@ -35,6 +35,19 @@
         ]
       },
       {
+        "tab": "Claude Code",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "claude-code/overview",
+              "claude-code/analytics-setup",
+              "claude-code/shinzo-integration"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "SDK",
         "groups": [
           {

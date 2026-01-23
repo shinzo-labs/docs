@@ -1,0 +1,127 @@
+---
+title: "Claude Code Overview"
+description: "Understanding Claude Code and its analytics capabilities for AI-powered development."
+---
+
+# Claude Code Overview
+
+Claude Code is Anthropic's AI-powered coding assistant available as a CLI tool, IDE integration, and web interface. Built on the Claude Agent SDK (formerly Claude Code SDK), it provides developers with intelligent code generation, debugging, and refactoring capabilities.
+
+## What is Claude Code?
+
+Claude Code is an interactive AI assistant designed specifically for software engineering tasks. It can:
+
+- Generate and modify code across multiple languages
+- Debug issues and fix errors
+- Create git commits and pull requests
+- Execute terminal commands
+- Read and analyze codebases
+- Integrate with external tools via Model Context Protocol (MCP)
+
+## Why Analytics Matter
+
+Understanding Claude Code usage patterns helps organizations:
+
+- **Measure ROI**: Track productivity gains and cost efficiency
+- **Monitor adoption**: Understand team engagement with AI tools
+- **Optimize workflows**: Identify bottlenecks and improvement opportunities
+- **Control costs**: Monitor token usage and API spending
+- **Ensure compliance**: Track tool usage for security and audit requirements
+
+## Analytics Capabilities
+
+Claude Code provides comprehensive telemetry through OpenTelemetry integration:
+
+### Built-in Telemetry
+
+Claude Code includes native OpenTelemetry support for:
+- Token usage metrics (input, output, cache read/write)
+- Cost tracking per model and session
+- Session analytics and active time monitoring
+- Tool execution metrics and success rates
+- Code modification tracking (lines added/removed)
+- Git operations (commits, pull requests)
+
+### Enhanced Observability with Shinzo Platform
+
+For teams using Model Context Protocol (MCP) servers, Shinzo Platform provides additional observability:
+- MCP server performance monitoring
+- Tool execution tracing
+- Agent interaction analytics
+- Custom metrics and dashboards
+- Multi-team usage segmentation
+
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card title="Setup Claude Code Analytics" icon="chart-line" href="/claude-code/analytics-setup">
+    Learn how to enable and configure OpenTelemetry for Claude Code monitoring.
+  </Card>
+  <Card title="Integrate with Shinzo" icon="plug" href="/claude-code/shinzo-integration">
+    Connect Claude Code MCP servers to Shinzo Platform for comprehensive observability.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### Token and Cost Tracking
+
+Monitor API usage in real-time with detailed breakdowns by:
+- Model type (Sonnet, Opus, Haiku)
+- Token type (input, output, cache operations)
+- User and organization
+- Session and time period
+
+### Productivity Metrics
+
+Track development impact with metrics for:
+- Lines of code modified
+- Git commits created
+- Pull requests generated
+- Active development time
+- Tool usage patterns
+
+### Privacy-First Design
+
+Claude Code telemetry is designed with privacy in mind:
+- **Opt-in only**: Telemetry requires explicit enablement
+- **Content redaction**: User prompts are redacted by default
+- **No sensitive data**: API keys and file contents never included
+- **Configurable**: Fine-grained control over what data is collected
+
+## Use Cases
+
+### Enterprise Deployment
+
+Organizations can deploy Claude Code with centralized telemetry configuration:
+- Managed settings via MDM or device management
+- Team-based cost allocation
+- Department-level usage tracking
+- Compliance and audit trails
+
+### Individual Developers
+
+Solo developers can use analytics to:
+- Track personal productivity
+- Optimize AI tool usage
+- Control API costs
+- Understand coding patterns
+
+### MCP Server Development
+
+Developers building MCP servers benefit from:
+- Tool performance monitoring
+- Usage pattern analysis
+- Error tracking and debugging
+- Cross-platform analytics
+
+## Next Steps
+
+To start using Claude Code with analytics:
+
+1. **Set up Claude Code**: Sign up at [claude.ai](https://claude.ai) and install the CLI
+2. **Enable telemetry**: Configure OpenTelemetry environment variables
+3. **Choose a backend**: Use Prometheus, Datadog, Honeycomb, or Shinzo Platform
+4. **Start monitoring**: View metrics in your chosen observability platform
+
+For detailed setup instructions, see the [Analytics Setup Guide](/claude-code/analytics-setup).

@@ -1,0 +1,366 @@
+---
+title: "Claude Code Analytics Setup"
+description: "Complete guide to signing up for Claude Code and configuring analytics and telemetry."
+---
+
+# Claude Code Analytics Setup
+
+This guide walks through signing up for Claude Code, installing the CLI, and enabling comprehensive analytics through OpenTelemetry integration.
+
+## Prerequisites
+
+Before getting started, ensure:
+
+- **Operating System**: macOS, Linux, or Windows (with WSL)
+- **Claude Account**: Active Claude Pro subscription ($20/month) or API credits
+- **Terminal Access**: Command line interface for CLI installation
+
+## Step 1: Sign Up for Claude Code
+
+### Creating an Account
+
+1. **Visit the Claude Platform**: Navigate to [claude.ai](https://claude.ai)
+2. **Sign up or log in**: Create a new account or use existing credentials
+3. **Choose a plan**:
+   - **Claude Pro** ($20/month): Recommended for regular development work
+   - **API Credits**: Pay-as-you-go option for API access
+
+### Account Requirements
+
+Claude Code requires authentication through:
+- Claude Pro subscription (includes CLI access)
+- API tokens from the Claude Developer Platform
+
+<Note>
+  Claude Pro is highly recommended for most developers as it provides generous usage limits suitable for casual to mid-intensity development work.
+</Note>
+
+## Step 2: Install Claude Code CLI
+
+### Installation Options
+
+Choose the installation method that works best for your environment:
+
+<CodeGroup>
+```bash macOS/Linux (curl)
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+```bash macOS (Homebrew)
+brew install --cask claude-code
+```
+
+```bash Windows (WSL)
+# From within WSL terminal
+curl -fsSL https://claude.ai/install.sh | bash
+```
+</CodeGroup>
+
+### Verify Installation
+
+After installation, verify Claude Code is working:
+
+```bash
+claude --version
+```
+
+## Step 3: Enable Telemetry
+
+Claude Code uses OpenTelemetry for analytics and monitoring. Telemetry is opt-in and requires explicit configuration.
+
+### Quick Start Configuration
+
+Enable basic telemetry with console output for testing:
+
+```bash
+# 1. Enable telemetry
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+
+# 2. Use console exporter for testing
+export OTEL_METRICS_EXPORTER=console
+export OTEL_LOGS_EXPORTER=console
+
+# 3. Set faster export intervals for testing (optional)
+export OTEL_METRIC_EXPORT_INTERVAL=10000  # 10 seconds
+export OTEL_LOGS_EXPORT_INTERVAL=5000     # 5 seconds
+
+# 4. Run Claude Code
+claude
+```
+
+### Production Configuration
+
+For production deployments, use OTLP (OpenTelemetry Protocol) to send data to a backend:
+
+```bash
+# 1. Enable telemetry
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+
+# 2. Configure OTLP exporter
+export OTEL_METRICS_EXPORTER=otlp
+export OTEL_LOGS_EXPORTER=otlp
+
+# 3. Set collector endpoint
+export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
+
+# 4. Add authentication (if required)
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer your-token"
+
+# 5. Run Claude Code
+claude
+```
+
+### Prometheus Configuration
+
+For Prometheus-based monitoring:
+
+```bash
+export CLAUDE_CODE_ENABLE_TELEMETRY=1
+export OTEL_METRICS_EXPORTER=prometheus
+
+# Prometheus will scrape metrics from the default endpoint
+claude
+```
+
+## Step 4: Configure Observability Backend
+
+Choose an observability platform to collect and visualize Claude Code telemetry:
+
+### Option 1: Shinzo Platform (Recommended for MCP Servers)
+
+Best for teams using MCP servers with comprehensive AI agent observability.
+
+See the [Shinzo Integration Guide](/claude-code/shinzo-integration) for detailed setup.
+
+### Option 2: Prometheus + Grafana
+
+Open-source stack for self-hosted monitoring.
+
+```bash
+# Install Prometheus and Grafana using Docker
+docker run -d -p 9090:9090 prom/prometheus
+docker run -d -p 3000:3000 grafana/grafana
+```
+
+### Option 3: Commercial Platforms
+
+Enterprise-grade observability solutions:
+
+**Datadog**:
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.datadoghq.com
+export OTEL_EXPORTER_OTLP_HEADERS="DD-API-KEY=your-api-key"
+```
+
+**Honeycomb**:
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io
+export OTEL_EXPORTER_OTLP_HEADERS="x-honeycomb-team=your-api-key"
+```
+
+## Step 5: Advanced Configuration
+
+### Cardinality Control
+
+Manage metric cardinality to optimize storage and performance:
+
+```bash
+# Include/exclude specific attributes
+export OTEL_METRICS_INCLUDE_SESSION_ID=true     # Default: true
+export OTEL_METRICS_INCLUDE_VERSION=false       # Default: false
+export OTEL_METRICS_INCLUDE_ACCOUNT_UUID=true   # Default: true
+```
+
+### User Prompt Logging
+
+By default, user prompts are redacted for privacy. Enable full prompt logging:
+
+```bash
+export OTEL_LOG_USER_PROMPTS=1
+```
+
+<Warning>
+  Enabling prompt logging may expose sensitive information. Only enable in secure environments with proper data handling policies.
+</Warning>
+
+### Multi-Team Configuration
+
+Add custom attributes to segment metrics by team or department:
+
+```bash
+export OTEL_RESOURCE_ATTRIBUTES="department=engineering,team=platform,cost_center=eng-123"
+```
+
+<Note>
+  Values cannot contain spaces. Use underscores or camelCase: `team=PlatformTeam` or `team=platform_team`
+</Note>
+
+### Dynamic Authentication
+
+For enterprise environments requiring token rotation:
+
+1. Create a settings file at `~/.claude/settings.json`:
+
+```json
+{
+  "otelHeadersHelper": "/path/to/generate_headers.sh"
+}
+```
+
+2. Create the helper script:
+
+```bash
+#!/bin/bash
+echo "{\"Authorization\": \"Bearer $(get-token.sh)\"}"
+```
+
+3. Set refresh interval (default: 29 minutes):
+
+```bash
+export CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS=900000  # 15 minutes
+```
+
+## Available Metrics
+
+Claude Code exports the following metrics:
+
+| Metric | Description | Unit |
+|--------|-------------|------|
+| `claude_code.session.count` | CLI sessions started | count |
+| `claude_code.lines_of_code.count` | Lines of code modified | count |
+| `claude_code.pull_request.count` | Pull requests created | count |
+| `claude_code.commit.count` | Git commits created | count |
+| `claude_code.cost.usage` | Session cost | USD |
+| `claude_code.token.usage` | Tokens used | tokens |
+| `claude_code.code_edit_tool.decision` | Code editing decisions | count |
+| `claude_code.active_time.total` | Active development time | seconds |
+
+## Available Events
+
+When `OTEL_LOGS_EXPORTER` is configured, Claude Code exports:
+
+- **User Prompt Events**: When users submit prompts
+- **Tool Result Events**: When tools complete execution
+- **API Request Events**: For each Claude API request
+- **API Error Events**: When API requests fail
+- **Tool Decision Events**: When tool permissions are granted/denied
+
+## Enterprise Deployment
+
+### Managed Settings
+
+Administrators can configure Claude Code telemetry organization-wide using managed settings.
+
+Create a managed settings file (distributed via MDM):
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://collector.company.com:4317",
+    "OTEL_EXPORTER_OTLP_HEADERS": "Authorization=Bearer company-token",
+    "OTEL_RESOURCE_ATTRIBUTES": "organization=acme_corp,environment=production"
+  }
+}
+```
+
+<Note>
+  Managed settings have high precedence and cannot be overridden by individual users, ensuring consistent telemetry collection across the organization.
+</Note>
+
+### Cost Allocation
+
+Track costs by team using custom attributes:
+
+```bash
+export OTEL_RESOURCE_ATTRIBUTES="team=backend,project=api_redesign,budget_code=Q1-2026"
+```
+
+Query metrics in your backend to:
+- Generate cost reports by team
+- Set budget alerts
+- Identify high-usage users
+- Optimize AI tool spending
+
+## Troubleshooting
+
+### No Metrics Appearing
+
+1. **Verify telemetry is enabled**:
+   ```bash
+   echo $CLAUDE_CODE_ENABLE_TELEMETRY
+   # Should output: 1
+   ```
+
+2. **Check exporter configuration**:
+   ```bash
+   echo $OTEL_METRICS_EXPORTER
+   # Should output: console, otlp, or prometheus
+   ```
+
+3. **Test with console exporter**:
+   ```bash
+   export OTEL_METRICS_EXPORTER=console
+   export OTEL_METRIC_EXPORT_INTERVAL=1000
+   ```
+
+### Connection Errors
+
+1. **Verify endpoint is reachable**:
+   ```bash
+   curl -v $OTEL_EXPORTER_OTLP_ENDPOINT
+   ```
+
+2. **Check authentication**:
+   - Verify API tokens are correct
+   - Ensure headers are properly formatted
+   - Confirm network access to collector
+
+### High Cardinality Issues
+
+Reduce metric cardinality to improve backend performance:
+
+```bash
+export OTEL_METRICS_INCLUDE_SESSION_ID=false
+export OTEL_METRICS_INCLUDE_VERSION=false
+```
+
+## Security and Privacy
+
+### Data Collection Best Practices
+
+- **Minimize PII**: User prompts are redacted by default
+- **Secure transmission**: Use HTTPS/gRPC with TLS
+- **Access control**: Restrict who can view telemetry data
+- **Data retention**: Configure appropriate retention policies
+- **Compliance**: Ensure telemetry aligns with regulatory requirements
+
+### What is NOT Collected
+
+Claude Code telemetry never includes:
+- API keys or credentials
+- File contents or source code
+- Personal identifying information
+- Sensitive environment variables
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Shinzo Integration" icon="plug" href="/claude-code/shinzo-integration">
+    Connect Claude Code to Shinzo Platform for MCP server observability.
+  </Card>
+  <Card title="ROI Measurement" icon="chart-line" href="https://github.com/anthropics/claude-code-monitoring-guide">
+    Learn how to measure and report on Claude Code ROI.
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Claude Code Documentation](https://code.claude.com/docs)
+- [OpenTelemetry Specification](https://opentelemetry.io/docs/)
+- [Claude Code Monitoring Guide](https://github.com/anthropics/claude-code-monitoring-guide)
+- [Tribe AI ROI Guide](https://www.tribe.ai/applied-ai/a-quickstart-for-measuring-the-return-on-your-claude-code-investment)
