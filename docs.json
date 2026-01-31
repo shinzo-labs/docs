@@ -8,6 +8,16 @@
     "dark": "#1d4ed8"
   },
   "favicon": "/favicon.ico",
+  "api": {
+    "baseUrl": "https://api.app.shinzo.ai",
+    "auth": {
+      "method": "bearer"
+    },
+    "playground": {
+      "mode": "show"
+    }
+  },
+  "openapi": "api/openapi.json",
   "navigation": {
     "tabs": [
       {
@@ -70,11 +80,44 @@
             ]
           },
           {
-            "group": "Endpoints",
+            "group": "General",
             "pages": [
-              "api/telemetry",
-              "api/servers",
-              "api/analytics"
+              "api/health"
+            ]
+          },
+          {
+            "group": "Servers",
+            "pages": [
+              "api/servers/list",
+              "api/servers/create",
+              "api/servers/get",
+              "api/servers/update",
+              "api/servers/delete",
+              "api/servers/status"
+            ]
+          },
+          {
+            "group": "Analytics",
+            "pages": [
+              "api/analytics/overview",
+              "api/analytics/traces",
+              "api/analytics/trace-details",
+              "api/analytics/metrics"
+            ]
+          },
+          {
+            "group": "Tokens",
+            "pages": [
+              "api/tokens/list",
+              "api/tokens/create",
+              "api/tokens/revoke"
+            ]
+          },
+          {
+            "group": "Telemetry Ingestion",
+            "pages": [
+              "api/telemetry/ingest-traces",
+              "api/telemetry/ingest-metrics"
             ]
           }
         ]

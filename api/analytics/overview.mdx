@@ -1,0 +1,146 @@
+---
+title: "Analytics Overview"
+api: "GET https://api.app.shinzo.ai/v1/analytics/overview"
+description: "Get a high-level overview of your analytics data"
+---
+
+Retrieve a summary of your analytics data including total traces, tool invocations, error rates, and top-performing tools. This is useful for building dashboards and monitoring overall platform health.
+
+<ParamField query="server_id" type="string">
+  Filter results to a specific server
+</ParamField>
+
+<ParamField query="start_time" type="string">
+  Start of time range (ISO 8601). Defaults to 24 hours ago.
+</ParamField>
+
+<ParamField query="end_time" type="string">
+  End of time range (ISO 8601). Defaults to now.
+</ParamField>
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="time_range" type="object">
+      The time range for the analytics data
+    </ResponseField>
+    <ResponseField name="summary" type="object">
+      <Expandable title="properties">
+        <ResponseField name="total_traces" type="integer">
+          Total number of traces
+        </ResponseField>
+        <ResponseField name="total_tool_invocations" type="integer">
+          Total tool invocations
+        </ResponseField>
+        <ResponseField name="unique_sessions" type="integer">
+          Number of unique sessions
+        </ResponseField>
+        <ResponseField name="active_servers" type="integer">
+          Number of active servers
+        </ResponseField>
+        <ResponseField name="error_rate" type="number">
+          Overall error rate (0.0 to 1.0)
+        </ResponseField>
+        <ResponseField name="avg_response_time_ms" type="integer">
+          Average response time in milliseconds
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="trends" type="object">
+      Percentage changes compared to previous period
+    </ResponseField>
+    <ResponseField name="top_tools" type="array">
+      Most invoked tools with statistics
+    </ResponseField>
+    <ResponseField name="top_errors" type="array">
+      Most common errors
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/overview?start_time=2025-01-14T00:00:00Z" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.app.shinzo.ai/v1/analytics/overview",
+    params={"start_time": "2025-01-14T00:00:00Z"},
+    headers={"Authorization": "Bearer YOUR_API_TOKEN"}
+)
+print(response.json())
+```
+
+```typescript TypeScript
+const response = await fetch(
+  "https://api.app.shinzo.ai/v1/analytics/overview?start_time=2025-01-14T00:00:00Z",
+  {
+    headers: { Authorization: "Bearer YOUR_API_TOKEN" }
+  }
+);
+const data = await response.json();
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "success": true,
+  "data": {
+    "time_range": {
+      "start": "2025-01-14T00:00:00Z",
+      "end": "2025-01-15T00:00:00Z"
+    },
+    "summary": {
+      "total_traces": 45280,
+      "total_tool_invocations": 52150,
+      "unique_sessions": 1250,
+      "active_servers": 5,
+      "error_rate": 0.018,
+      "avg_response_time_ms": 142
+    },
+    "trends": {
+      "traces_change_percent": 12.5,
+      "error_rate_change_percent": -5.2,
+      "response_time_change_percent": -8.1
+    },
+    "top_tools": [
+      {
+        "name": "search_files",
+        "invocations": 15420,
+        "error_rate": 0.01
+      },
+      {
+        "name": "get_weather",
+        "invocations": 12890,
+        "error_rate": 0.02
+      },
+      {
+        "name": "query_database",
+        "invocations": 8540,
+        "error_rate": 0.03
+      }
+    ],
+    "top_errors": [
+      {
+        "error_type": "TimeoutError",
+        "count": 245,
+        "affected_tools": ["query_database", "fetch_api"]
+      },
+      {
+        "error_type": "ValidationError",
+        "count": 128,
+        "affected_tools": ["create_file"]
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

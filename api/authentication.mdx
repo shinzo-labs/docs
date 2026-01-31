@@ -92,103 +92,13 @@ Tokens follow a predictable format for easy identification:
 | Ingest Token | `shinzo_ingest_*` | `shinzo_ingest_abc123...` |
 | API Token | `shinzo_api_*` | `shinzo_api_xyz789...` |
 
-## Token Management Endpoints
+## Token Management API
 
-### List Tokens
+Manage tokens programmatically using the Tokens API:
 
-Retrieve all tokens for your account (token values are masked).
-
-```
-GET /v1/tokens
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "tokens": [
-      {
-        "id": "tok_abc123",
-        "name": "Production Ingest",
-        "type": "ingest",
-        "prefix": "shinzo_ingest_abc1...",
-        "permissions": ["telemetry:write"],
-        "created_at": "2025-01-10T08:00:00Z",
-        "last_used_at": "2025-01-15T14:30:00Z"
-      },
-      {
-        "id": "tok_def456",
-        "name": "Analytics API",
-        "type": "api",
-        "prefix": "shinzo_api_def4...",
-        "permissions": ["servers:read", "analytics:read"],
-        "created_at": "2025-01-12T10:00:00Z",
-        "last_used_at": "2025-01-15T12:00:00Z"
-      }
-    ]
-  }
-}
-```
-
-### Create Token
-
-Generate a new authentication token.
-
-```
-POST /v1/tokens
-```
-
-**Request Body:**
-
-```json
-{
-  "name": "Production Server Token",
-  "type": "api",
-  "permissions": ["servers:read", "analytics:read"]
-}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "tok_ghi789",
-    "name": "Production Server Token",
-    "type": "api",
-    "token": "shinzo_api_ghi789xyz456abc123",
-    "permissions": ["servers:read", "analytics:read"],
-    "created_at": "2025-01-15T16:00:00Z"
-  }
-}
-```
-
-<Warning>
-The `token` field is only returned once during creation. Store it securely.
-</Warning>
-
-### Revoke Token
-
-Revoke an existing token.
-
-```
-DELETE /v1/tokens/{token_id}
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": "tok_ghi789",
-    "revoked_at": "2025-01-15T17:00:00Z"
-  }
-}
-```
+- [List Tokens](/api/tokens/list) - View all tokens for your account
+- [Create Token](/api/tokens/create) - Generate a new token
+- [Revoke Token](/api/tokens/revoke) - Revoke an existing token
 
 ## Security Best Practices
 
