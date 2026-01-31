@@ -72,7 +72,7 @@ The documentation is organized into the following sections:
 ## Local Development
 
 ### Prerequisites
-- Node.js version 19 or higher
+- Node.js 20 LTS or 22 LTS (Node 25+ is not supported)
 - npm, pnpm, or yarn
 
 ### Setup
@@ -179,10 +179,15 @@ Changes to the documentation are automatically deployed to production when merge
 
 ### Development Server Issues
 
+**Error: "mint dev is not supported on node versions 25+"**
+- Mintlify CLI doesn't support Node.js 25+ due to breaking changes in the Web Storage API
+- Install Node.js 22 LTS via Homebrew: `brew install node@22`
+- Run with Node 22: `PATH="/opt/homebrew/opt/node@22/bin:$PATH" mint dev`
+
 **Error: Could not load the "sharp" module**
 - This may indicate an outdated Node.js version
 - Remove the CLI: `npm remove -g mint`
-- Upgrade to Node v19 or higher
+- Upgrade to Node 20 or 22 LTS
 - Reinstall: `npm i -g mint`
 
 **Unknown errors**

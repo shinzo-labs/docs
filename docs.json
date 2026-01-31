@@ -20,6 +20,12 @@
             ]
           },
           {
+            "group": "AI Tools",
+            "pages": [
+              "ai-tools/claude-code"
+            ]
+          },
+          {
             "group": "Concepts",
             "pages": [
               "concepts/mcp",
