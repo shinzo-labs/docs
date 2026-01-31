@@ -1,0 +1,563 @@
+---
+title: "Analytics API"
+description: "API reference for querying traces, metrics, and analytics data from the Shinzo Platform."
+---
+
+# Analytics API
+
+The Analytics API provides programmatic access to traces, metrics, and aggregated analytics data. Use this API to build custom dashboards, integrate with alerting systems, or export data for analysis.
+
+## Endpoints Overview
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/analytics/overview` | Get analytics overview |
+| `GET` | `/v1/analytics/traces` | Query traces |
+| `GET` | `/v1/analytics/traces/{trace_id}` | Get trace details |
+| `GET` | `/v1/analytics/metrics` | Query metrics |
+| `GET` | `/v1/analytics/tools` | Get tool analytics |
+| `GET` | `/v1/analytics/sessions` | Get session analytics |
+| `POST` | `/v1/analytics/export` | Export analytics data |
+
+## Analytics Overview
+
+Get a high-level overview of your analytics data.
+
+```
+GET /v1/analytics/overview
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `server_id` | `string` | - | Filter by server (optional) |
+| `start_time` | `datetime` | 24h ago | Start of time range (ISO 8601) |
+| `end_time` | `datetime` | now | End of time range (ISO 8601) |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/overview?start_time=2025-01-14T00:00:00Z" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "time_range": {
+      "start": "2025-01-14T00:00:00Z",
+      "end": "2025-01-15T00:00:00Z"
+    },
+    "summary": {
+      "total_traces": 45280,
+      "total_tool_invocations": 52150,
+      "unique_sessions": 1250,
+      "active_servers": 5,
+      "error_rate": 0.018,
+      "avg_response_time_ms": 142
+    },
+    "trends": {
+      "traces_change_percent": 12.5,
+      "error_rate_change_percent": -5.2,
+      "response_time_change_percent": -8.1
+    },
+    "top_tools": [
+      {
+        "name": "search_files",
+        "invocations": 15420,
+        "error_rate": 0.01
+      },
+      {
+        "name": "get_weather",
+        "invocations": 12890,
+        "error_rate": 0.02
+      },
+      {
+        "name": "query_database",
+        "invocations": 8540,
+        "error_rate": 0.03
+      }
+    ],
+    "top_errors": [
+      {
+        "error_type": "TimeoutError",
+        "count": 245,
+        "affected_tools": ["query_database", "fetch_api"]
+      },
+      {
+        "error_type": "ValidationError",
+        "count": 128,
+        "affected_tools": ["create_file"]
+      }
+    ]
+  }
+}
+```
+
+## Query Traces
+
+Search and retrieve traces with filtering and pagination.
+
+```
+GET /v1/analytics/traces
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `server_id` | `string` | - | Filter by server |
+| `tool_name` | `string` | - | Filter by tool name |
+| `session_id` | `string` | - | Filter by session |
+| `status` | `string` | - | Filter by status: `success`, `error` |
+| `min_duration_ms` | `integer` | - | Minimum duration filter |
+| `max_duration_ms` | `integer` | - | Maximum duration filter |
+| `start_time` | `datetime` | 24h ago | Start of time range |
+| `end_time` | `datetime` | now | End of time range |
+| `page` | `integer` | `1` | Page number |
+| `limit` | `integer` | `50` | Results per page (max 200) |
+| `sort` | `string` | `timestamp` | Sort field: `timestamp`, `duration` |
+| `order` | `string` | `desc` | Sort order: `asc`, `desc` |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/traces?tool_name=get_weather&status=error&limit=10" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "traces": [
+      {
+        "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
+        "span_id": "051581bf3cb55c13",
+        "server_id": "srv_abc123",
+        "server_name": "weather-server",
+        "tool_name": "get_weather",
+        "status": "error",
+        "error_type": "TimeoutError",
+        "error_message": "API request timed out after 30s",
+        "duration_ms": 30125,
+        "timestamp": "2025-01-15T14:30:00Z",
+        "session_id": "sess_xyz789",
+        "attributes": {
+          "mcp.request.id": "req_abc123",
+          "mcp.tool.name": "get_weather"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 45,
+      "total_pages": 5
+    }
+  }
+}
+```
+
+## Get Trace Details
+
+Retrieve detailed information about a specific trace.
+
+```
+GET /v1/analytics/traces/{trace_id}
+```
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `trace_id` | `string` | Trace identifier |
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/analytics/traces/5b8aa5a2d2c872e8321cf37308d69df2 \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
+    "server": {
+      "id": "srv_abc123",
+      "name": "weather-server",
+      "version": "1.0.0"
+    },
+    "session_id": "sess_xyz789",
+    "spans": [
+      {
+        "span_id": "051581bf3cb55c13",
+        "parent_span_id": null,
+        "name": "mcp.tool.execute",
+        "kind": "SERVER",
+        "start_time": "2025-01-15T14:30:00.000Z",
+        "end_time": "2025-01-15T14:30:00.125Z",
+        "duration_ms": 125,
+        "status": "OK",
+        "attributes": {
+          "mcp.tool.name": "get_weather",
+          "mcp.request.id": "req_abc123"
+        }
+      },
+      {
+        "span_id": "1234567890abcdef",
+        "parent_span_id": "051581bf3cb55c13",
+        "name": "http.request",
+        "kind": "CLIENT",
+        "start_time": "2025-01-15T14:30:00.010Z",
+        "end_time": "2025-01-15T14:30:00.110Z",
+        "duration_ms": 100,
+        "status": "OK",
+        "attributes": {
+          "http.method": "GET",
+          "http.url": "https://api.weather.com/v1/current",
+          "http.status_code": 200
+        }
+      }
+    ],
+    "events": [
+      {
+        "name": "cache.miss",
+        "timestamp": "2025-01-15T14:30:00.005Z",
+        "attributes": {
+          "cache.key": "weather:london"
+        }
+      }
+    ]
+  }
+}
+```
+
+## Query Metrics
+
+Retrieve time-series metrics for visualization and analysis.
+
+```
+GET /v1/analytics/metrics
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `metric` | `string` | required | Metric name (see below) |
+| `server_id` | `string` | - | Filter by server |
+| `tool_name` | `string` | - | Filter by tool |
+| `start_time` | `datetime` | 24h ago | Start of time range |
+| `end_time` | `datetime` | now | End of time range |
+| `interval` | `string` | `auto` | Aggregation interval: `1m`, `5m`, `15m`, `1h`, `1d` |
+| `aggregation` | `string` | `avg` | Aggregation function: `avg`, `sum`, `min`, `max`, `p50`, `p95`, `p99` |
+
+### Available Metrics
+
+| Metric | Description |
+|--------|-------------|
+| `invocations` | Number of tool invocations |
+| `errors` | Number of errors |
+| `error_rate` | Error rate (0.0 to 1.0) |
+| `duration` | Response time in milliseconds |
+| `throughput` | Requests per second |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/metrics?metric=duration&aggregation=p95&interval=5m" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "metric": "duration",
+    "aggregation": "p95",
+    "interval": "5m",
+    "time_range": {
+      "start": "2025-01-14T00:00:00Z",
+      "end": "2025-01-15T00:00:00Z"
+    },
+    "data_points": [
+      {
+        "timestamp": "2025-01-14T00:00:00Z",
+        "value": 245
+      },
+      {
+        "timestamp": "2025-01-14T00:05:00Z",
+        "value": 238
+      },
+      {
+        "timestamp": "2025-01-14T00:10:00Z",
+        "value": 252
+      }
+    ],
+    "summary": {
+      "min": 185,
+      "max": 412,
+      "avg": 248,
+      "current": 242
+    }
+  }
+}
+```
+
+## Tool Analytics
+
+Get detailed analytics for specific tools.
+
+```
+GET /v1/analytics/tools
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `server_id` | `string` | - | Filter by server |
+| `start_time` | `datetime` | 24h ago | Start of time range |
+| `end_time` | `datetime` | now | End of time range |
+| `sort` | `string` | `invocations` | Sort by: `invocations`, `error_rate`, `avg_duration` |
+| `order` | `string` | `desc` | Sort order |
+| `limit` | `integer` | `20` | Results limit |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/tools?sort=error_rate&order=desc&limit=5" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "tools": [
+      {
+        "name": "query_database",
+        "server_id": "srv_abc123",
+        "server_name": "database-server",
+        "stats": {
+          "invocations": 8540,
+          "errors": 256,
+          "error_rate": 0.03,
+          "avg_duration_ms": 285,
+          "p50_duration_ms": 220,
+          "p95_duration_ms": 580,
+          "p99_duration_ms": 1250
+        },
+        "error_breakdown": [
+          {
+            "type": "TimeoutError",
+            "count": 180,
+            "percentage": 0.703
+          },
+          {
+            "type": "ConnectionError",
+            "count": 76,
+            "percentage": 0.297
+          }
+        ],
+        "trend": {
+          "invocations_change": 0.15,
+          "error_rate_change": 0.02
+        }
+      }
+    ]
+  }
+}
+```
+
+## Session Analytics
+
+Analyze session-level data and patterns.
+
+```
+GET /v1/analytics/sessions
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `server_id` | `string` | - | Filter by server |
+| `start_time` | `datetime` | 24h ago | Start of time range |
+| `end_time` | `datetime` | now | End of time range |
+| `page` | `integer` | `1` | Page number |
+| `limit` | `integer` | `50` | Results per page |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/analytics/sessions?limit=10" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "sessions": [
+      {
+        "session_id": "sess_xyz789",
+        "started_at": "2025-01-15T14:00:00Z",
+        "last_activity_at": "2025-01-15T14:45:00Z",
+        "duration_minutes": 45,
+        "servers_used": ["weather-server", "file-search-server"],
+        "stats": {
+          "tool_invocations": 28,
+          "unique_tools_used": 5,
+          "errors": 1,
+          "avg_response_time_ms": 156
+        },
+        "tools_used": [
+          { "name": "get_weather", "count": 12 },
+          { "name": "search_files", "count": 8 },
+          { "name": "read_file", "count": 5 },
+          { "name": "get_forecast", "count": 2 },
+          { "name": "create_file", "count": 1 }
+        ]
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1250,
+      "total_pages": 125
+    },
+    "summary": {
+      "total_sessions": 1250,
+      "avg_session_duration_minutes": 23,
+      "avg_tools_per_session": 8.5
+    }
+  }
+}
+```
+
+## Export Analytics Data
+
+Export analytics data in various formats for external analysis.
+
+```
+POST /v1/analytics/export
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `string` | Yes | Export type: `traces`, `metrics`, `tools`, `sessions` |
+| `format` | `string` | Yes | Output format: `json`, `csv`, `parquet` |
+| `start_time` | `datetime` | Yes | Start of time range |
+| `end_time` | `datetime` | Yes | End of time range |
+| `server_id` | `string` | No | Filter by server |
+| `filters` | `object` | No | Additional filters |
+
+### Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/analytics/export \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "traces",
+    "format": "csv",
+    "start_time": "2025-01-01T00:00:00Z",
+    "end_time": "2025-01-15T00:00:00Z",
+    "filters": {
+      "status": "error"
+    }
+  }'
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "export_id": "exp_abc123",
+    "status": "processing",
+    "estimated_completion": "2025-01-15T17:05:00Z",
+    "download_url": null
+  }
+}
+```
+
+### Check Export Status
+
+```
+GET /v1/analytics/export/{export_id}
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "export_id": "exp_abc123",
+    "status": "completed",
+    "format": "csv",
+    "file_size_bytes": 2458624,
+    "row_count": 45280,
+    "download_url": "https://api.app.shinzo.ai/v1/analytics/export/exp_abc123/download",
+    "expires_at": "2025-01-16T17:00:00Z"
+  }
+}
+```
+
+## Error Responses
+
+### Invalid Time Range
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Invalid time range: start_time must be before end_time"
+  }
+}
+```
+
+### Time Range Too Large
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Time range exceeds maximum of 30 days for this endpoint"
+  }
+}
+```
+
+### Export Not Found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Export 'exp_notfound' does not exist or has expired"
+  }
+}
+```

@@ -1,0 +1,282 @@
+---
+title: "Authentication"
+description: "API authentication methods, token types, and security best practices for the Shinzo Platform API."
+---
+
+# Authentication
+
+The Shinzo Platform API uses bearer token authentication. This guide covers token types, generation, and security best practices.
+
+## Token Types
+
+The platform supports two types of authentication tokens, each designed for specific use cases:
+
+### Ingest Tokens
+
+**Purpose**: Sending telemetry data from your MCP servers.
+
+Ingest tokens are designed for use with the Shinzo SDKs and telemetry ingestion endpoints. They have write-only permissions for telemetry data.
+
+```typescript
+// TypeScript SDK usage
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_INGEST_TOKEN
+  }
+})
+```
+
+### API Tokens
+
+**Purpose**: Server management and analytics queries.
+
+API tokens provide access to the management and analytics endpoints. They can be configured with different permission scopes.
+
+```bash
+# API token usage
+curl -X GET https://api.app.shinzo.ai/v1/servers \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+## Generating Tokens
+
+### Via Dashboard
+
+1. Log in to your [Shinzo Platform dashboard](https://app.shinzo.ai)
+2. Navigate to **Settings > API Tokens**
+3. Click **Create New Token**
+4. Select the token type and permissions
+5. Copy and securely store the token
+
+<Warning>
+Tokens are only displayed once at creation. Store them securely as they cannot be retrieved later.
+</Warning>
+
+### Token Permissions
+
+API tokens can be scoped to specific permissions:
+
+| Permission | Description |
+|------------|-------------|
+| `servers:read` | List and view server details |
+| `servers:write` | Create, update, and delete servers |
+| `analytics:read` | Query traces, metrics, and analytics data |
+| `tokens:manage` | Create and revoke other tokens |
+
+## Authentication Header
+
+Include the token in the `Authorization` header:
+
+```bash
+Authorization: Bearer <your_token>
+```
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/servers \
+  -H "Authorization: Bearer shinzo_api_abc123def456" \
+  -H "Content-Type: application/json"
+```
+
+## Token Formats
+
+Tokens follow a predictable format for easy identification:
+
+| Token Type | Format | Example |
+|------------|--------|---------|
+| Ingest Token | `shinzo_ingest_*` | `shinzo_ingest_abc123...` |
+| API Token | `shinzo_api_*` | `shinzo_api_xyz789...` |
+
+## Token Management Endpoints
+
+### List Tokens
+
+Retrieve all tokens for your account (token values are masked).
+
+```
+GET /v1/tokens
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "tokens": [
+      {
+        "id": "tok_abc123",
+        "name": "Production Ingest",
+        "type": "ingest",
+        "prefix": "shinzo_ingest_abc1...",
+        "permissions": ["telemetry:write"],
+        "created_at": "2025-01-10T08:00:00Z",
+        "last_used_at": "2025-01-15T14:30:00Z"
+      },
+      {
+        "id": "tok_def456",
+        "name": "Analytics API",
+        "type": "api",
+        "prefix": "shinzo_api_def4...",
+        "permissions": ["servers:read", "analytics:read"],
+        "created_at": "2025-01-12T10:00:00Z",
+        "last_used_at": "2025-01-15T12:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+### Create Token
+
+Generate a new authentication token.
+
+```
+POST /v1/tokens
+```
+
+**Request Body:**
+
+```json
+{
+  "name": "Production Server Token",
+  "type": "api",
+  "permissions": ["servers:read", "analytics:read"]
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tok_ghi789",
+    "name": "Production Server Token",
+    "type": "api",
+    "token": "shinzo_api_ghi789xyz456abc123",
+    "permissions": ["servers:read", "analytics:read"],
+    "created_at": "2025-01-15T16:00:00Z"
+  }
+}
+```
+
+<Warning>
+The `token` field is only returned once during creation. Store it securely.
+</Warning>
+
+### Revoke Token
+
+Revoke an existing token.
+
+```
+DELETE /v1/tokens/{token_id}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tok_ghi789",
+    "revoked_at": "2025-01-15T17:00:00Z"
+  }
+}
+```
+
+## Security Best Practices
+
+### Environment Variables
+
+Never hardcode tokens in your source code. Use environment variables:
+
+<CodeGroup>
+```bash Environment
+export SHINZO_INGEST_TOKEN="shinzo_ingest_abc123..."
+export SHINZO_API_TOKEN="shinzo_api_xyz789..."
+```
+
+```typescript TypeScript
+const token = process.env.SHINZO_INGEST_TOKEN
+```
+
+```python Python
+import os
+token = os.getenv("SHINZO_INGEST_TOKEN")
+```
+</CodeGroup>
+
+### Token Rotation
+
+Regularly rotate tokens to minimize the impact of potential leaks:
+
+1. Create a new token with the same permissions
+2. Update your applications to use the new token
+3. Verify the new token is working
+4. Revoke the old token
+
+### Least Privilege
+
+Create tokens with only the permissions required for their specific use case:
+
+- Use **ingest tokens** for SDK telemetry (not API tokens)
+- Create separate tokens for different environments
+- Avoid granting `tokens:manage` permission unless necessary
+
+### Monitoring
+
+Monitor token usage in your dashboard:
+
+- Review `last_used_at` timestamps
+- Investigate unused tokens
+- Set up alerts for unusual activity patterns
+
+## Error Responses
+
+### Invalid Token
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "The provided authentication token is invalid or expired"
+  }
+}
+```
+
+**Status Code:** `401 Unauthorized`
+
+### Insufficient Permissions
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Token does not have permission 'servers:write'"
+  }
+}
+```
+
+**Status Code:** `403 Forbidden`
+
+### Missing Token
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authorization header is required"
+  }
+}
+```
+
+**Status Code:** `401 Unauthorized`
