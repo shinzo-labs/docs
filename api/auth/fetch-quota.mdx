@@ -1,0 +1,72 @@
+---
+title: "Get User Quota"
+description: "Retrieve the authenticated user's usage quota and limits."
+api: "GET /auth/fetch_user_quota"
+---
+
+# Get User Quota
+
+Retrieve usage quota information for the currently authenticated user, including limits and current usage.
+
+## Endpoint
+
+```
+GET /auth/fetch_user_quota
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/auth/fetch_user_quota \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+```
+
+## Response
+
+```json
+{
+  "plan": "free",
+  "quotas": {
+    "agents": {
+      "limit": 3,
+      "used": 1
+    },
+    "telemetry_events_per_month": {
+      "limit": 100000,
+      "used": 45230
+    },
+    "api_requests_per_minute": {
+      "limit": 1000,
+      "used": 0
+    }
+  },
+  "features": {
+    "ai_agents": true,
+    "spotlight": true,
+    "advanced_analytics": false
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `plan` | string | User's subscription plan |
+| `quotas` | object | Usage limits and current usage for various resources |
+| `features` | object | Feature flags indicating which features are enabled |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Invalid or missing token |

@@ -1,0 +1,79 @@
+---
+title: "Spotlight Overview"
+description: "AI model proxy with built-in analytics, token tracking, and session management."
+---
+
+# Spotlight
+
+Spotlight is the Shinzo Platform's AI model proxy service. It forwards requests to AI providers (like Anthropic) while automatically tracking usage, tokens, costs, and session analytics.
+
+## Features
+
+- **Model Proxy**: Forward requests to AI providers with automatic retry and error handling
+- **Token Tracking**: Track input/output tokens, cache hits, and costs
+- **Session Analytics**: Group API calls into sessions for analysis
+- **Streaming Support**: Full support for streaming responses with Server-Sent Events
+- **Multi-Auth**: Authenticate with JWT tokens or Platform API keys
+
+## Supported Providers
+
+| Provider | Base Path | Features |
+|----------|-----------|----------|
+| Anthropic | `/spotlight/anthropic/` | Messages, token counting, streaming |
+
+## Authentication
+
+Spotlight endpoints accept either:
+
+- **JWT Token**: `Authorization: Bearer <jwt_token>`
+- **Platform API Key**: `x-shinzo-api-key: <api_key>` or `Authorization: Bearer <api_key>`
+
+## Provider Credentials
+
+Spotlight needs credentials to make requests to AI providers. You can:
+
+1. **Store credentials** in Shinzo using [Provider Keys](/api/provider-keys/overview) (recommended)
+2. **Pass credentials** directly in the request using the `x-api-key` header
+
+## Endpoints
+
+### Model Proxy
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/spotlight/anthropic/v1/messages` | POST | Send messages to Claude (streaming supported) |
+| `/spotlight/anthropic/v1/messages/count_tokens` | POST | Count tokens for a request |
+| `/spotlight/anthropic/api/event_logging/batch` | POST | Send event logs to Anthropic |
+
+### Analytics
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/spotlight/analytics/tokens` | GET | Token usage analytics |
+| `/spotlight/analytics/sessions` | GET | List sessions with aggregates |
+| `/spotlight/analytics/sessions/:sessionUuid` | GET | Detailed session view |
+
+### Session Sharing
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/spotlight/analytics/sessions/:sessionUuid/share` | POST | Create shareable link |
+| `/spotlight/analytics/sessions/:sessionUuid/share` | GET | Get share status |
+| `/spotlight/analytics/sessions/:sessionUuid/share` | DELETE | Remove sharing |
+| `/spotlight/analytics/sessions/shared/:shareToken` | GET | View shared session (public) |
+
+## Session Tracking
+
+Requests are grouped into sessions using the `metadata.user_id` field in your API requests:
+
+```json
+{
+  "model": "claude-sonnet-4-20250514",
+  "messages": [...],
+  "metadata": {
+    "user_id": "my-session-id"
+  }
+}
+```
+
+If no `user_id` is provided, requests are grouped under a `default-session`.

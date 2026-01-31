@@ -1,0 +1,81 @@
+---
+title: "AI Agents Overview"
+description: "Deploy and manage autonomous AI agents on the Shinzo Platform."
+---
+
+# AI Agents
+
+The Shinzo Platform allows you to deploy and manage autonomous AI agents that can execute complex tasks. Agents run in isolated Kubernetes environments with persistent storage and can interact with external services via MCP servers.
+
+## Features
+
+- **Kubernetes-Based**: Each agent runs in an isolated container with dedicated resources
+- **Persistent Storage**: Agents have their own persistent volume for files and state
+- **Task Management**: Submit tasks, monitor progress, and receive results via polling or webhooks
+- **Filesystem API**: Read, write, and manage files in the agent's workspace
+- **MCP Support**: Connect agents to MCP servers for external service integration
+
+## Authentication
+
+Agent endpoints accept either:
+
+- **JWT Token**: `Authorization: Bearer <jwt_token>`
+- **Platform API Key**: `x-shinzo-api-key: <api_key>` or `Authorization: Bearer <api_key>`
+
+## Feature Flag
+
+AI Agents is a feature that must be enabled for your account. If you receive a `403 Forbidden` error, contact support to enable this feature.
+
+## Endpoints
+
+### Agent Lifecycle
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/agent/create` | POST | Deploy a new AI agent |
+| `/agent/list` | GET | List all agents |
+| `/agent/:id` | GET | Get agent details |
+| `/agent/update/:id` | POST | Update agent configuration |
+| `/agent/delete/:id` | POST | Delete an agent |
+| `/agent/:id/pause` | POST | Pause an agent |
+| `/agent/:id/resume` | POST | Resume a paused agent |
+
+### Task Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/agent/request/:id` | POST | Submit a task to an agent |
+| `/agent/:id/task/:taskId` | GET | Get task status and results |
+| `/agent/:id/task/:taskId/message` | POST | Send a message to a running task |
+| `/agent/:id/task/:taskId/cancel` | POST | Cancel a running task |
+
+### Filesystem
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/agent/:agentId/filesystem/files/:path*` | GET | Read file contents |
+| `/agent/:agentId/filesystem/files/:path*` | POST | Create new file |
+| `/agent/:agentId/filesystem/files/:path*` | PUT | Update file contents |
+| `/agent/:agentId/filesystem/files/:path*` | DELETE | Delete file |
+| `/agent/:agentId/filesystem/directories/:path*` | GET | List directory |
+| `/agent/:agentId/filesystem/directories/:path*` | POST | Create directory |
+
+## Agent States
+
+| State | Description |
+|-------|-------------|
+| `active` | Agent is running and ready to accept tasks |
+| `paused` | Agent is paused and won't accept new tasks |
+| `stopped` | Agent has been stopped |
+| `error` | Agent encountered an error |
+
+## Task States
+
+| State | Description |
+|-------|-------------|
+| `queued` | Task is waiting to be processed |
+| `running` | Task is currently being executed |
+| `awaiting_input` | Task needs user input to continue |
+| `completed` | Task finished successfully |
+| `failed` | Task encountered an error |
+| `cancelled` | Task was cancelled by user |

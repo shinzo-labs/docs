@@ -1,0 +1,59 @@
+---
+title: "Get Current User"
+description: "Retrieve the authenticated user's profile information."
+api: "GET /auth/fetch_user"
+---
+
+# Get Current User
+
+Retrieve profile information for the currently authenticated user.
+
+## Endpoint
+
+```
+GET /auth/fetch_user
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/auth/fetch_user \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..."
+```
+
+## Response
+
+```json
+{
+  "uuid": "usr_abc123def456",
+  "email": "user@example.com",
+  "email_verified": true,
+  "created_at": "2025-01-15T10:30:00Z",
+  "updated_at": "2025-01-20T14:45:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique user identifier |
+| `email` | string | User's email address |
+| `email_verified` | boolean | Whether the email has been verified |
+| `created_at` | string | Account creation timestamp (ISO 8601) |
+| `updated_at` | string | Last update timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Invalid or missing token |

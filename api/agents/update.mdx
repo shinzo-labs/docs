@@ -1,0 +1,85 @@
+---
+title: "Update Agent"
+description: "Update an existing agent's configuration."
+api: "POST /agent/update/:id"
+---
+
+# Update Agent
+
+Update the configuration of an existing agent.
+
+## Endpoint
+
+```
+POST /agent/update/:id
+```
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Agent UUID |
+
+## Request Body
+
+All fields are optional. Only include fields you want to update.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | New agent name |
+| `description` | string | New description |
+| `configuration` | object | Configuration updates |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/update/agt_abc123def456 \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Updated description",
+    "configuration": {
+      "timeout_seconds": 3600
+    }
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "agt_abc123def456",
+  "name": "code-review-agent",
+  "description": "Updated description",
+  "status": "active",
+  "updated_at": "2025-01-20T14:30:00Z",
+  "configuration": {
+    "timeout_seconds": 3600,
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 1024,
+      "persistence": "persistent"
+    }
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent updated successfully |
+| `400` | Invalid request |
+| `401` | Invalid authentication |
+| `403` | AI Agents feature not enabled |
+| `404` | Agent not found |
+| `409` | Agent has running tasks (cannot update) |
+
+## Notes
+
+- Agents with running tasks cannot be updated unless you cancel the tasks first
+- Configuration changes may require the agent to restart

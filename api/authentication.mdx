@@ -5,15 +5,45 @@ description: "API authentication methods, token types, and security best practic
 
 # Authentication
 
-The Shinzo Platform API uses bearer token authentication. This guide covers token types, generation, and security best practices.
+The Shinzo Platform API uses multiple authentication methods depending on the type of operation. This guide covers all authentication types, their use cases, and security best practices.
 
-## Token Types
+## Authentication Methods
 
-The platform supports two types of authentication tokens, each designed for specific use cases:
+### 1. JWT Tokens (User Authentication)
 
-### Ingest Tokens
+**Purpose**: Authenticating users for dashboard and management API access.
 
-**Purpose**: Sending telemetry data from your MCP servers.
+JWT tokens are issued when users log in via email/password or OAuth. They provide access to user-specific resources and management endpoints.
+
+```bash
+# Login to get a JWT token
+curl -X POST https://api.app.shinzo.ai/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "your_password"}'
+```
+
+Response:
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "uuid": "usr_abc123",
+    "email": "user@example.com"
+  }
+}
+```
+
+**Token expiration**: 24 hours
+
+**Header format**:
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+### 2. Ingest Tokens (Telemetry)
+
+**Purpose**: Sending telemetry data from your MCP servers via the SDKs.
 
 Ingest tokens are designed for use with the Shinzo SDKs and telemetry ingestion endpoints. They have write-only permissions for telemetry data.
 
@@ -30,75 +60,90 @@ const telemetry = instrumentServer(server, {
 })
 ```
 
-### API Tokens
-
-**Purpose**: Server management and analytics queries.
-
-API tokens provide access to the management and analytics endpoints. They can be configured with different permission scopes.
-
+**Header format**:
 ```bash
-# API token usage
-curl -X GET https://api.app.shinzo.ai/v1/servers \
-  -H "Authorization: Bearer YOUR_API_TOKEN"
+Authorization: <ingest_token>
 ```
 
-## Generating Tokens
+### 3. Platform API Keys (Programmatic Access)
 
-### Via Dashboard
+**Purpose**: Programmatic access to agent management, Spotlight analytics, and model proxy endpoints.
 
-1. Log in to your [Shinzo Platform dashboard](https://app.shinzo.ai)
-2. Navigate to **Settings > API Tokens**
-3. Click **Create New Token**
-4. Select the token type and permissions
-5. Copy and securely store the token
-
-<Warning>
-Tokens are only displayed once at creation. Store them securely as they cannot be retrieved later.
-</Warning>
-
-### Token Permissions
-
-API tokens can be scoped to specific permissions:
-
-| Permission | Description |
-|------------|-------------|
-| `servers:read` | List and view server details |
-| `servers:write` | Create, update, and delete servers |
-| `analytics:read` | Query traces, metrics, and analytics data |
-| `tokens:manage` | Create and revoke other tokens |
-
-## Authentication Header
-
-Include the token in the `Authorization` header:
+Platform API keys are designed for server-to-server communication, CI/CD pipelines, and automated workflows. They support authentication via multiple header formats.
 
 ```bash
-Authorization: Bearer <your_token>
+# Using x-shinzo-api-key header
+curl -X GET https://api.app.shinzo.ai/agent/list \
+  -H "x-shinzo-api-key: sk_shinzo_abc123..."
+
+# Or using Authorization header
+curl -X GET https://api.app.shinzo.ai/agent/list \
+  -H "Authorization: Bearer sk_shinzo_abc123..."
+
+# Or using x-api-key header
+curl -X GET https://api.app.shinzo.ai/agent/list \
+  -H "x-api-key: sk_shinzo_abc123..."
 ```
 
-### Example Request
-
-```bash
-curl -X GET https://api.app.shinzo.ai/v1/servers \
-  -H "Authorization: Bearer shinzo_api_abc123def456" \
-  -H "Content-Type: application/json"
-```
+**Key format**: `sk_shinzo_*`
 
 ## Token Formats
 
-Tokens follow a predictable format for easy identification:
-
 | Token Type | Format | Example |
 |------------|--------|---------|
-| Ingest Token | `shinzo_ingest_*` | `shinzo_ingest_abc123...` |
-| API Token | `shinzo_api_*` | `shinzo_api_xyz789...` |
+| JWT Token | Base64-encoded JWT | `eyJhbGciOiJIUzI1NiIs...` |
+| Ingest Token | UUID | `abc123-def456-...` |
+| Platform API Key | `sk_shinzo_*` | `sk_shinzo_abc123def456...` |
 
-## Token Management API
+## Generating Tokens
 
-Manage tokens programmatically using the Tokens API:
+### JWT Tokens
 
-- [List Tokens](/api/tokens/list) - View all tokens for your account
-- [Create Token](/api/tokens/create) - Generate a new token
-- [Revoke Token](/api/tokens/revoke) - Revoke an existing token
+JWT tokens are obtained by logging in:
+
+- **Email/Password**: `POST /auth/login`
+- **Google OAuth**: `GET /auth/oauth/google` then `POST /auth/oauth/google/callback`
+- **GitHub OAuth**: `GET /auth/oauth/github` then `POST /auth/oauth/github/callback`
+
+### Ingest Tokens
+
+Generate ingest tokens via API (requires JWT authentication):
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/generate_ingest_token \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+Or from your [Shinzo Platform dashboard](https://app.shinzo.ai) under **Settings > Tokens**.
+
+### Platform API Keys
+
+Create platform API keys via API (requires JWT authentication):
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/platform_keys \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "My CI/CD Key"}'
+```
+
+Or from your dashboard under **Settings > API Keys**.
+
+<Warning>
+Tokens and API keys are only displayed once at creation. Store them securely as they cannot be retrieved later.
+</Warning>
+
+## Endpoint Authentication Requirements
+
+| Endpoint Category | Auth Required | Auth Types Accepted |
+|-------------------|---------------|---------------------|
+| Health (`/health`) | No | None |
+| Auth (`/auth/*`) | Varies | JWT for protected endpoints |
+| Telemetry Ingest (`/telemetry/ingest_http/*`) | Yes | Ingest Token |
+| Telemetry Fetch (`/telemetry/fetch_*`) | Yes | JWT |
+| Agents (`/agent/*`) | Yes | JWT or Platform API Key |
+| Spotlight (`/spotlight/*`) | Yes | JWT or Platform API Key |
+| User (`/user/*`) | Yes | JWT |
 
 ## Security Best Practices
 
@@ -108,17 +153,18 @@ Never hardcode tokens in your source code. Use environment variables:
 
 <CodeGroup>
 ```bash Environment
-export SHINZO_INGEST_TOKEN="shinzo_ingest_abc123..."
-export SHINZO_API_TOKEN="shinzo_api_xyz789..."
+export SHINZO_JWT_TOKEN="eyJhbGciOiJIUzI1NiIs..."
+export SHINZO_INGEST_TOKEN="abc123-def456-..."
+export SHINZO_API_KEY="sk_shinzo_xyz789..."
 ```
 
 ```typescript TypeScript
-const token = process.env.SHINZO_INGEST_TOKEN
+const token = process.env.SHINZO_API_KEY
 ```
 
 ```python Python
 import os
-token = os.getenv("SHINZO_INGEST_TOKEN")
+token = os.getenv("SHINZO_API_KEY")
 ```
 </CodeGroup>
 
@@ -126,18 +172,16 @@ token = os.getenv("SHINZO_INGEST_TOKEN")
 
 Regularly rotate tokens to minimize the impact of potential leaks:
 
-1. Create a new token with the same permissions
+1. Create a new token/key with the same permissions
 2. Update your applications to use the new token
 3. Verify the new token is working
 4. Revoke the old token
 
 ### Least Privilege
 
-Create tokens with only the permissions required for their specific use case:
-
-- Use **ingest tokens** for SDK telemetry (not API tokens)
-- Create separate tokens for different environments
-- Avoid granting `tokens:manage` permission unless necessary
+- Use **ingest tokens** for SDK telemetry only
+- Use **platform API keys** for server-to-server communication
+- Create separate tokens for different environments (dev, staging, prod)
 
 ### Monitoring
 
@@ -145,7 +189,7 @@ Monitor token usage in your dashboard:
 
 - Review `last_used_at` timestamps
 - Investigate unused tokens
-- Set up alerts for unusual activity patterns
+- Revoke tokens that are no longer needed
 
 ## Error Responses
 
@@ -153,40 +197,38 @@ Monitor token usage in your dashboard:
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "The provided authentication token is invalid or expired"
-  }
+  "error": "Invalid or expired token"
 }
 ```
 
 **Status Code:** `401 Unauthorized`
-
-### Insufficient Permissions
-
-```json
-{
-  "success": false,
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "Token does not have permission 'servers:write'"
-  }
-}
-```
-
-**Status Code:** `403 Forbidden`
 
 ### Missing Token
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authorization header is required"
-  }
+  "error": "Authorization header is required"
 }
 ```
 
 **Status Code:** `401 Unauthorized`
+
+### Email Not Verified
+
+```json
+{
+  "error": "Email not verified. Please check your inbox for a verification email."
+}
+```
+
+**Status Code:** `403 Forbidden`
+
+### Feature Not Enabled
+
+```json
+{
+  "error": "AI Agents feature is not enabled for this account"
+}
+```
+
+**Status Code:** `403 Forbidden`

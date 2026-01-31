@@ -1,0 +1,236 @@
+---
+title: "Fetch Telemetry Data"
+description: "Retrieve telemetry data including resources, traces, spans, and metrics."
+---
+
+# Fetch Telemetry Data
+
+Retrieve telemetry data from your MCP servers including resources, traces, spans, and metrics.
+
+## Authentication
+
+All fetch endpoints require JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+---
+
+## Fetch Resources
+
+Get all telemetry resources (services) that have sent data.
+
+### Endpoint
+
+```
+GET /telemetry/fetch_resources
+```
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/telemetry/fetch_resources \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "resources": [
+    {
+      "resource_id": "res_abc123",
+      "service_name": "my-mcp-server",
+      "service_version": "1.0.0",
+      "first_seen_at": "2025-01-10T08:00:00Z",
+      "last_seen_at": "2025-01-20T14:30:00Z"
+    }
+  ]
+}
+```
+
+---
+
+## Fetch Traces
+
+Get traces with optional filtering.
+
+### Endpoint
+
+```
+GET /telemetry/fetch_traces
+```
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | string | Filter by start date (ISO 8601) |
+| `end_date` | string | Filter by end date (ISO 8601) |
+| `resource_id` | string | Filter by resource ID |
+| `service_name` | string | Filter by service name |
+| `limit` | number | Max results to return |
+| `offset` | number | Pagination offset |
+| `sort` | string | Sort field |
+| `sort_direction` | string | Sort direction (`asc`, `desc`) |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_traces?service_name=my-mcp-server&limit=50" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "traces": [
+    {
+      "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
+      "service_name": "my-mcp-server",
+      "root_span_name": "mcp.tool.execute",
+      "duration_ms": 125,
+      "status": "ok",
+      "span_count": 3,
+      "timestamp": "2025-01-20T14:30:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 150,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+---
+
+## Fetch Spans
+
+Get individual spans with optional filtering.
+
+### Endpoint
+
+```
+GET /telemetry/fetch_spans
+```
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | string | Filter by start date (ISO 8601) |
+| `end_date` | string | Filter by end date (ISO 8601) |
+| `resource_id` | string | Filter by resource ID |
+| `service_name` | string | Filter by service name |
+| `trace_id` | string | Filter by trace ID |
+| `limit` | number | Max results to return |
+| `offset` | number | Pagination offset |
+| `sort` | string | Sort field |
+| `sort_direction` | string | Sort direction (`asc`, `desc`) |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_spans?trace_id=5b8aa5a2d2c872e8321cf37308d69df2" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "spans": [
+    {
+      "span_id": "051581bf3cb55c13",
+      "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
+      "parent_span_id": null,
+      "name": "mcp.tool.execute",
+      "kind": "internal",
+      "start_time": "2025-01-20T14:30:00.000Z",
+      "end_time": "2025-01-20T14:30:00.125Z",
+      "duration_ms": 125,
+      "status": "ok",
+      "attributes": {
+        "mcp.tool.name": "search_files",
+        "mcp.tool.duration": 125
+      }
+    }
+  ],
+  "pagination": {
+    "total": 3,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+---
+
+## Fetch Metrics
+
+Get metrics data with optional filtering.
+
+### Endpoint
+
+```
+GET /telemetry/fetch_metrics
+```
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `start_date` | string | Filter by start date (ISO 8601) |
+| `end_date` | string | Filter by end date (ISO 8601) |
+| `resource_id` | string | Filter by resource ID |
+| `service_name` | string | Filter by service name |
+| `metric_name` | string | Filter by metric name |
+| `limit` | number | Max results to return |
+| `offset` | number | Pagination offset |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_metrics?service_name=my-mcp-server" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "metrics": [
+    {
+      "metric_name": "mcp.tool.invocations",
+      "service_name": "my-mcp-server",
+      "description": "Number of tool invocations",
+      "unit": "1",
+      "data_points": [
+        {
+          "timestamp": "2025-01-20T14:00:00Z",
+          "value": 42,
+          "attributes": {
+            "mcp.tool.name": "search_files"
+          }
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "total": 10,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `400` | Invalid query parameters |
+| `401` | Invalid or missing token |

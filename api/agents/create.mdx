@@ -1,0 +1,143 @@
+---
+title: "Create Agent"
+description: "Deploy a new AI agent on the Shinzo Platform."
+api: "POST /agent/create"
+---
+
+# Create Agent
+
+Deploy a new AI agent with custom configuration. The agent will be provisioned in a Kubernetes environment with its own persistent storage.
+
+## Endpoint
+
+```
+POST /agent/create
+```
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Agent name (1-100 characters) |
+| `description` | string | No | Agent description (max 500 characters) |
+| `pvc_size` | string | No | Persistent volume size (e.g., `2Gi`) |
+| `anthropic_api_key` | string | Yes | Anthropic API key for the agent |
+| `configuration` | object | No | Agent configuration options |
+| `initial_files` | array | No | Files to create in agent workspace |
+
+### Configuration Options
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `timeout_seconds` | number | 3600 | Task timeout in seconds |
+| `mcp_servers` | object | - | MCP server configurations |
+| `memory_config` | object | - | Memory configuration |
+| `webhooks` | object | - | Webhook URLs for notifications |
+
+### Memory Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | string | `hierarchical` | Memory type (`hierarchical` or `flat`) |
+| `max_size_mb` | number | 1024 | Maximum memory size in MB |
+| `persistence` | string | `persistent` | Memory persistence (`ephemeral` or `persistent`) |
+
+### Webhooks
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `task_complete` | string | URL called when a task completes |
+| `task_failed` | string | URL called when a task fails |
+| `task_awaiting_input` | string | URL called when a task needs input |
+| `agent_error` | string | URL called on agent error |
+
+### Initial Files
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `path` | string | Yes | File path in workspace |
+| `content` | string | Yes | File content |
+| `encoding` | string | No | Content encoding (`utf-8` or `base64`, default: `utf-8`) |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "code-review-agent",
+    "description": "Agent for automated code reviews",
+    "anthropic_api_key": "sk-ant-api03-...",
+    "pvc_size": "5Gi",
+    "configuration": {
+      "timeout_seconds": 1800,
+      "webhooks": {
+        "task_complete": "https://myapp.com/webhooks/task-complete"
+      }
+    },
+    "initial_files": [
+      {
+        "path": "config.json",
+        "content": "{\"review_style\": \"thorough\"}"
+      }
+    ]
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "agt_abc123def456",
+  "name": "code-review-agent",
+  "description": "Agent for automated code reviews",
+  "status": "active",
+  "created_at": "2025-01-15T10:00:00Z",
+  "endpoint_url": "https://agent-abc123.shinzo.ai",
+  "container_id": "k8s-pod-xyz789",
+  "platform_api_key": "sk_shinzo_auto_generated...",
+  "configuration": {
+    "timeout_seconds": 1800,
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 1024,
+      "persistence": "persistent"
+    }
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique agent identifier |
+| `name` | string | Agent name |
+| `status` | string | Agent status (`active`) |
+| `endpoint_url` | string | Agent's API endpoint |
+| `container_id` | string | Kubernetes pod identifier |
+| `platform_api_key` | string | Auto-generated API key for Spotlight analytics |
+| `created_at` | string | Creation timestamp |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Agent created successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Invalid authentication |
+| `403` | AI Agents feature not enabled |
+
+## Resource Limits
+
+Agents are provisioned with the following resource limits:
+
+| Resource | Request | Limit |
+|----------|---------|-------|
+| CPU | 250m | 1000m |
+| Memory | 512Mi | 2Gi |

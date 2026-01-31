@@ -1,0 +1,108 @@
+---
+title: "Pause & Resume Agent"
+description: "Pause and resume agent execution."
+---
+
+# Pause & Resume Agent
+
+Control agent execution by pausing and resuming. Paused agents will not accept new tasks but will retain their state and files.
+
+## Pause Agent
+
+Pause an active agent.
+
+### Endpoint
+
+```
+POST /agent/:id/pause
+```
+
+### Authentication
+
+Requires JWT token or Platform API key.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Agent UUID |
+
+### Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/agt_abc123def456/pause \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "uuid": "agt_abc123def456",
+  "status": "paused",
+  "paused_at": "2025-01-20T14:00:00Z"
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent paused successfully |
+| `400` | Agent is already paused |
+| `401` | Invalid authentication |
+| `404` | Agent not found |
+
+---
+
+## Resume Agent
+
+Resume a paused agent.
+
+### Endpoint
+
+```
+POST /agent/:id/resume
+```
+
+### Authentication
+
+Requires JWT token or Platform API key.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string | Agent UUID |
+
+### Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/agt_abc123def456/resume \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "uuid": "agt_abc123def456",
+  "status": "active",
+  "resumed_at": "2025-01-20T15:00:00Z"
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent resumed successfully |
+| `400` | Agent is not paused |
+| `401` | Invalid authentication |
+| `404` | Agent not found |
+
+## Notes
+
+- Pausing an agent does not cancel running tasks
+- Paused agents retain their files and state
+- Resume restores the agent to `active` status

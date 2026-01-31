@@ -1,0 +1,77 @@
+---
+title: "Test Provider Key"
+description: "Test an AI provider API key without storing it."
+api: "POST /auth/provider_keys/test"
+---
+
+# Test Provider Key
+
+Validate that an AI provider API key is working correctly without storing it in the Shinzo Platform. This is useful for verifying credentials before saving them.
+
+## Endpoint
+
+```
+POST /auth/provider_keys/test
+```
+
+## Authentication
+
+No authentication required.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | string | Yes | Provider name (`anthropic`) |
+| `provider_api_key` | string | Yes | The API key to test |
+| `provider_base_url` | string | No | Custom base URL (for proxies or self-hosted) |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/provider_keys/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "anthropic",
+    "provider_api_key": "sk-ant-api03-..."
+  }'
+```
+
+## Response (Valid Key)
+
+```json
+{
+  "valid": true,
+  "provider": "anthropic",
+  "message": "API key is valid"
+}
+```
+
+## Response (Invalid Key)
+
+```json
+{
+  "valid": false,
+  "provider": "anthropic",
+  "error": "Authentication failed: Invalid API key"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Test completed (check `valid` field for result) |
+| `400` | Invalid request (missing fields, unsupported provider) |
+
+## Supported Providers
+
+| Provider | Value |
+|----------|-------|
+| Anthropic | `anthropic` |
+
+## Notes
+
+- This endpoint does not store the API key
+- The test makes a minimal API call to verify the key is valid
+- Custom base URLs are supported for enterprise or self-hosted deployments

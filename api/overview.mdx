@@ -1,11 +1,11 @@
 ---
 title: "API Reference Overview"
-description: "Complete reference for the Shinzo Platform REST API for telemetry ingestion, server management, and analytics."
+description: "Complete reference for the Shinzo Platform REST API for authentication, telemetry ingestion, AI agents, and analytics."
 ---
 
 # API Reference
 
-The Shinzo Platform provides a RESTful API for programmatic access to telemetry ingestion, server management, and analytics data. This reference documents all available endpoints and their usage.
+The Shinzo Platform provides a RESTful API for programmatic access to authentication, telemetry ingestion, AI agent management, and analytics. This reference documents all available endpoints and their usage.
 
 ## Base URL
 
@@ -18,30 +18,37 @@ https://api.app.shinzo.ai
 ## API Categories
 
 <CardGroup cols={2}>
-  <Card title="Servers" icon="server" href="/api/servers/list">
-    Register, manage, and configure your MCP servers.
+  <Card title="Authentication" icon="lock" href="/api/auth/login">
+    User registration, login, OAuth, and token management.
   </Card>
-  <Card title="Analytics" icon="chart-mixed" href="/api/analytics/overview">
-    Query traces, metrics, and performance data.
+  <Card title="AI Agents" icon="robot" href="/api/agents/create">
+    Deploy, manage, and interact with AI agents.
   </Card>
-  <Card title="Tokens" icon="key" href="/api/tokens/list">
-    Manage authentication tokens.
+  <Card title="Spotlight" icon="eye" href="/api/spotlight/overview">
+    AI model proxy, session analytics, and token tracking.
   </Card>
   <Card title="Telemetry" icon="signal" href="/api/telemetry/ingest-traces">
     Send OpenTelemetry data from your MCP servers.
   </Card>
+  <Card title="Tokens" icon="key" href="/api/tokens/ingest">
+    Manage ingest tokens and platform API keys.
+  </Card>
+  <Card title="Provider Keys" icon="plug" href="/api/provider-keys/list">
+    Configure AI provider credentials (Anthropic, etc.).
+  </Card>
 </CardGroup>
 
-## Authentication
+## Authentication Methods
 
-All API endpoints require authentication. The Shinzo Platform supports two types of tokens:
+The Shinzo Platform supports multiple authentication methods depending on the endpoint:
 
-| Token Type | Use Case | Header Format |
-|------------|----------|---------------|
-| **Ingest Token** | Sending telemetry data from SDK | `Authorization: Bearer <ingest_token>` |
-| **API Token** | Management and analytics endpoints | `Authorization: Bearer <api_token>` |
+| Auth Type | Use Case | Header Format |
+|-----------|----------|---------------|
+| **JWT Token** | User authentication for dashboard and management APIs | `Authorization: Bearer <jwt_token>` |
+| **Ingest Token** | Sending telemetry data from SDKs | `Authorization: <ingest_token>` |
+| **Platform API Key** | Programmatic access to agent and spotlight APIs | `x-shinzo-api-key: <api_key>` or `Authorization: Bearer <api_key>` |
 
-Generate tokens from your [Shinzo Platform dashboard](https://app.shinzo.ai) under **Settings > API Tokens**.
+JWT tokens are obtained by logging in via `/auth/login` or OAuth. Ingest tokens and platform API keys are generated from the dashboard or via API.
 
 ## Request Format
 
@@ -108,15 +115,13 @@ API endpoints are rate-limited to ensure fair usage:
 
 | Endpoint Category | Rate Limit |
 |-------------------|------------|
-| Telemetry Ingestion | 1000 requests/minute |
-| Server Management | 100 requests/minute |
-| Analytics Queries | 60 requests/minute |
+| All endpoints | 1000 requests/minute |
 
 Rate limit headers are included in all responses:
 
 ```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 995
 X-RateLimit-Reset: 1705315800
 ```
 
@@ -132,22 +137,26 @@ The SDKs handle authentication, batching, retries, and error handling automatica
 ## Getting Started
 
 1. [Create an account](https://app.shinzo.ai) on the Shinzo Platform
-2. Generate an [API token](/api/authentication) from your dashboard
+2. Verify your email address
 3. Make your first API call to verify connectivity
 
 ```bash
-curl -X GET https://api.app.shinzo.ai/v1/health \
-  -H "Authorization: Bearer YOUR_API_TOKEN"
+curl -X GET https://api.app.shinzo.ai/health
 ```
 
 Expected response:
 
 ```json
 {
-  "success": true,
-  "data": {
-    "status": "healthy",
-    "version": "1.0.0"
-  }
+  "status": "healthy",
+  "database": "healthy"
 }
+```
+
+For authenticated endpoints, first log in to get a JWT token:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "your@email.com", "password": "your_password"}'
 ```

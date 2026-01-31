@@ -1,6 +1,6 @@
 ---
 title: "Ingest Metrics"
-api: "POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/metrics"
+api: "POST /telemetry/ingest_http/metrics"
 description: "Send OpenTelemetry metrics using OTLP/HTTP protocol"
 ---
 
@@ -24,7 +24,7 @@ We recommend using our [TypeScript SDK](/sdk/typescript/installation) or [Python
 
 <RequestExample>
 ```bash cURL
-curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/metrics \
+curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/metrics \
   -H "Authorization: Bearer YOUR_INGEST_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

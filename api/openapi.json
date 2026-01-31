@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Shinzo Platform API",
-    "description": "REST API for telemetry ingestion, MCP server management, and analytics",
-    "version": "1.0.0",
+    "description": "REST API for authentication, AI agents, Spotlight model proxy, telemetry ingestion, and analytics",
+    "version": "2.0.0",
     "contact": {
       "email": "austin@shinzolabs.com"
     }
@@ -14,229 +14,152 @@
       "description": "Production API"
     }
   ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "components": {
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "API token or Ingest token from your Shinzo Platform dashboard"
+        "description": "JWT token from login or Platform API key"
+      },
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-shinzo-api-key",
+        "description": "Platform API key"
+      },
+      "ingestToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Ingest token for telemetry"
       }
     },
     "schemas": {
-      "Server": {
+      "User": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique server identifier",
-            "example": "srv_abc123"
-          },
-          "name": {
-            "type": "string",
-            "description": "Server name",
-            "example": "weather-server"
-          },
-          "version": {
-            "type": "string",
-            "description": "Server version",
-            "example": "1.0.0"
-          },
-          "description": {
-            "type": "string",
-            "description": "Optional server description",
-            "example": "Weather information MCP server"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["active", "inactive", "error"],
-            "description": "Server status"
-          },
-          "environment": {
-            "type": "string",
-            "description": "Deployment environment",
-            "example": "production"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Registration timestamp"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Last update timestamp"
-          },
-          "last_seen_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Last telemetry received"
-          },
-          "configuration": {
-            "$ref": "#/components/schemas/ServerConfiguration"
-          },
-          "stats": {
-            "$ref": "#/components/schemas/ServerStats"
-          }
+          "uuid": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "email_verified": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" }
         }
       },
-      "ServerConfiguration": {
+      "Agent": {
         "type": "object",
         "properties": {
-          "sampling_rate": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "default": 1.0,
-            "description": "Trace sampling rate"
-          },
-          "pii_sanitization": {
-            "type": "boolean",
-            "default": true,
-            "description": "Enable automatic PII sanitization"
-          },
-          "argument_collection": {
-            "type": "boolean",
-            "default": false,
-            "description": "Collect tool arguments"
-          }
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "paused", "stopped", "error"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "endpoint_url": { "type": "string" },
+          "task_count": { "type": "integer" },
+          "active_tasks": { "type": "integer" }
         }
       },
-      "ServerStats": {
+      "Task": {
         "type": "object",
         "properties": {
-          "total_invocations": {
-            "type": "integer",
-            "description": "Total tool invocations"
-          },
-          "error_rate": {
-            "type": "number",
-            "description": "Error rate (0.0 to 1.0)"
-          },
-          "avg_response_time_ms": {
-            "type": "integer",
-            "description": "Average response time in milliseconds"
-          }
+          "task_id": { "type": "string" },
+          "status": { "type": "string", "enum": ["queued", "running", "awaiting_input", "completed", "failed", "cancelled"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "result": { "type": "object" }
         }
       },
-      "Trace": {
+      "Session": {
         "type": "object",
         "properties": {
-          "trace_id": {
-            "type": "string",
-            "description": "Unique trace identifier"
-          },
-          "span_id": {
-            "type": "string",
-            "description": "Span identifier"
-          },
-          "server_id": {
-            "type": "string",
-            "description": "Server identifier"
-          },
-          "tool_name": {
-            "type": "string",
-            "description": "Name of the executed tool"
-          },
-          "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-          },
-          "duration_ms": {
-            "type": "integer",
-            "description": "Execution duration in milliseconds"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "session_id": { "type": "string" },
+          "session_uuid": { "type": "string" },
+          "start_time": { "type": "string", "format": "date-time" },
+          "total_requests": { "type": "integer" },
+          "total_input_tokens": { "type": "integer" },
+          "total_output_tokens": { "type": "integer" }
         }
       },
-      "Token": {
+      "IngestToken": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "description": "Token identifier",
-            "example": "tok_abc123"
-          },
-          "name": {
-            "type": "string",
-            "description": "Token name",
-            "example": "Production Ingest"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["ingest", "api"],
-            "description": "Token type"
-          },
-          "permissions": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Token permissions"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "last_used_at": {
-            "type": "string",
-            "format": "date-time"
-          }
+          "uuid": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "last_used_at": { "type": "string", "format": "date-time" },
+          "status": { "type": "string" }
+        }
+      },
+      "PlatformApiKey": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "prefix": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "last_used_at": { "type": "string", "format": "date-time" },
+          "status": { "type": "string" }
+        }
+      },
+      "ProviderKey": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "provider": { "type": "string" },
+          "label": { "type": "string" },
+          "status": { "type": "string", "enum": ["active", "inactive", "revoked"] },
+          "created_at": { "type": "string", "format": "date-time" }
         }
       },
       "Error": {
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean",
-            "example": false
-          },
-          "error": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string",
-                "description": "Error code"
-              },
-              "message": {
-                "type": "string",
-                "description": "Error message"
-              }
-            }
-          }
+          "error": { "type": "string" },
+          "details": { "type": "string" }
         }
       }
     }
   },
   "paths": {
-    "/v1/health": {
+    "/health": {
       "get": {
         "operationId": "getHealth",
         "summary": "Health Check",
-        "description": "Verify connectivity to the Shinzo Platform API",
         "tags": ["General"],
         "security": [],
         "responses": {
           "200": {
-            "description": "Service is healthy",
+            "description": "Service healthy",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
-                    "data": {
+                    "status": { "type": "string" },
+                    "database": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/deep": {
+      "get": {
+        "operationId": "getHealthDeep",
+        "summary": "Deep Health Check",
+        "tags": ["General"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Detailed health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "database": {
                       "type": "object",
                       "properties": {
-                        "status": { "type": "string", "example": "healthy" },
-                        "version": { "type": "string", "example": "1.0.0" }
+                        "status": { "type": "string" },
+                        "latency_ms": { "type": "number" }
                       }
                     }
                   }
@@ -247,195 +170,49 @@
         }
       }
     },
-    "/v1/servers": {
-      "get": {
-        "operationId": "listServers",
-        "summary": "List Servers",
-        "description": "Retrieve all registered MCP servers for your account",
-        "tags": ["Servers"],
-        "parameters": [
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filter by server status",
-            "schema": {
-              "type": "string",
-              "enum": ["active", "inactive", "error"]
-            }
-          },
-          {
-            "name": "environment",
-            "in": "query",
-            "description": "Filter by environment",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Page number for pagination",
-            "schema": { "type": "integer", "default": 1 }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Results per page (max 100)",
-            "schema": { "type": "integer", "default": 20, "maximum": 100 }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of servers",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "servers": {
-                          "type": "array",
-                          "items": { "$ref": "#/components/schemas/Server" }
-                        },
-                        "pagination": {
-                          "type": "object",
-                          "properties": {
-                            "page": { "type": "integer" },
-                            "limit": { "type": "integer" },
-                            "total": { "type": "integer" },
-                            "total_pages": { "type": "integer" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
+    "/auth/create_user": {
       "post": {
-        "operationId": "createServer",
-        "summary": "Register Server",
-        "description": "Register a new MCP server with the platform",
-        "tags": ["Servers"],
+        "operationId": "createUser",
+        "summary": "Register User",
+        "tags": ["Authentication"],
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "version"],
+                "required": ["email", "password"],
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Server name (unique per account)"
-                  },
-                  "version": {
-                    "type": "string",
-                    "description": "Server version"
-                  },
-                  "description": {
-                    "type": "string",
-                    "description": "Server description"
-                  },
-                  "environment": {
-                    "type": "string",
-                    "default": "production",
-                    "description": "Deployment environment"
-                  },
-                  "configuration": {
-                    "$ref": "#/components/schemas/ServerConfiguration"
-                  }
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "Server registered successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Server" }
-                  }
-                }
-              }
-            }
-          }
+          "201": { "description": "User created" },
+          "409": { "description": "User already exists" }
         }
       }
     },
-    "/v1/servers/{server_id}": {
-      "get": {
-        "operationId": "getServer",
-        "summary": "Get Server Details",
-        "description": "Retrieve detailed information about a specific server",
-        "tags": ["Servers"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "path",
-            "required": true,
-            "description": "Server identifier",
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Server details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Server" }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Server not found",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/Error" }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "operationId": "updateServer",
-        "summary": "Update Server",
-        "description": "Update a server's configuration or metadata",
-        "tags": ["Servers"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "path",
-            "required": true,
-            "description": "Server identifier",
-            "schema": { "type": "string" }
-          }
-        ],
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "summary": "Login",
+        "tags": ["Authentication"],
+        "security": [],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
+                "required": ["email", "password"],
                 "properties": {
-                  "version": { "type": "string" },
-                  "description": { "type": "string" },
-                  "environment": { "type": "string" },
-                  "configuration": { "$ref": "#/components/schemas/ServerConfiguration" }
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
                 }
               }
             }
@@ -443,51 +220,14 @@
         },
         "responses": {
           "200": {
-            "description": "Server updated",
+            "description": "Login successful",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Server" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "operationId": "deleteServer",
-        "summary": "Delete Server",
-        "description": "Remove a server registration. This action is permanent and removes all associated data.",
-        "tags": ["Servers"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "path",
-            "required": true,
-            "description": "Server identifier",
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Server deleted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "deleted_at": { "type": "string", "format": "date-time" }
-                      }
-                    }
+                    "token": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
                   }
                 }
               }
@@ -496,302 +236,54 @@
         }
       }
     },
-    "/v1/servers/{server_id}/status": {
+    "/auth/fetch_user": {
       "get": {
-        "operationId": "getServerStatus",
-        "summary": "Get Server Status",
-        "description": "Get real-time health status for a server",
-        "tags": ["Servers"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "path",
-            "required": true,
-            "description": "Server identifier",
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Server status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "server_id": { "type": "string" },
-                        "status": { "type": "string" },
-                        "health": { "type": "string", "enum": ["healthy", "degraded", "unhealthy", "unknown"] },
-                        "last_seen_at": { "type": "string", "format": "date-time" },
-                        "uptime_percentage": { "type": "number" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/analytics/overview": {
-      "get": {
-        "operationId": "getAnalyticsOverview",
-        "summary": "Analytics Overview",
-        "description": "Get a high-level overview of your analytics data",
-        "tags": ["Analytics"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "query",
-            "description": "Filter by server",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "start_time",
-            "in": "query",
-            "description": "Start of time range (ISO 8601)",
-            "schema": { "type": "string", "format": "date-time" }
-          },
-          {
-            "name": "end_time",
-            "in": "query",
-            "description": "End of time range (ISO 8601)",
-            "schema": { "type": "string", "format": "date-time" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Analytics overview",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "summary": {
-                          "type": "object",
-                          "properties": {
-                            "total_traces": { "type": "integer" },
-                            "total_tool_invocations": { "type": "integer" },
-                            "unique_sessions": { "type": "integer" },
-                            "active_servers": { "type": "integer" },
-                            "error_rate": { "type": "number" }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/analytics/traces": {
-      "get": {
-        "operationId": "listTraces",
-        "summary": "Query Traces",
-        "description": "Search and retrieve traces with filtering and pagination",
-        "tags": ["Analytics"],
-        "parameters": [
-          {
-            "name": "server_id",
-            "in": "query",
-            "description": "Filter by server",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "tool_name",
-            "in": "query",
-            "description": "Filter by tool name",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "description": "Filter by status",
-            "schema": { "type": "string", "enum": ["success", "error"] }
-          },
-          {
-            "name": "start_time",
-            "in": "query",
-            "description": "Start of time range",
-            "schema": { "type": "string", "format": "date-time" }
-          },
-          {
-            "name": "end_time",
-            "in": "query",
-            "description": "End of time range",
-            "schema": { "type": "string", "format": "date-time" }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "schema": { "type": "integer", "default": 1 }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": { "type": "integer", "default": 50, "maximum": 200 }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of traces",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "traces": {
-                          "type": "array",
-                          "items": { "$ref": "#/components/schemas/Trace" }
-                        },
-                        "pagination": { "type": "object" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/analytics/traces/{trace_id}": {
-      "get": {
-        "operationId": "getTrace",
-        "summary": "Get Trace Details",
-        "description": "Retrieve detailed information about a specific trace",
-        "tags": ["Analytics"],
-        "parameters": [
-          {
-            "name": "trace_id",
-            "in": "path",
-            "required": true,
-            "description": "Trace identifier",
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Trace details with spans",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "trace_id": { "type": "string" },
-                        "spans": { "type": "array" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/analytics/metrics": {
-      "get": {
-        "operationId": "getMetrics",
-        "summary": "Query Metrics",
-        "description": "Retrieve time-series metrics for visualization and analysis",
-        "tags": ["Analytics"],
-        "parameters": [
-          {
-            "name": "metric",
-            "in": "query",
-            "required": true,
-            "description": "Metric name",
-            "schema": {
-              "type": "string",
-              "enum": ["invocations", "errors", "error_rate", "duration", "throughput"]
-            }
-          },
-          {
-            "name": "server_id",
-            "in": "query",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "interval",
-            "in": "query",
-            "description": "Aggregation interval",
-            "schema": {
-              "type": "string",
-              "enum": ["1m", "5m", "15m", "1h", "1d"],
-              "default": "auto"
-            }
-          },
-          {
-            "name": "aggregation",
-            "in": "query",
-            "description": "Aggregation function",
-            "schema": {
-              "type": "string",
-              "enum": ["avg", "sum", "min", "max", "p50", "p95", "p99"],
-              "default": "avg"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Metric data points",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "metric": { "type": "string" },
-                        "data_points": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "timestamp": { "type": "string" },
-                              "value": { "type": "number" }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/tokens": {
-      "get": {
-        "operationId": "listTokens",
-        "summary": "List Tokens",
-        "description": "Retrieve all tokens for your account (values are masked)",
+        "operationId": "fetchUser",
+        "summary": "Get Current User",
         "tags": ["Authentication"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/generate_ingest_token": {
+      "post": {
+        "operationId": "generateIngestToken",
+        "summary": "Generate Ingest Token",
+        "tags": ["Tokens"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Token generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": { "type": "string" },
+                    "token": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/fetch_ingest_tokens": {
+      "get": {
+        "operationId": "fetchIngestTokens",
+        "summary": "List Ingest Tokens",
+        "tags": ["Tokens"],
+        "security": [{ "bearerAuth": [] }],
         "responses": {
           "200": {
             "description": "List of tokens",
@@ -800,15 +292,35 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "tokens": {
-                          "type": "array",
-                          "items": { "$ref": "#/components/schemas/Token" }
-                        }
-                      }
+                    "tokens": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/IngestToken" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/platform_keys": {
+      "get": {
+        "operationId": "listPlatformKeys",
+        "summary": "List Platform API Keys",
+        "tags": ["Tokens"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of API keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/PlatformApiKey" }
                     }
                   }
                 }
@@ -818,32 +330,101 @@
         }
       },
       "post": {
-        "operationId": "createToken",
-        "summary": "Create Token",
-        "description": "Generate a new authentication token",
-        "tags": ["Authentication"],
+        "operationId": "createPlatformKey",
+        "summary": "Create Platform API Key",
+        "tags": ["Tokens"],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name", "type"],
+                "required": ["name"],
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "description": "Token name"
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": ["ingest", "api"],
-                    "description": "Token type"
-                  },
-                  "permissions": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "description": "Token permissions (for API tokens)"
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Key created" }
+        }
+      }
+    },
+    "/auth/provider_keys": {
+      "get": {
+        "operationId": "listProviderKeys",
+        "summary": "List Provider Keys",
+        "tags": ["Provider Keys"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "List of provider keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "keys": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/ProviderKey" }
+                    }
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "saveProviderKey",
+        "summary": "Save Provider Key",
+        "tags": ["Provider Keys"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["provider", "provider_api_key"],
+                "properties": {
+                  "provider": { "type": "string", "enum": ["anthropic"] },
+                  "provider_api_key": { "type": "string" },
+                  "provider_base_url": { "type": "string", "format": "uri" },
+                  "label": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Key saved" }
+        }
+      }
+    },
+    "/agent/create": {
+      "post": {
+        "operationId": "createAgent",
+        "summary": "Create Agent",
+        "tags": ["Agents"],
+        "security": [{ "bearerAuth": [] }, { "apiKeyHeader": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "anthropic_api_key"],
+                "properties": {
+                  "name": { "type": "string", "maxLength": 100 },
+                  "description": { "type": "string", "maxLength": 500 },
+                  "pvc_size": { "type": "string" },
+                  "anthropic_api_key": { "type": "string" },
+                  "configuration": { "type": "object" },
+                  "initial_files": { "type": "array" }
                 }
               }
             }
@@ -851,61 +432,37 @@
         },
         "responses": {
           "201": {
-            "description": "Token created (token value only shown once)",
+            "description": "Agent created",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "token": { "type": "string", "description": "Only shown once" },
-                        "name": { "type": "string" },
-                        "type": { "type": "string" }
-                      }
-                    }
-                  }
-                }
+                "schema": { "$ref": "#/components/schemas/Agent" }
               }
             }
           }
         }
       }
     },
-    "/v1/tokens/{token_id}": {
-      "delete": {
-        "operationId": "revokeToken",
-        "summary": "Revoke Token",
-        "description": "Revoke an existing token",
-        "tags": ["Authentication"],
+    "/agent/list": {
+      "get": {
+        "operationId": "listAgents",
+        "summary": "List Agents",
+        "tags": ["Agents"],
+        "security": [{ "bearerAuth": [] }, { "apiKeyHeader": [] }],
         "parameters": [
-          {
-            "name": "token_id",
-            "in": "path",
-            "required": true,
-            "description": "Token identifier",
-            "schema": { "type": "string" }
-          }
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 100 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active", "paused", "stopped", "error"] } }
         ],
         "responses": {
           "200": {
-            "description": "Token revoked",
+            "description": "List of agents",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "revoked_at": { "type": "string", "format": "date-time" }
-                      }
-                    }
+                    "agents": { "type": "array", "items": { "$ref": "#/components/schemas/Agent" } },
+                    "pagination": { "type": "object" }
                   }
                 }
               }
@@ -914,12 +471,128 @@
         }
       }
     },
-    "/telemetry/ingest_http/v1/traces": {
+    "/agent/{id}": {
+      "get": {
+        "operationId": "getAgent",
+        "summary": "Get Agent",
+        "tags": ["Agents"],
+        "security": [{ "bearerAuth": [] }, { "apiKeyHeader": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Agent details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Agent" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/request/{id}": {
+      "post": {
+        "operationId": "submitTask",
+        "summary": "Submit Task",
+        "tags": ["Agents"],
+        "security": [{ "bearerAuth": [] }, { "apiKeyHeader": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message"],
+                "properties": {
+                  "message": { "type": "string" },
+                  "priority": { "type": "integer", "minimum": 1, "maximum": 10 },
+                  "callback_mode": { "type": "string", "enum": ["poll", "webhook"] },
+                  "webhook_url": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Task" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spotlight/anthropic/v1/messages": {
+      "post": {
+        "operationId": "sendMessages",
+        "summary": "Send Messages (Anthropic Proxy)",
+        "tags": ["Spotlight"],
+        "security": [{ "bearerAuth": [] }, { "apiKeyHeader": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["model", "messages", "max_tokens"],
+                "properties": {
+                  "model": { "type": "string" },
+                  "messages": { "type": "array" },
+                  "max_tokens": { "type": "integer" },
+                  "stream": { "type": "boolean" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Model response" }
+        }
+      }
+    },
+    "/spotlight/analytics/sessions": {
+      "get": {
+        "operationId": "listSessions",
+        "summary": "List Sessions",
+        "tags": ["Spotlight"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sessions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": { "type": "array", "items": { "$ref": "#/components/schemas/Session" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/telemetry/ingest_http/traces": {
       "post": {
         "operationId": "ingestTraces",
-        "summary": "Ingest Traces (HTTP)",
-        "description": "Send OpenTelemetry traces using OTLP/HTTP protocol",
+        "summary": "Ingest Traces",
         "tags": ["Telemetry"],
+        "security": [{ "ingestToken": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -927,45 +600,23 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "resourceSpans": {
-                    "type": "array",
-                    "description": "OpenTelemetry resource spans"
-                  }
+                  "resourceSpans": { "type": "array" }
                 }
-              }
-            },
-            "application/x-protobuf": {
-              "schema": {
-                "type": "string",
-                "format": "binary",
-                "description": "OTLP protobuf encoded traces"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Traces accepted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "partialSuccess": { "type": "object" }
-                  }
-                }
-              }
-            }
-          }
+          "200": { "description": "Traces accepted" }
         }
       }
     },
-    "/telemetry/ingest_http/v1/metrics": {
+    "/telemetry/ingest_http/metrics": {
       "post": {
         "operationId": "ingestMetrics",
-        "summary": "Ingest Metrics (HTTP)",
-        "description": "Send OpenTelemetry metrics using OTLP/HTTP protocol",
+        "summary": "Ingest Metrics",
         "tags": ["Telemetry"],
+        "security": [{ "ingestToken": [] }],
         "requestBody": {
           "required": true,
           "content": {
@@ -973,28 +624,42 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "resourceMetrics": {
-                    "type": "array",
-                    "description": "OpenTelemetry resource metrics"
-                  }
+                  "resourceMetrics": { "type": "array" }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Metrics accepted"
-          }
+          "200": { "description": "Metrics accepted" }
+        }
+      }
+    },
+    "/telemetry/fetch_traces": {
+      "get": {
+        "operationId": "fetchTraces",
+        "summary": "Fetch Traces",
+        "tags": ["Telemetry"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "start_date", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "end_date", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "service_name", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Traces" }
         }
       }
     }
   },
   "tags": [
-    { "name": "General", "description": "General API endpoints" },
-    { "name": "Servers", "description": "MCP server management" },
-    { "name": "Analytics", "description": "Traces, metrics, and analytics data" },
-    { "name": "Authentication", "description": "Token management" },
-    { "name": "Telemetry", "description": "OpenTelemetry data ingestion" }
+    { "name": "General", "description": "Health and status endpoints" },
+    { "name": "Authentication", "description": "User authentication and account management" },
+    { "name": "Tokens", "description": "Ingest tokens and platform API keys" },
+    { "name": "Provider Keys", "description": "AI provider credential management" },
+    { "name": "Agents", "description": "AI agent deployment and management" },
+    { "name": "Spotlight", "description": "AI model proxy and session analytics" },
+    { "name": "Telemetry", "description": "OpenTelemetry data ingestion and retrieval" }
   ]
 }

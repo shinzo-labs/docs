@@ -1,0 +1,73 @@
+---
+title: "List Provider Keys"
+description: "Retrieve all stored AI provider API keys."
+api: "GET /auth/provider_keys"
+---
+
+# List Provider Keys
+
+Retrieve all AI provider API keys stored in your account. Key values are not returned for security.
+
+## Endpoint
+
+```
+GET /auth/provider_keys
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/auth/provider_keys \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "keys": [
+    {
+      "uuid": "pk_abc123def456",
+      "provider": "anthropic",
+      "label": "Production Key",
+      "status": "active",
+      "created_at": "2025-01-15T10:00:00Z",
+      "updated_at": "2025-01-15T10:00:00Z"
+    },
+    {
+      "uuid": "pk_xyz789uvw012",
+      "provider": "anthropic",
+      "label": "Development Key",
+      "status": "active",
+      "created_at": "2025-01-10T08:00:00Z",
+      "updated_at": "2025-01-18T14:30:00Z"
+    }
+  ]
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique identifier |
+| `provider` | string | Provider name |
+| `label` | string | User-provided label |
+| `status` | string | Key status (`active`, `inactive`, `revoked`) |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+| `updated_at` | string | Last update timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Invalid or missing JWT token |
+
+<Note>
+API key values are never returned by this endpoint. Only metadata about the stored keys is provided.
+</Note>

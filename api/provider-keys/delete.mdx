@@ -1,0 +1,54 @@
+---
+title: "Delete Provider Key"
+description: "Delete a stored AI provider API key."
+api: "DELETE /auth/provider_keys/:keyUuid"
+---
+
+# Delete Provider Key
+
+Permanently delete an AI provider API key from your account.
+
+## Endpoint
+
+```
+DELETE /auth/provider_keys/:keyUuid
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keyUuid` | string | Yes | The UUID of the key to delete |
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/auth/provider_keys/pk_abc123def456 \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Provider key deleted successfully",
+  "uuid": "pk_abc123def456",
+  "deleted_at": "2025-01-20T16:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Key deleted successfully |
+| `401` | Invalid or missing JWT token |
+| `404` | Key not found |
+
+<Warning>
+This action is permanent and cannot be undone. Any services using this key will lose access to the provider API.
+</Warning>
