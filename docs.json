@@ -17,7 +17,6 @@
       "mode": "show"
     }
   },
-  "openapi": "api/openapi.json",
   "navigation": {
     "tabs": [
       {
@@ -76,48 +75,70 @@
             "group": "Overview",
             "pages": [
               "api/overview",
-              "api/authentication"
-            ]
-          },
-          {
-            "group": "General",
-            "pages": [
+              "api/authentication",
               "api/health"
             ]
           },
           {
-            "group": "Servers",
+            "group": "Authentication",
             "pages": [
-              "api/servers/list",
-              "api/servers/create",
-              "api/servers/get",
-              "api/servers/update",
-              "api/servers/delete",
-              "api/servers/status"
+              "api/auth/register",
+              "api/auth/login",
+              "api/auth/verify",
+              "api/auth/resend-verification",
+              "api/auth/fetch-user",
+              "api/auth/fetch-quota",
+              "api/auth/oauth"
             ]
           },
           {
-            "group": "Analytics",
+            "group": "AI Agents",
             "pages": [
-              "api/analytics/overview",
-              "api/analytics/traces",
-              "api/analytics/trace-details",
-              "api/analytics/metrics"
+              "api/agents/overview",
+              "api/agents/create",
+              "api/agents/list",
+              "api/agents/get",
+              "api/agents/update",
+              "api/agents/delete",
+              "api/agents/pause-resume",
+              "api/agents/tasks",
+              "api/agents/filesystem"
+            ]
+          },
+          {
+            "group": "Spotlight",
+            "pages": [
+              "api/spotlight/overview",
+              "api/spotlight/messages",
+              "api/spotlight/count-tokens",
+              "api/spotlight/sessions",
+              "api/spotlight/sharing"
             ]
           },
           {
             "group": "Tokens",
             "pages": [
-              "api/tokens/list",
-              "api/tokens/create",
-              "api/tokens/revoke"
+              "api/tokens/ingest",
+              "api/tokens/platform-keys"
             ]
           },
           {
-            "group": "Telemetry Ingestion",
+            "group": "Provider Keys",
+            "pages": [
+              "api/provider-keys/overview",
+              "api/provider-keys/test",
+              "api/provider-keys/save",
+              "api/provider-keys/list",
+              "api/provider-keys/update",
+              "api/provider-keys/delete"
+            ]
+          },
+          {
+            "group": "Telemetry",
             "pages": [
               "api/telemetry/ingest-traces",
-              "api/telemetry/ingest-metrics"
+              "api/telemetry/ingest-metrics",
+              "api/telemetry/fetch"
             ]
           }
         ]

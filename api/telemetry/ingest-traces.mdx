@@ -1,6 +1,6 @@
 ---
 title: "Ingest Traces"
-api: "POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces"
+api: "POST /telemetry/ingest_http/traces"
 description: "Send OpenTelemetry traces using OTLP/HTTP protocol"
 ---
 
@@ -36,7 +36,7 @@ Include these attributes for optimal dashboard visualization:
 
 <RequestExample>
 ```bash cURL
-curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces \
+curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/traces \
   -H "Authorization: Bearer YOUR_INGEST_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{

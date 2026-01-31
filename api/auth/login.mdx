@@ -1,0 +1,82 @@
+---
+title: "Login"
+description: "Authenticate with email and password to receive a JWT token."
+api: "POST /auth/login"
+---
+
+# Login
+
+Authenticate a user with email and password to receive a JWT token for subsequent API requests.
+
+## Endpoint
+
+```
+POST /auth/login
+```
+
+## Authentication
+
+No authentication required.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | Registered email address |
+| `password` | string | Yes | User password |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+## Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "uuid": "usr_abc123def456",
+    "email": "user@example.com"
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Login successful |
+| `400` | Invalid request (missing fields) |
+| `401` | Invalid email or password |
+| `403` | Email not verified |
+
+## Token Usage
+
+The returned JWT token should be included in the `Authorization` header for authenticated requests:
+
+```bash
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+## Token Expiration
+
+JWT tokens expire after 24 hours. After expiration, users must log in again to obtain a new token.
+
+## Error Response - Email Not Verified
+
+If the user's email is not verified:
+
+```json
+{
+  "error": "Email not verified. Please check your inbox for a verification email."
+}
+```
+
+Use the [Resend Verification](/api/auth/resend-verification) endpoint to request a new verification email.

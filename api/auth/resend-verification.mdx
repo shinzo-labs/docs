@@ -1,0 +1,57 @@
+---
+title: "Resend Verification Email"
+description: "Request a new email verification link."
+api: "POST /auth/resend_verification"
+---
+
+# Resend Verification Email
+
+Request a new verification email for users who didn't receive the original or whose verification link has expired.
+
+## Endpoint
+
+```
+POST /auth/resend_verification
+```
+
+## Authentication
+
+No authentication required.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | User's registered email address |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/resend_verification \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+## Response
+
+```json
+{
+  "message": "Verification email sent. Please check your inbox."
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Verification email sent (or user already verified) |
+| `400` | Invalid request (missing email) |
+| `404` | User not found |
+
+## Notes
+
+- For security reasons, this endpoint returns success even if the email is already verified
+- There may be rate limiting on verification email requests to prevent abuse
+- Check spam/junk folders if the email doesn't arrive in the inbox

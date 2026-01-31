@@ -1,0 +1,137 @@
+---
+title: "Send Messages"
+description: "Proxy requests to Anthropic's Messages API with analytics tracking."
+api: "POST /spotlight/anthropic/v1/messages"
+---
+
+# Send Messages
+
+Forward message requests to Anthropic's Claude API through Spotlight. All requests are automatically tracked for analytics.
+
+## Endpoint
+
+```
+POST /spotlight/anthropic/v1/messages
+```
+
+## Authentication
+
+Requires JWT token or Platform API key:
+
+```bash
+Authorization: Bearer <jwt_token_or_api_key>
+# or
+x-shinzo-api-key: <api_key>
+```
+
+## Provider Credentials
+
+Provider credentials can be supplied in two ways:
+
+1. **Stored credentials**: If you have [saved a provider key](/api/provider-keys/save), it will be used automatically
+2. **Pass-through header**: Include the provider's API key directly:
+
+```bash
+x-api-key: sk-ant-api03-...
+```
+
+## Request Body
+
+The request body follows Anthropic's Messages API format. See [Anthropic's documentation](https://docs.anthropic.com/claude/reference/messages_post) for full details.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model to use (e.g., `claude-sonnet-4-20250514`) |
+| `messages` | array | Yes | Array of message objects |
+| `max_tokens` | integer | Yes | Maximum tokens to generate |
+| `metadata` | object | No | Metadata including `user_id` for session tracking |
+| `stream` | boolean | No | Enable streaming responses |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/spotlight/anthropic/v1/messages \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1024,
+    "messages": [
+      {"role": "user", "content": "Hello, Claude!"}
+    ],
+    "metadata": {
+      "user_id": "my-app-session-123"
+    }
+  }'
+```
+
+## Response
+
+Standard Anthropic Messages API response:
+
+```json
+{
+  "id": "msg_abc123",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "Hello! How can I help you today?"
+    }
+  ],
+  "model": "claude-sonnet-4-20250514",
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 12,
+    "output_tokens": 15
+  }
+}
+```
+
+## Streaming
+
+Enable streaming by setting `stream: true`:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/spotlight/anthropic/v1/messages \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "stream": true
+  }'
+```
+
+Streaming responses use Server-Sent Events (SSE) format.
+
+## Session Tracking
+
+Use the `metadata.user_id` field to group requests into sessions:
+
+```json
+{
+  "metadata": {
+    "user_id": "user-123-session-456"
+  }
+}
+```
+
+Sessions are then available in [Session Analytics](/api/spotlight/sessions).
+
+## Timeout
+
+Request timeout is 3 minutes (180,000ms) to accommodate long-running generations.
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `400` | Invalid request |
+| `401` | Invalid authentication |
+| `403` | Provider key not found or feature not enabled |
+| `429` | Rate limit exceeded |
+| `500` | Internal error or provider error |

@@ -1,0 +1,75 @@
+---
+title: "Update Provider Key"
+description: "Update an existing AI provider API key."
+api: "PUT /auth/provider_keys/:keyUuid"
+---
+
+# Update Provider Key
+
+Update an existing AI provider API key's credentials, base URL, label, or status.
+
+## Endpoint
+
+```
+PUT /auth/provider_keys/:keyUuid
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keyUuid` | string | Yes | The UUID of the key to update |
+
+## Request Body
+
+All fields are optional. Only include fields you want to update.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `provider_api_key` | string | New API key value |
+| `provider_base_url` | string | New custom base URL |
+| `label` | string | New label |
+| `status` | string | New status (`active`, `inactive`, `revoked`) |
+
+## Example Request
+
+```bash
+curl -X PUT https://api.app.shinzo.ai/auth/provider_keys/pk_abc123def456 \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "Updated Production Key",
+    "status": "active"
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "pk_abc123def456",
+  "provider": "anthropic",
+  "label": "Updated Production Key",
+  "status": "active",
+  "updated_at": "2025-01-20T14:30:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Key updated successfully |
+| `400` | Invalid request |
+| `401` | Invalid or missing JWT token |
+| `404` | Key not found |
+
+## Notes
+
+- Setting `status` to `revoked` will prevent the key from being used
+- Updating the `provider_api_key` replaces the stored key entirely
+- The original key value is never returned

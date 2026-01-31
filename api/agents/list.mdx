@@ -1,0 +1,92 @@
+---
+title: "List Agents"
+description: "Retrieve all agents associated with your account."
+api: "GET /agent/list"
+---
+
+# List Agents
+
+Get a paginated list of all agents associated with your account.
+
+## Endpoint
+
+```
+GET /agent/list
+```
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | number | 1 | Page number (min: 1) |
+| `limit` | number | 20 | Results per page (1-100) |
+| `status` | string | - | Filter by status (`active`, `paused`, `stopped`, `error`) |
+| `sort` | string | `created_at` | Sort field (`created_at`, `updated_at`, `name`) |
+| `order` | string | `desc` | Sort order (`asc`, `desc`) |
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/agent/list?limit=10&status=active" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "agents": [
+    {
+      "uuid": "agt_abc123def456",
+      "name": "code-review-agent",
+      "description": "Agent for automated code reviews",
+      "status": "active",
+      "created_at": "2025-01-15T10:00:00Z",
+      "updated_at": "2025-01-18T14:30:00Z",
+      "task_count": 45,
+      "active_tasks": 1
+    },
+    {
+      "uuid": "agt_xyz789uvw012",
+      "name": "data-analysis-agent",
+      "description": "Agent for data analysis tasks",
+      "status": "paused",
+      "created_at": "2025-01-10T08:00:00Z",
+      "updated_at": "2025-01-12T09:15:00Z",
+      "task_count": 12,
+      "active_tasks": 0
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 2,
+    "total_pages": 1
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique agent identifier |
+| `name` | string | Agent name |
+| `description` | string | Agent description |
+| `status` | string | Current status |
+| `created_at` | string | Creation timestamp |
+| `updated_at` | string | Last update timestamp |
+| `task_count` | number | Total tasks executed |
+| `active_tasks` | number | Currently running tasks |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Invalid authentication |
+| `403` | AI Agents feature not enabled |

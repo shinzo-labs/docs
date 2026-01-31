@@ -1,0 +1,185 @@
+---
+title: "Session Analytics"
+description: "Query session analytics including token usage and request history."
+api: "GET /spotlight/analytics/sessions"
+---
+
+# Session Analytics
+
+Retrieve analytics about your AI model usage grouped by sessions. Sessions are identified by the `metadata.user_id` field in your API requests.
+
+## List Sessions
+
+Get a paginated list of sessions with aggregated metrics.
+
+### Endpoint
+
+```
+GET /spotlight/analytics/sessions
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `start_date` | string | 30 days ago | Start date (ISO 8601) |
+| `end_date` | string | now | End date (ISO 8601) |
+| `session_id` | string | - | Filter by specific session ID |
+| `model` | string | - | Filter by model name |
+| `provider` | string | - | Filter by provider |
+| `limit` | integer | 25 | Results per page (max varies) |
+| `offset` | integer | 0 | Pagination offset |
+| `sort` | string | `start_time` | Sort field |
+| `sortDirection` | string | `desc` | Sort direction (`asc`, `desc`) |
+
+**Sort options**: `start_time`, `end_time`, `total_requests`, `total_input_tokens`, `total_output_tokens`, `session_id`
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions?limit=10&sort=total_input_tokens&sortDirection=desc" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "sessions": [
+    {
+      "session_id": "my-app-session-123",
+      "session_uuid": "sess_abc123",
+      "start_time": "2025-01-15T10:00:00Z",
+      "end_time": "2025-01-15T11:30:00Z",
+      "total_requests": 15,
+      "total_input_tokens": 12450,
+      "total_output_tokens": 8320,
+      "total_cache_read_tokens": 2100,
+      "models_used": ["claude-sonnet-4-20250514"],
+      "providers_used": ["anthropic"]
+    }
+  ],
+  "pagination": {
+    "total": 42,
+    "limit": 10,
+    "offset": 0
+  }
+}
+```
+
+---
+
+## Get Session Details
+
+Get detailed information about a specific session including all interactions.
+
+### Endpoint
+
+```
+GET /spotlight/analytics/sessions/:sessionUuid
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sessionUuid` | string | The session UUID |
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123 \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "session": {
+    "session_id": "my-app-session-123",
+    "session_uuid": "sess_abc123",
+    "start_time": "2025-01-15T10:00:00Z",
+    "end_time": "2025-01-15T11:30:00Z",
+    "total_requests": 15,
+    "total_input_tokens": 12450,
+    "total_output_tokens": 8320
+  },
+  "interactions": [
+    {
+      "interaction_uuid": "int_xyz789",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "model": "claude-sonnet-4-20250514",
+      "provider": "anthropic",
+      "input_tokens": 120,
+      "output_tokens": 85,
+      "latency_ms": 1250,
+      "status": "success"
+    }
+  ]
+}
+```
+
+---
+
+## Token Usage Analytics
+
+Get aggregated token usage metrics.
+
+### Endpoint
+
+```
+GET /spotlight/analytics/tokens
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `start_date` | string | 30 days ago | Start date (ISO 8601) |
+| `end_date` | string | now | End date (ISO 8601) |
+| `session_id` | string | - | Filter by session |
+| `model` | string | - | Filter by model |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/tokens?start_date=2025-01-01" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "total_input_tokens": 125000,
+  "total_output_tokens": 87500,
+  "total_cache_read_tokens": 15000,
+  "total_cache_creation_tokens": 8000,
+  "total_requests": 450,
+  "by_model": {
+    "claude-sonnet-4-20250514": {
+      "input_tokens": 100000,
+      "output_tokens": 70000,
+      "requests": 380
+    },
+    "claude-opus-4-20250514": {
+      "input_tokens": 25000,
+      "output_tokens": 17500,
+      "requests": 70
+    }
+  }
+}
+```

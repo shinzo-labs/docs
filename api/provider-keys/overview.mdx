@@ -1,0 +1,34 @@
+---
+title: "Provider Keys Overview"
+description: "Manage AI provider API keys for use with Spotlight model proxy."
+---
+
+# Provider Keys
+
+Provider keys allow you to securely store API credentials for AI model providers (like Anthropic) in the Shinzo Platform. These keys are encrypted at rest and used by the Spotlight model proxy to make requests on your behalf.
+
+## Supported Providers
+
+Currently supported providers:
+
+| Provider | Key Format | Features |
+|----------|-----------|----------|
+| Anthropic | `sk-ant-*` | Claude models, streaming, token counting |
+
+## Why Use Provider Keys?
+
+**Security**: Store API keys encrypted in Shinzo instead of hardcoding them in your applications.
+
+**Centralized Management**: Manage all your AI provider credentials in one place.
+
+**Analytics**: When using stored provider keys with Spotlight, all API usage is automatically tracked and available in session analytics.
+
+## Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/auth/provider_keys/test` | POST | Test a provider key without storing |
+| `/auth/provider_keys` | POST | Save an encrypted provider key |
+| `/auth/provider_keys` | GET | List all provider keys |
+| `/auth/provider_keys/:keyUuid` | PUT | Update a provider key |
+| `/auth/provider_keys/:keyUuid` | DELETE | Delete a provider key |

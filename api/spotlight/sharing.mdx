@@ -1,0 +1,177 @@
+---
+title: "Session Sharing"
+description: "Create shareable links for AI sessions."
+---
+
+# Session Sharing
+
+Share sessions with others by creating public shareable links. Shared sessions can be viewed without authentication.
+
+## Create Share Link
+
+Create a shareable link for a session.
+
+### Endpoint
+
+```
+POST /spotlight/analytics/sessions/:sessionUuid/share
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `sessionUuid` | string | The session UUID to share |
+
+### Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "share_token": "shr_xyz789abc123",
+  "share_url": "https://app.shinzo.ai/shared/shr_xyz789abc123",
+  "created_at": "2025-01-20T14:00:00Z"
+}
+```
+
+---
+
+## Get Share Status
+
+Check if a session is shared and get the share token.
+
+### Endpoint
+
+```
+GET /spotlight/analytics/sessions/:sessionUuid/share
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response (Shared)
+
+```json
+{
+  "is_shared": true,
+  "share_token": "shr_xyz789abc123",
+  "share_url": "https://app.shinzo.ai/shared/shr_xyz789abc123",
+  "shared_at": "2025-01-20T14:00:00Z"
+}
+```
+
+### Response (Not Shared)
+
+```json
+{
+  "is_shared": false
+}
+```
+
+---
+
+## Remove Sharing
+
+Remove the shareable link for a session.
+
+### Endpoint
+
+```
+DELETE /spotlight/analytics/sessions/:sessionUuid/share
+```
+
+### Authentication
+
+Requires JWT token authentication.
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+### Response
+
+```json
+{
+  "message": "Sharing removed successfully",
+  "session_uuid": "sess_abc123"
+}
+```
+
+---
+
+## View Shared Session
+
+View a shared session using the share token. This endpoint is public and does not require authentication.
+
+### Endpoint
+
+```
+GET /spotlight/analytics/sessions/shared/:shareToken
+```
+
+### Authentication
+
+None required.
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `shareToken` | string | The share token from the share URL |
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/shared/shr_xyz789abc123
+```
+
+### Response
+
+```json
+{
+  "session": {
+    "session_id": "my-app-session-123",
+    "start_time": "2025-01-15T10:00:00Z",
+    "end_time": "2025-01-15T11:30:00Z",
+    "total_requests": 15,
+    "total_input_tokens": 12450,
+    "total_output_tokens": 8320
+  },
+  "interactions": [
+    {
+      "timestamp": "2025-01-15T10:00:00Z",
+      "model": "claude-sonnet-4-20250514",
+      "input_tokens": 120,
+      "output_tokens": 85
+    }
+  ]
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `404` | Share token not found or expired |

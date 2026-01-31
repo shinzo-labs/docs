@@ -1,0 +1,142 @@
+---
+title: "OAuth Authentication"
+description: "Authenticate using Google or GitHub OAuth providers."
+---
+
+# OAuth Authentication
+
+The Shinzo Platform supports OAuth authentication via Google and GitHub. This allows users to sign in without creating a separate password.
+
+## Google OAuth
+
+### Step 1: Get Authorization URL
+
+```
+GET /auth/oauth/google
+```
+
+**Query Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `returnTo` | string | No | URL to redirect after successful authentication |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/auth/oauth/google?returnTo=https://app.shinzo.ai/dashboard"
+```
+
+**Response:**
+
+```json
+{
+  "url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&scope=..."
+}
+```
+
+Redirect the user to the returned URL to initiate Google OAuth.
+
+### Step 2: Handle Callback
+
+```
+POST /auth/oauth/google/callback
+```
+
+After the user authorizes with Google, they're redirected back with an authorization code. Send this code to complete authentication:
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | string | Yes | Authorization code from Google |
+| `state` | string | No | State parameter for CSRF protection |
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "uuid": "usr_abc123",
+    "email": "user@gmail.com"
+  },
+  "isNewUser": false
+}
+```
+
+## GitHub OAuth
+
+### Step 1: Get Authorization URL
+
+```
+GET /auth/oauth/github
+```
+
+**Query Parameters:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `returnTo` | string | No | URL to redirect after successful authentication |
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/auth/oauth/github?returnTo=https://app.shinzo.ai/dashboard"
+```
+
+**Response:**
+
+```json
+{
+  "url": "https://github.com/login/oauth/authorize?client_id=...&redirect_uri=...&scope=..."
+}
+```
+
+### Step 2: Handle Callback
+
+```
+POST /auth/oauth/github/callback
+```
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `code` | string | Yes | Authorization code from GitHub |
+| `state` | string | No | State parameter for CSRF protection |
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "uuid": "usr_abc123",
+    "email": "user@github.com"
+  },
+  "isNewUser": true
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `token` | string | JWT token for authenticated requests |
+| `user` | object | User profile information |
+| `isNewUser` | boolean | Whether this is a new account created via OAuth |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Authentication successful |
+| `400` | Invalid request (missing code, invalid state) |
+| `401` | OAuth authentication failed |
+
+## Notes
+
+- OAuth users don't need to verify their email separately
+- If a user with the same email already exists (registered via email/password), the accounts are linked
+- The `isNewUser` field indicates whether a new account was created or an existing one was used

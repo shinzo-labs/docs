@@ -1,0 +1,59 @@
+---
+title: "Verify Email"
+description: "Verify a user's email address using the verification token."
+api: "POST /auth/verify_user"
+---
+
+# Verify Email
+
+Verify a user's email address using the token sent via email during registration.
+
+## Endpoint
+
+```
+POST /auth/verify_user
+```
+
+## Authentication
+
+No authentication required.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | User's email address |
+| `verification_token` | string | Yes | Token from the verification email |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/verify_user \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "verification_token": "abc123def456..."
+  }'
+```
+
+## Response
+
+```json
+{
+  "message": "Email verified successfully. You can now log in."
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Email verified successfully |
+| `400` | Invalid request (missing fields, invalid token) |
+| `404` | User not found |
+
+## Notes
+
+- Verification tokens are single-use and expire after a set period
+- If the token has expired, use the [Resend Verification](/api/auth/resend-verification) endpoint to request a new one
+- Users cannot log in until their email is verified

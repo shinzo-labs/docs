@@ -1,0 +1,61 @@
+---
+title: "Register User"
+description: "Create a new user account on the Shinzo Platform."
+api: "POST /auth/create_user"
+---
+
+# Register User
+
+Create a new user account with email and password.
+
+## Endpoint
+
+```
+POST /auth/create_user
+```
+
+## Authentication
+
+No authentication required.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `email` | string | Yes | Valid email address |
+| `password` | string | Yes | Password (minimum 8 characters) |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/create_user \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "securepassword123"
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "usr_abc123def456",
+  "email": "user@example.com",
+  "message": "User created successfully. Please check your email to verify your account."
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | User created successfully |
+| `400` | Invalid request (missing fields, invalid email, password too short) |
+| `409` | User with this email already exists |
+
+## Next Steps
+
+After registration, users must verify their email address before logging in. A verification email is sent automatically to the provided email address.
+
+If the verification email doesn't arrive, use the [Resend Verification](/api/auth/resend-verification) endpoint.

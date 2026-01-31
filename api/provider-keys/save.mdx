@@ -1,0 +1,77 @@
+---
+title: "Save Provider Key"
+description: "Store an encrypted AI provider API key."
+api: "POST /auth/provider_keys"
+---
+
+# Save Provider Key
+
+Securely store an AI provider API key in the Shinzo Platform. Keys are encrypted at rest and can be used with the Spotlight model proxy.
+
+## Endpoint
+
+```
+POST /auth/provider_keys
+```
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `provider` | string | Yes | Provider name (`anthropic`) |
+| `provider_api_key` | string | Yes | The API key to store |
+| `provider_base_url` | string | No | Custom base URL (for proxies or self-hosted) |
+| `label` | string | No | Optional label to identify this key |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/provider_keys \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "anthropic",
+    "provider_api_key": "sk-ant-api03-...",
+    "label": "Production Key"
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "pk_abc123def456",
+  "provider": "anthropic",
+  "label": "Production Key",
+  "status": "active",
+  "created_at": "2025-01-15T10:00:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique identifier for the stored key |
+| `provider` | string | Provider name |
+| `label` | string | User-provided label (if set) |
+| `status` | string | Key status (`active`) |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Key saved successfully |
+| `400` | Invalid request (missing fields, unsupported provider) |
+| `401` | Invalid or missing JWT token |
+
+## Security Notes
+
+- API keys are encrypted before storage using industry-standard encryption
+- Original key values cannot be retrieved after storage
+- Keys can be updated or deleted but not viewed
