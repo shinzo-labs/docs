@@ -52,6 +52,26 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview",
+              "api/authentication"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api/telemetry",
+              "api/servers",
+              "api/analytics"
+            ]
+          }
+        ]
       }
     ],
     "global": {

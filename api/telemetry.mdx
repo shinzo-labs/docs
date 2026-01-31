@@ -1,0 +1,388 @@
+---
+title: "Telemetry Ingestion API"
+description: "API reference for sending OpenTelemetry traces and metrics to the Shinzo Platform."
+---
+
+# Telemetry Ingestion API
+
+The Telemetry Ingestion API receives OpenTelemetry Protocol (OTLP) data from your instrumented MCP servers. While we recommend using our [SDKs](/sdk/typescript/installation) for telemetry ingestion, this reference documents the underlying API for advanced use cases.
+
+## Endpoints Overview
+
+| Endpoint | Protocol | Description |
+|----------|----------|-------------|
+| `/telemetry/ingest_http` | OTLP/HTTP | HTTP-based telemetry ingestion |
+| `/telemetry/ingest_grpc` | OTLP/gRPC | gRPC-based telemetry ingestion |
+| `/v1/health` | HTTP | Health check endpoint |
+
+## OTLP/HTTP Ingestion
+
+Send OpenTelemetry data using HTTP/protobuf or HTTP/JSON encoding.
+
+### Traces
+
+```
+POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <ingest_token>
+Content-Type: application/x-protobuf
+```
+
+Or for JSON encoding:
+
+```
+Authorization: Bearer <ingest_token>
+Content-Type: application/json
+```
+
+**Request Body (JSON):**
+
+```json
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "my-mcp-server" } },
+          { "key": "service.version", "value": { "stringValue": "1.0.0" } }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "@shinzolabs/instrumentation-mcp",
+            "version": "1.0.0"
+          },
+          "spans": [
+            {
+              "traceId": "5b8aa5a2d2c872e8321cf37308d69df2",
+              "spanId": "051581bf3cb55c13",
+              "name": "mcp.tool.execute",
+              "kind": 1,
+              "startTimeUnixNano": "1705315200000000000",
+              "endTimeUnixNano": "1705315200125000000",
+              "attributes": [
+                { "key": "mcp.tool.name", "value": { "stringValue": "search_files" } },
+                { "key": "mcp.tool.duration", "value": { "intValue": "125" } },
+                { "key": "mcp.request.id", "value": { "stringValue": "req_abc123" } }
+              ],
+              "status": { "code": 1 }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "partialSuccess": {}
+}
+```
+
+**Status Codes:**
+
+| Code | Description |
+|------|-------------|
+| `200` | Telemetry accepted |
+| `400` | Invalid OTLP payload |
+| `401` | Invalid or missing ingest token |
+| `413` | Payload too large |
+| `429` | Rate limit exceeded |
+
+### Metrics
+
+```
+POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/metrics
+```
+
+**Headers:**
+
+```
+Authorization: Bearer <ingest_token>
+Content-Type: application/x-protobuf
+```
+
+**Request Body (JSON):**
+
+```json
+{
+  "resourceMetrics": [
+    {
+      "resource": {
+        "attributes": [
+          { "key": "service.name", "value": { "stringValue": "my-mcp-server" } }
+        ]
+      },
+      "scopeMetrics": [
+        {
+          "scope": {
+            "name": "@shinzolabs/instrumentation-mcp"
+          },
+          "metrics": [
+            {
+              "name": "mcp.tool.invocations",
+              "description": "Number of tool invocations",
+              "unit": "1",
+              "sum": {
+                "dataPoints": [
+                  {
+                    "startTimeUnixNano": "1705315200000000000",
+                    "timeUnixNano": "1705315260000000000",
+                    "asInt": "42",
+                    "attributes": [
+                      { "key": "mcp.tool.name", "value": { "stringValue": "search_files" } }
+                    ]
+                  }
+                ],
+                "aggregationTemporality": 2,
+                "isMonotonic": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "partialSuccess": {}
+}
+```
+
+## OTLP/gRPC Ingestion
+
+For higher throughput and lower latency, use the gRPC endpoint.
+
+### Endpoint
+
+```
+grpc://api.app.shinzo.ai/telemetry/ingest_grpc
+```
+
+### Configuration
+
+<CodeGroup>
+```typescript TypeScript
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: "otlp-grpc",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_grpc",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_INGEST_TOKEN
+  }
+})
+```
+
+```python Python
+from shinzo import instrument_server
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_type": "otlp-grpc",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_grpc",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_INGEST_TOKEN")
+        }
+    }
+)
+```
+</CodeGroup>
+
+### gRPC Metadata
+
+Authentication is passed via gRPC metadata:
+
+```
+authorization: Bearer <ingest_token>
+```
+
+## Health Check
+
+Verify connectivity to the telemetry ingestion service.
+
+```
+GET https://api.app.shinzo.ai/v1/health
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "version": "1.0.0",
+    "services": {
+      "telemetry_ingest": "healthy",
+      "storage": "healthy"
+    }
+  }
+}
+```
+
+## MCP Semantic Conventions
+
+The Shinzo Platform uses OpenTelemetry semantic conventions extended for MCP-specific attributes. Include these attributes for optimal dashboard visualization.
+
+### Required Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `service.name` | `string` | Name of your MCP server |
+| `service.version` | `string` | Version of your MCP server |
+
+### MCP Tool Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `mcp.tool.name` | `string` | Name of the executed tool |
+| `mcp.tool.duration` | `int` | Execution time in milliseconds |
+| `mcp.tool.success` | `boolean` | Whether the tool executed successfully |
+| `mcp.request.id` | `string` | Unique request identifier |
+| `mcp.request.arguments.*` | `any` | Tool arguments (if collection enabled) |
+
+### MCP Server Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `mcp.server.name` | `string` | MCP server name |
+| `mcp.server.version` | `string` | MCP server version |
+| `mcp.server.capabilities` | `string[]` | Server capabilities (tools, resources, etc.) |
+
+### Session Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `mcp.session.id` | `string` | Unique session identifier |
+| `mcp.session.client` | `string` | Client application name |
+
+## Batching and Performance
+
+### Recommended Configuration
+
+For optimal performance, configure batching in your SDK:
+
+| Parameter | Recommended | Description |
+|-----------|-------------|-------------|
+| `batchTimeoutMs` | 2000-5000 | Time to wait before sending a batch |
+| `maxBatchSize` | 512 | Maximum spans per batch |
+| `maxQueueSize` | 2048 | Maximum spans in memory queue |
+
+### Example
+
+<CodeGroup>
+```typescript TypeScript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  batchTimeoutMs: 2000,
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_INGEST_TOKEN
+  }
+})
+```
+
+```python Python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "batch_timeout_ms": 2000,
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_INGEST_TOKEN")
+        }
+    }
+)
+```
+</CodeGroup>
+
+## Error Handling
+
+### Retry Strategy
+
+The Shinzo SDKs implement automatic retry with exponential backoff:
+
+1. First retry: 1 second delay
+2. Second retry: 2 seconds delay
+3. Third retry: 4 seconds delay
+4. Maximum retries: 5
+
+### Common Errors
+
+| Error Code | Cause | Solution |
+|------------|-------|----------|
+| `INVALID_TOKEN` | Ingest token is invalid | Verify token in dashboard |
+| `PAYLOAD_TOO_LARGE` | Batch exceeds 5MB limit | Reduce batch size |
+| `RATE_LIMITED` | Too many requests | Implement backoff or reduce sampling rate |
+| `INVALID_OTLP` | Malformed OTLP payload | Check payload structure |
+
+## Testing Ingestion
+
+### Using curl
+
+Test your ingest token with a simple trace:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces \
+  -H "Authorization: Bearer YOUR_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "test-server"}}
+        ]
+      },
+      "scopeSpans": [{
+        "spans": [{
+          "traceId": "00000000000000000000000000000001",
+          "spanId": "0000000000000001",
+          "name": "test.span",
+          "kind": 1,
+          "startTimeUnixNano": "1705315200000000000",
+          "endTimeUnixNano": "1705315200001000000",
+          "status": {"code": 1}
+        }]
+      }]
+    }]
+  }'
+```
+
+### Console Exporter
+
+For development, use the console exporter to verify telemetry before sending:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterType: "console" // Logs telemetry to console
+})
+```

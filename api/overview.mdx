@@ -1,0 +1,153 @@
+---
+title: "API Reference Overview"
+description: "Complete reference for the Shinzo Platform REST API for telemetry ingestion, server management, and analytics."
+---
+
+# API Reference
+
+The Shinzo Platform provides a RESTful API for programmatic access to telemetry ingestion, server management, and analytics data. This reference documents all available endpoints and their usage.
+
+## Base URL
+
+All API requests are made to the following base URL:
+
+```
+https://api.app.shinzo.ai
+```
+
+## API Categories
+
+<CardGroup cols={2}>
+  <Card title="Telemetry Ingestion" icon="signal" href="/api/telemetry">
+    Send OpenTelemetry data from your MCP servers to the Shinzo Platform.
+  </Card>
+  <Card title="Servers" icon="server" href="/api/servers">
+    Register, manage, and configure your MCP servers.
+  </Card>
+  <Card title="Analytics" icon="chart-mixed" href="/api/analytics">
+    Query traces, metrics, and performance data programmatically.
+  </Card>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn about API authentication methods and token management.
+  </Card>
+</CardGroup>
+
+## Authentication
+
+All API endpoints require authentication. The Shinzo Platform supports two types of tokens:
+
+| Token Type | Use Case | Header Format |
+|------------|----------|---------------|
+| **Ingest Token** | Sending telemetry data from SDK | `Authorization: Bearer <ingest_token>` |
+| **API Token** | Management and analytics endpoints | `Authorization: Bearer <api_token>` |
+
+Generate tokens from your [Shinzo Platform dashboard](https://app.shinzo.ai) under **Settings > API Tokens**.
+
+## Request Format
+
+All API requests should include:
+
+```bash
+Content-Type: application/json
+Authorization: Bearer <your_token>
+```
+
+## Response Format
+
+All responses are JSON-formatted and include standard fields:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "meta": {
+    "request_id": "req_abc123",
+    "timestamp": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+### Error Responses
+
+Error responses include an `error` object with details:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "The request body is missing required field 'server_name'",
+    "details": {
+      "field": "server_name",
+      "reason": "required"
+    }
+  },
+  "meta": {
+    "request_id": "req_abc123",
+    "timestamp": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+## HTTP Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `201` | Resource created |
+| `400` | Bad request (invalid parameters) |
+| `401` | Unauthorized (invalid or missing token) |
+| `403` | Forbidden (insufficient permissions) |
+| `404` | Resource not found |
+| `429` | Rate limit exceeded |
+| `500` | Internal server error |
+
+## Rate Limiting
+
+API endpoints are rate-limited to ensure fair usage:
+
+| Endpoint Category | Rate Limit |
+|-------------------|------------|
+| Telemetry Ingestion | 1000 requests/minute |
+| Server Management | 100 requests/minute |
+| Analytics Queries | 60 requests/minute |
+
+Rate limit headers are included in all responses:
+
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1705315800
+```
+
+## SDKs and Libraries
+
+While you can use the API directly, we recommend using our official SDKs for telemetry ingestion:
+
+- [TypeScript SDK](/sdk/typescript/installation)
+- [Python SDK](/sdk/python/installation)
+
+The SDKs handle authentication, batching, retries, and error handling automatically.
+
+## Getting Started
+
+1. [Create an account](https://app.shinzo.ai) on the Shinzo Platform
+2. Generate an [API token](/api/authentication) from your dashboard
+3. Make your first API call to verify connectivity
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/health \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+Expected response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "version": "1.0.0"
+  }
+}
+```

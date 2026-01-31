@@ -1,0 +1,493 @@
+---
+title: "Servers API"
+description: "API reference for managing MCP server registrations, configurations, and deployments."
+---
+
+# Servers API
+
+The Servers API allows you to programmatically manage your MCP server registrations. Register new servers, update configurations, and monitor deployment status.
+
+## Endpoints Overview
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/servers` | List all registered servers |
+| `POST` | `/v1/servers` | Register a new server |
+| `GET` | `/v1/servers/{server_id}` | Get server details |
+| `PATCH` | `/v1/servers/{server_id}` | Update server configuration |
+| `DELETE` | `/v1/servers/{server_id}` | Delete a server registration |
+| `GET` | `/v1/servers/{server_id}/status` | Get server health status |
+
+## Server Object
+
+A server object represents a registered MCP server in the Shinzo Platform.
+
+```json
+{
+  "id": "srv_abc123",
+  "name": "weather-server",
+  "version": "1.0.0",
+  "description": "Weather information MCP server",
+  "status": "active",
+  "environment": "production",
+  "created_at": "2025-01-10T08:00:00Z",
+  "updated_at": "2025-01-15T14:30:00Z",
+  "last_seen_at": "2025-01-15T16:45:00Z",
+  "configuration": {
+    "sampling_rate": 0.1,
+    "pii_sanitization": true,
+    "argument_collection": false
+  },
+  "capabilities": ["tools"],
+  "tools": [
+    {
+      "name": "get_weather",
+      "description": "Get weather for a city",
+      "invocation_count": 1250
+    }
+  ],
+  "stats": {
+    "total_invocations": 15420,
+    "error_rate": 0.02,
+    "avg_response_time_ms": 125
+  }
+}
+```
+
+### Server Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Unique server identifier |
+| `name` | `string` | Server name |
+| `version` | `string` | Server version |
+| `description` | `string` | Optional description |
+| `status` | `string` | Server status: `active`, `inactive`, `error` |
+| `environment` | `string` | Deployment environment |
+| `created_at` | `datetime` | Registration timestamp |
+| `updated_at` | `datetime` | Last update timestamp |
+| `last_seen_at` | `datetime` | Last telemetry received |
+| `configuration` | `object` | Server configuration |
+| `capabilities` | `string[]` | MCP capabilities |
+| `tools` | `object[]` | Registered tools |
+| `stats` | `object` | Aggregated statistics |
+
+## List Servers
+
+Retrieve all registered servers for your account.
+
+```
+GET /v1/servers
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `status` | `string` | - | Filter by status: `active`, `inactive`, `error` |
+| `environment` | `string` | - | Filter by environment |
+| `page` | `integer` | `1` | Page number for pagination |
+| `limit` | `integer` | `20` | Results per page (max 100) |
+| `sort` | `string` | `created_at` | Sort field |
+| `order` | `string` | `desc` | Sort order: `asc` or `desc` |
+
+### Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/servers?status=active&limit=10" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "servers": [
+      {
+        "id": "srv_abc123",
+        "name": "weather-server",
+        "version": "1.0.0",
+        "status": "active",
+        "environment": "production",
+        "last_seen_at": "2025-01-15T16:45:00Z",
+        "stats": {
+          "total_invocations": 15420,
+          "error_rate": 0.02
+        }
+      },
+      {
+        "id": "srv_def456",
+        "name": "file-search-server",
+        "version": "2.1.0",
+        "status": "active",
+        "environment": "production",
+        "last_seen_at": "2025-01-15T16:40:00Z",
+        "stats": {
+          "total_invocations": 8930,
+          "error_rate": 0.01
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 2,
+      "total_pages": 1
+    }
+  }
+}
+```
+
+## Register Server
+
+Register a new MCP server with the platform.
+
+```
+POST /v1/servers
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | `string` | Yes | Server name (unique per account) |
+| `version` | `string` | Yes | Server version |
+| `description` | `string` | No | Server description |
+| `environment` | `string` | No | Environment (default: `production`) |
+| `configuration` | `object` | No | Server configuration |
+
+### Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/servers \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "database-server",
+    "version": "1.0.0",
+    "description": "Database query MCP server",
+    "environment": "production",
+    "configuration": {
+      "sampling_rate": 0.1,
+      "pii_sanitization": true,
+      "argument_collection": false
+    }
+  }'
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "srv_ghi789",
+    "name": "database-server",
+    "version": "1.0.0",
+    "description": "Database query MCP server",
+    "status": "inactive",
+    "environment": "production",
+    "created_at": "2025-01-15T17:00:00Z",
+    "updated_at": "2025-01-15T17:00:00Z",
+    "configuration": {
+      "sampling_rate": 0.1,
+      "pii_sanitization": true,
+      "argument_collection": false
+    },
+    "ingest_token": {
+      "id": "tok_xyz123",
+      "token": "shinzo_ingest_xyz123abc456...",
+      "note": "This token is only shown once. Store it securely."
+    }
+  }
+}
+```
+
+<Note>
+When you register a new server, an ingest token is automatically generated. This token is only displayed once during registration.
+</Note>
+
+## Get Server Details
+
+Retrieve detailed information about a specific server.
+
+```
+GET /v1/servers/{server_id}
+```
+
+### Path Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `server_id` | `string` | Server identifier |
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/servers/srv_abc123 \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "srv_abc123",
+    "name": "weather-server",
+    "version": "1.0.0",
+    "description": "Weather information MCP server",
+    "status": "active",
+    "environment": "production",
+    "created_at": "2025-01-10T08:00:00Z",
+    "updated_at": "2025-01-15T14:30:00Z",
+    "last_seen_at": "2025-01-15T16:45:00Z",
+    "configuration": {
+      "sampling_rate": 0.1,
+      "pii_sanitization": true,
+      "argument_collection": false
+    },
+    "capabilities": ["tools"],
+    "tools": [
+      {
+        "name": "get_weather",
+        "description": "Get weather for a city",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "city": { "type": "string" }
+          },
+          "required": ["city"]
+        },
+        "invocation_count": 1250,
+        "avg_duration_ms": 125,
+        "error_rate": 0.01
+      },
+      {
+        "name": "get_forecast",
+        "description": "Get 5-day forecast",
+        "invocation_count": 890,
+        "avg_duration_ms": 210,
+        "error_rate": 0.02
+      }
+    ],
+    "stats": {
+      "total_invocations": 15420,
+      "error_rate": 0.02,
+      "avg_response_time_ms": 125,
+      "p50_response_time_ms": 95,
+      "p95_response_time_ms": 280,
+      "p99_response_time_ms": 520
+    }
+  }
+}
+```
+
+## Update Server
+
+Update a server's configuration or metadata.
+
+```
+PATCH /v1/servers/{server_id}
+```
+
+### Request Body
+
+All fields are optional. Only included fields will be updated.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | `string` | Server version |
+| `description` | `string` | Server description |
+| `environment` | `string` | Environment |
+| `configuration` | `object` | Configuration updates |
+
+### Example Request
+
+```bash
+curl -X PATCH https://api.app.shinzo.ai/v1/servers/srv_abc123 \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "version": "1.1.0",
+    "configuration": {
+      "sampling_rate": 0.05
+    }
+  }'
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "srv_abc123",
+    "name": "weather-server",
+    "version": "1.1.0",
+    "status": "active",
+    "updated_at": "2025-01-15T18:00:00Z",
+    "configuration": {
+      "sampling_rate": 0.05,
+      "pii_sanitization": true,
+      "argument_collection": false
+    }
+  }
+}
+```
+
+## Delete Server
+
+Remove a server registration. This action is permanent.
+
+```
+DELETE /v1/servers/{server_id}
+```
+
+<Warning>
+Deleting a server removes all associated data, including historical telemetry and analytics. This action cannot be undone.
+</Warning>
+
+### Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/servers/srv_abc123 \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "srv_abc123",
+    "deleted_at": "2025-01-15T19:00:00Z"
+  }
+}
+```
+
+## Get Server Status
+
+Get real-time health status for a server.
+
+```
+GET /v1/servers/{server_id}/status
+```
+
+### Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/servers/srv_abc123/status \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "server_id": "srv_abc123",
+    "status": "active",
+    "health": "healthy",
+    "last_seen_at": "2025-01-15T16:45:00Z",
+    "uptime_percentage": 99.9,
+    "recent_activity": {
+      "invocations_last_hour": 125,
+      "errors_last_hour": 2,
+      "avg_response_time_ms": 118
+    },
+    "alerts": []
+  }
+}
+```
+
+### Health Status Values
+
+| Status | Description |
+|--------|-------------|
+| `healthy` | Server is operating normally |
+| `degraded` | Elevated error rate or latency |
+| `unhealthy` | Critical issues detected |
+| `unknown` | No recent telemetry received |
+
+## Server Configuration
+
+Configure server behavior through the API.
+
+### Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `sampling_rate` | `float` | `1.0` | Trace sampling rate (0.0 to 1.0) |
+| `pii_sanitization` | `boolean` | `true` | Enable automatic PII sanitization |
+| `argument_collection` | `boolean` | `false` | Collect tool arguments |
+| `alert_threshold_error_rate` | `float` | `0.05` | Error rate alert threshold |
+| `alert_threshold_latency_ms` | `integer` | `1000` | Latency alert threshold |
+
+### Example: Update Configuration
+
+```bash
+curl -X PATCH https://api.app.shinzo.ai/v1/servers/srv_abc123 \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "configuration": {
+      "sampling_rate": 0.25,
+      "argument_collection": true,
+      "alert_threshold_error_rate": 0.10
+    }
+  }'
+```
+
+## Error Responses
+
+### Server Not Found
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Server 'srv_notfound' does not exist"
+  }
+}
+```
+
+**Status Code:** `404 Not Found`
+
+### Duplicate Server Name
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "CONFLICT",
+    "message": "A server with name 'weather-server' already exists"
+  }
+}
+```
+
+**Status Code:** `409 Conflict`
+
+### Invalid Configuration
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Invalid configuration value",
+    "details": {
+      "field": "configuration.sampling_rate",
+      "reason": "Must be between 0.0 and 1.0"
+    }
+  }
+}
+```
+
+**Status Code:** `400 Bad Request`
