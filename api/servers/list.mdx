@@ -1,0 +1,139 @@
+---
+title: "List Servers"
+api: "GET https://api.app.shinzo.ai/v1/servers"
+description: "Retrieve all registered MCP servers for your account"
+---
+
+Retrieve a paginated list of all MCP servers registered to your account. Use query parameters to filter and sort the results.
+
+<ParamField query="status" type="string">
+  Filter by server status. Options: `active`, `inactive`, `error`
+</ParamField>
+
+<ParamField query="environment" type="string">
+  Filter by deployment environment (e.g., `production`, `staging`)
+</ParamField>
+
+<ParamField query="page" type="integer" default="1">
+  Page number for pagination
+</ParamField>
+
+<ParamField query="limit" type="integer" default="20">
+  Results per page (max 100)
+</ParamField>
+
+<ParamField query="sort" type="string" default="created_at">
+  Sort field. Options: `created_at`, `name`, `last_seen_at`
+</ParamField>
+
+<ParamField query="order" type="string" default="desc">
+  Sort order. Options: `asc`, `desc`
+</ParamField>
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="servers" type="array">
+      Array of server objects
+    </ResponseField>
+    <ResponseField name="pagination" type="object">
+      <Expandable title="properties">
+        <ResponseField name="page" type="integer">
+          Current page number
+        </ResponseField>
+        <ResponseField name="limit" type="integer">
+          Results per page
+        </ResponseField>
+        <ResponseField name="total" type="integer">
+          Total number of servers
+        </ResponseField>
+        <ResponseField name="total_pages" type="integer">
+          Total number of pages
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET "https://api.app.shinzo.ai/v1/servers?status=active&limit=10" \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.app.shinzo.ai/v1/servers",
+    params={"status": "active", "limit": 10},
+    headers={"Authorization": "Bearer YOUR_API_TOKEN"}
+)
+print(response.json())
+```
+
+```typescript TypeScript
+const response = await fetch(
+  "https://api.app.shinzo.ai/v1/servers?status=active&limit=10",
+  {
+    headers: { Authorization: "Bearer YOUR_API_TOKEN" }
+  }
+);
+const data = await response.json();
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "success": true,
+  "data": {
+    "servers": [
+      {
+        "id": "srv_abc123",
+        "name": "weather-server",
+        "version": "1.0.0",
+        "status": "active",
+        "environment": "production",
+        "last_seen_at": "2025-01-15T16:45:00Z",
+        "stats": {
+          "total_invocations": 15420,
+          "error_rate": 0.02
+        }
+      },
+      {
+        "id": "srv_def456",
+        "name": "file-search-server",
+        "version": "2.1.0",
+        "status": "active",
+        "environment": "production",
+        "last_seen_at": "2025-01-15T16:40:00Z",
+        "stats": {
+          "total_invocations": 8930,
+          "error_rate": 0.01
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 2,
+      "total_pages": 1
+    }
+  }
+}
+```
+
+```json 401
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Invalid or missing authentication token"
+  }
+}
+```
+</ResponseExample>

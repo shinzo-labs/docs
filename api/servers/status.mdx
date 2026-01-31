@@ -1,0 +1,133 @@
+---
+title: "Get Server Status"
+api: "GET https://api.app.shinzo.ai/v1/servers/{server_id}/status"
+description: "Get real-time health status for a server"
+---
+
+Retrieve the current health status and recent activity metrics for a specific MCP server. Use this endpoint to monitor server health and detect issues.
+
+<ParamField path="server_id" type="string" required>
+  The unique server identifier (e.g., `srv_abc123`)
+</ParamField>
+
+<ResponseField name="success" type="boolean">
+  Indicates if the request was successful
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="server_id" type="string">
+      Server identifier
+    </ResponseField>
+    <ResponseField name="status" type="string">
+      Server status: `active`, `inactive`, or `error`
+    </ResponseField>
+    <ResponseField name="health" type="string">
+      Health status: `healthy`, `degraded`, `unhealthy`, or `unknown`
+    </ResponseField>
+    <ResponseField name="last_seen_at" type="string">
+      Last telemetry received (ISO 8601)
+    </ResponseField>
+    <ResponseField name="uptime_percentage" type="number">
+      Uptime percentage over the last 24 hours
+    </ResponseField>
+    <ResponseField name="recent_activity" type="object">
+      <Expandable title="properties">
+        <ResponseField name="invocations_last_hour" type="integer">
+          Number of tool invocations in the last hour
+        </ResponseField>
+        <ResponseField name="errors_last_hour" type="integer">
+          Number of errors in the last hour
+        </ResponseField>
+        <ResponseField name="avg_response_time_ms" type="integer">
+          Average response time in milliseconds
+        </ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="alerts" type="array">
+      Active alerts for this server
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+### Health Status Values
+
+| Status | Description |
+|--------|-------------|
+| `healthy` | Server is operating normally |
+| `degraded` | Elevated error rate or latency detected |
+| `unhealthy` | Critical issues detected |
+| `unknown` | No recent telemetry received |
+
+<RequestExample>
+```bash cURL
+curl -X GET https://api.app.shinzo.ai/v1/servers/srv_abc123/status \
+  -H "Authorization: Bearer YOUR_API_TOKEN"
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://api.app.shinzo.ai/v1/servers/srv_abc123/status",
+    headers={"Authorization": "Bearer YOUR_API_TOKEN"}
+)
+print(response.json())
+```
+
+```typescript TypeScript
+const response = await fetch(
+  "https://api.app.shinzo.ai/v1/servers/srv_abc123/status",
+  {
+    headers: { Authorization: "Bearer YOUR_API_TOKEN" }
+  }
+);
+const data = await response.json();
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "success": true,
+  "data": {
+    "server_id": "srv_abc123",
+    "status": "active",
+    "health": "healthy",
+    "last_seen_at": "2025-01-15T16:45:00Z",
+    "uptime_percentage": 99.9,
+    "recent_activity": {
+      "invocations_last_hour": 125,
+      "errors_last_hour": 2,
+      "avg_response_time_ms": 118
+    },
+    "alerts": []
+  }
+}
+```
+
+```json 200 Degraded
+{
+  "success": true,
+  "data": {
+    "server_id": "srv_abc123",
+    "status": "active",
+    "health": "degraded",
+    "last_seen_at": "2025-01-15T16:45:00Z",
+    "uptime_percentage": 98.5,
+    "recent_activity": {
+      "invocations_last_hour": 125,
+      "errors_last_hour": 15,
+      "avg_response_time_ms": 450
+    },
+    "alerts": [
+      {
+        "type": "high_error_rate",
+        "message": "Error rate exceeded 10% threshold",
+        "triggered_at": "2025-01-15T16:30:00Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

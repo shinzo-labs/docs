@@ -1,0 +1,59 @@
+---
+title: "Health Check"
+api: "GET https://api.app.shinzo.ai/v1/health"
+description: "Verify connectivity to the Shinzo Platform API"
+---
+
+Check the health status of the Shinzo Platform API. This endpoint does not require authentication and can be used to verify connectivity.
+
+<ResponseField name="success" type="boolean">
+  Indicates if the service is healthy
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="status" type="string">
+      Health status: `healthy` or `degraded`
+    </ResponseField>
+    <ResponseField name="version" type="string">
+      API version
+    </ResponseField>
+    <ResponseField name="services" type="object">
+      Status of individual services
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X GET https://api.app.shinzo.ai/v1/health
+```
+
+```python Python
+import requests
+
+response = requests.get("https://api.app.shinzo.ai/v1/health")
+print(response.json())
+```
+
+```typescript TypeScript
+const response = await fetch("https://api.app.shinzo.ai/v1/health");
+const data = await response.json();
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "version": "1.0.0",
+    "services": {
+      "telemetry_ingest": "healthy",
+      "storage": "healthy"
+    }
+  }
+}
+```
+</ResponseExample>

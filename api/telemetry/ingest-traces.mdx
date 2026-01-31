@@ -1,0 +1,134 @@
+---
+title: "Ingest Traces"
+api: "POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces"
+description: "Send OpenTelemetry traces using OTLP/HTTP protocol"
+---
+
+Ingest OpenTelemetry traces from your MCP servers. This endpoint accepts OTLP (OpenTelemetry Protocol) formatted data in either JSON or protobuf encoding.
+
+<Note>
+We recommend using our [TypeScript SDK](/sdk/typescript/installation) or [Python SDK](/sdk/python/installation) instead of calling this endpoint directly. The SDKs handle batching, retries, and error handling automatically.
+</Note>
+
+<ParamField header="Content-Type" type="string" required>
+  `application/json` or `application/x-protobuf`
+</ParamField>
+
+<ParamField body="resourceSpans" type="array" required>
+  Array of OpenTelemetry ResourceSpans containing trace data
+</ParamField>
+
+<ResponseField name="partialSuccess" type="object">
+  Indicates partial success if some spans were rejected
+</ResponseField>
+
+### MCP Semantic Conventions
+
+Include these attributes for optimal dashboard visualization:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `service.name` | string | Name of your MCP server |
+| `service.version` | string | Version of your MCP server |
+| `mcp.tool.name` | string | Name of the executed tool |
+| `mcp.tool.duration` | int | Execution time in milliseconds |
+| `mcp.request.id` | string | Unique request identifier |
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.app.shinzo.ai/telemetry/ingest_http/v1/traces \
+  -H "Authorization: Bearer YOUR_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "my-mcp-server"}},
+          {"key": "service.version", "value": {"stringValue": "1.0.0"}}
+        ]
+      },
+      "scopeSpans": [{
+        "scope": {
+          "name": "@shinzolabs/instrumentation-mcp",
+          "version": "1.0.0"
+        },
+        "spans": [{
+          "traceId": "5b8aa5a2d2c872e8321cf37308d69df2",
+          "spanId": "051581bf3cb55c13",
+          "name": "mcp.tool.execute",
+          "kind": 1,
+          "startTimeUnixNano": "1705315200000000000",
+          "endTimeUnixNano": "1705315200125000000",
+          "attributes": [
+            {"key": "mcp.tool.name", "value": {"stringValue": "search_files"}},
+            {"key": "mcp.tool.duration", "value": {"intValue": "125"}}
+          ],
+          "status": {"code": 1}
+        }]
+      }]
+    }]
+  }'
+```
+
+```python Python
+# Using the Shinzo Python SDK (recommended)
+from shinzo import instrument_server
+import os
+
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-server",
+        "server_version": "1.0.0",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_INGEST_TOKEN")
+        }
+    }
+)
+```
+
+```typescript TypeScript
+// Using the Shinzo TypeScript SDK (recommended)
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+const telemetry = instrumentServer(server, {
+  serverName: "my-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_INGEST_TOKEN
+  }
+})
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "partialSuccess": {}
+}
+```
+
+```json 401
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "The provided ingest token is invalid"
+  }
+}
+```
+
+```json 400
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_OTLP",
+    "message": "Malformed OTLP payload"
+  }
+}
+```
+</ResponseExample>
