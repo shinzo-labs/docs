@@ -318,12 +318,8 @@ When Claude Code routes through Shinzo, the following data is collected:
 | Output tokens | Yes | Tokens in Claude's response |
 | Model used | Yes | e.g., claude-sonnet-4-20250514 |
 | Success/failure | Yes | HTTP status codes, error types |
-| Request content | No | Your prompts are not stored |
-| Response content | No | Claude's responses are not stored |
-
-<Note>
-Shinzo follows a privacy-first approach. Message content is never stored or logged. Only metadata required for analytics is collected.
-</Note>
+| Request content | Yes | Your prompts are stored for session analysis |
+| Response content | Yes | Claude's responses are stored for session analysis |
 
 ## Managing API Keys
 
