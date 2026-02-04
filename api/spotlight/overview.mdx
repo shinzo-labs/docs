@@ -35,6 +35,10 @@ Spotlight needs credentials to make requests to AI providers. You can:
 1. **Store credentials** in Shinzo using [Provider Keys](/api/provider-keys/overview) (recommended)
 2. **Pass credentials** directly in the request using the `x-api-key` header
 
+<Warning>
+**Subscription-based access is not supported.** Spotlight requires API keys from the [Anthropic Console](https://console.anthropic.com/settings/keys). OAuth tokens from Claude subscriptions (e.g., Claude Pro/Team subscriptions) cannot be used and will return a `403 Forbidden` error.
+</Warning>
+
 ## Endpoints
 
 ### Model Proxy

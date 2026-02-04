@@ -146,13 +146,23 @@ sequenceDiagram
 </Step>
 
 <Step title="Verify the configuration">
-  Run Claude Code and make a test request:
+  Run Claude Code:
 
   ```bash
-  claude "Hello, can you confirm you're working?"
+  claude
   ```
 
-  Then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
+  <Note>
+  **First-time login flow:**
+
+  When you first run Claude Code with Shinzo configured, you may see several login screens. Follow these steps:
+
+  1. When prompted to choose a login method, select **"Anthropic Console account · API usage billing"** (not a subscription-based option)
+  2. If you see "Detected a custom API key in your environment... Do you want to use this API key?", select **"No (Recommended)"**
+  3. You may need to restart `claude` after completing login for Shinzo observability to take effect
+  </Note>
+
+  Make a test request and then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
 
   <Check>
   If your request appears in the dashboard, you're all set.
@@ -258,13 +268,23 @@ sequenceDiagram
 </Step>
 
 <Step title="Verify the configuration">
-  Run Claude Code and make a test request:
+  Run Claude Code:
 
   ```bash
-  claude "Hello, can you confirm you're working?"
+  claude
   ```
 
-  Then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
+  <Note>
+  **First-time login flow:**
+
+  When you first run Claude Code with Shinzo configured, you may see several login screens. Follow these steps:
+
+  1. When prompted to choose a login method, select **"Anthropic Console account · API usage billing"** (not a subscription-based option)
+  2. If you see "Detected a custom API key in your environment... Do you want to use this API key?", select **"No (Recommended)"**
+  3. You may need to restart `claude` after completing login for Shinzo observability to take effect
+  </Note>
+
+  Make a test request and then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
 
   <Check>
   If your request appears in the dashboard, you're all set.
@@ -336,6 +356,20 @@ To revoke a compromised Shinzo key:
 2. Find the key and click **Revoke**
 3. Create a new key and update your configuration
 
+## Important: API Key Requirements
+
+<Warning>
+**Subscription-based access is not supported.** Shinzo requires your own Anthropic API key to proxy requests. OAuth tokens from Claude subscriptions (e.g., Claude Pro/Team subscriptions) cannot be used with Shinzo at this time.
+
+If you attempt to use subscription-based authentication, you will receive a `403 Forbidden` error with the message:
+> "Shinzo Platform is currently only compatible with API key-based access. Please add your Anthropic API key in the settings page to continue."
+</Warning>
+
+To use Shinzo with Claude Code, you must:
+
+1. Have an Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys)
+2. Store your API key in Shinzo (for "Shinzo as API Key" mode) or keep it in your environment (for "Custom Header" mode)
+
 ## Troubleshooting
 
 <AccordionGroup>
@@ -354,7 +388,8 @@ To revoke a compromised Shinzo key:
 
 <Accordion title="Authentication errors">
 - **401 Unauthorized**: Your Shinzo API key is invalid or revoked
-- **403 Forbidden**: Your Anthropic key may be invalid or expired
+- **403 Forbidden - Subscription not supported**: You are using a Claude subscription OAuth token instead of an API key. Shinzo requires your own Anthropic API key. Get one from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+- **403 Forbidden - Invalid key**: Your Anthropic key may be invalid or expired
 - If using "Shinzo as API Key" mode, verify your provider key is configured in Shinzo
 - If using "Custom Header" mode, verify your `ANTHROPIC_API_KEY` is correct
 </Accordion>

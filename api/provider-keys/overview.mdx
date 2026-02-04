@@ -13,7 +13,11 @@ Currently supported providers:
 
 | Provider | Key Format | Features |
 |----------|-----------|----------|
-| Anthropic | `sk-ant-*` | Claude models, streaming, token counting |
+| Anthropic | `sk-ant-api03-*` | Claude models, streaming, token counting |
+
+<Warning>
+**Subscription-based access is not supported.** Only API keys from the [Anthropic Console](https://console.anthropic.com/settings/keys) can be used. OAuth tokens from Claude subscriptions (e.g., Claude Pro/Team subscriptions with format `sk-ant-oat01-*`) are not compatible with Shinzo.
+</Warning>
 
 ## Why Use Provider Keys?
 
