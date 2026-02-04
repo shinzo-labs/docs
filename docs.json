@@ -31,7 +31,8 @@
           {
             "group": "AI Tools",
             "pages": [
-              "ai-tools/claude-code"
+              "ai-tools/claude-code",
+              "ai-tools/anthropic-sdk"
             ]
           },
           {

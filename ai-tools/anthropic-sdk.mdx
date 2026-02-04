@@ -1,0 +1,312 @@
+---
+title: "Anthropic SDK"
+description: "Configure Shinzo analytics for the Anthropic SDK to track AI usage, performance, and costs in your applications."
+---
+
+# Anthropic SDK
+
+The Anthropic SDK is the official library for interacting with Claude in your applications. By routing SDK requests through Shinzo, you gain visibility into your AI usage patterns, token consumption, response times, and costs.
+
+## How It Works
+
+Shinzo acts as a transparent proxy between your application and the Anthropic API. When you configure the Anthropic SDK to use Shinzo:
+
+1. Your requests are sent to Shinzo instead of directly to Anthropic
+2. Shinzo authenticates your request using your Shinzo API key
+3. The request is forwarded to Anthropic with your stored Anthropic credentials
+4. Analytics are recorded (tokens, latency, errors, etc.)
+5. The response is returned to your application
+
+## Prerequisites
+
+Before configuring the Anthropic SDK with Shinzo, you need:
+
+1. **A Shinzo account** - Sign up at [app.shinzo.ai](https://app.shinzo.ai)
+2. **Your Anthropic API key** stored in Shinzo - Add it in **Settings > API Keys > Provider Keys**
+3. **A Shinzo API key** - Create one in **Settings > API Keys > Shinzo Keys**
+
+<Warning>
+**Subscription-based access is not supported.** Shinzo requires your own Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys). OAuth tokens from Claude subscriptions (e.g., Claude Pro/Team subscriptions) cannot be used with Shinzo.
+</Warning>
+
+## Configuration Methods
+
+Shinzo supports two methods for configuring the Anthropic SDK. Both methods use your Shinzo API key in place of your Anthropic key.
+
+<Tabs>
+<Tab title="Constructor Parameters (Recommended)">
+
+### Method 1: Constructor Parameters
+
+Pass the configuration directly to the SDK constructor. This is the recommended approach as it keeps configuration explicit and portable.
+
+<Steps>
+<Step title="Add your Anthropic API key to Shinzo">
+  1. Go to [app.shinzo.ai](https://app.shinzo.ai)
+  2. Navigate to **Settings > API Keys**
+  3. Click the **Provider Keys** tab
+  4. Click **Add Provider Key**
+  5. Select **Anthropic** as the provider
+  6. Paste your Anthropic API key and add a label
+  7. Click **Save**
+
+  <Check>
+  Your key will be validated and encrypted before storage.
+  </Check>
+</Step>
+
+<Step title="Create a Shinzo API key">
+  1. In the **API Keys** page, click the **Shinzo Keys** tab
+  2. Click **Create Key**
+  3. Give your key a descriptive name (e.g., "Production App")
+  4. Copy the generated key (you won't see it again)
+</Step>
+
+<Step title="Configure the SDK">
+  Initialize the Anthropic client with your Shinzo API key and the Shinzo base URL:
+
+  <CodeGroup>
+  ```typescript TypeScript
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const anthropic = new Anthropic({
+    apiKey: "sk_shinzo_live_your_key_here",
+    baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+  });
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1000,
+    messages: [
+      {
+        role: "user",
+        content: "Hello, Claude"
+      }
+    ]
+  });
+
+  console.log(message);
+  ```
+
+  ```python Python
+  import anthropic
+
+  client = anthropic.Anthropic(
+      api_key="sk_shinzo_live_your_key_here",
+      base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+  )
+
+  message = client.messages.create(
+      model="claude-sonnet-4-5",
+      max_tokens=1000,
+      messages=[
+          {
+              "role": "user",
+              "content": "Hello, Claude"
+          }
+      ]
+  )
+
+  print(message.content)
+  ```
+  </CodeGroup>
+
+  <Warning>
+  Replace `sk_shinzo_live_your_key_here` with your actual Shinzo API key.
+  </Warning>
+</Step>
+
+<Step title="Verify the configuration">
+  Run your application and make a test request. Then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
+
+  <Check>
+  If your request appears in the dashboard, you're all set.
+  </Check>
+</Step>
+</Steps>
+
+**Benefits:**
+- Configuration is explicit and self-documenting
+- Easy to use different keys for different environments
+- Works well with dependency injection and testing
+- No environment variable conflicts
+
+</Tab>
+
+<Tab title="Environment Variables">
+
+### Method 2: Environment Variables
+
+Set environment variables and let the SDK read them automatically. This is useful for containerized deployments or when you want to keep configuration separate from code.
+
+<Steps>
+<Step title="Add your Anthropic API key to Shinzo">
+  1. Go to [app.shinzo.ai](https://app.shinzo.ai)
+  2. Navigate to **Settings > API Keys**
+  3. Click the **Provider Keys** tab
+  4. Click **Add Provider Key**
+  5. Select **Anthropic** as the provider
+  6. Paste your Anthropic API key and add a label
+  7. Click **Save**
+</Step>
+
+<Step title="Create a Shinzo API key">
+  1. In the **API Keys** page, click the **Shinzo Keys** tab
+  2. Click **Create Key**
+  3. Give your key a descriptive name
+  4. Copy the generated key
+</Step>
+
+<Step title="Set environment variables">
+  Set the following environment variables:
+
+  <Tabs>
+  <Tab title="macOS / Linux">
+  Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.) or set them in your deployment environment:
+
+  ```bash
+  export ANTHROPIC_API_KEY="sk_shinzo_live_your_key_here"
+  export ANTHROPIC_BASE_URL="https://api.app.shinzo.ai/spotlight/anthropic"
+  ```
+
+  Then reload your shell:
+
+  ```bash
+  source ~/.zshrc  # or source ~/.bashrc
+  ```
+  </Tab>
+
+  <Tab title="Windows (PowerShell)">
+  ```powershell
+  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk_shinzo_live_your_key_here', 'User')
+  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.app.shinzo.ai/spotlight/anthropic', 'User')
+  ```
+
+  Restart your terminal for changes to take effect.
+  </Tab>
+
+  <Tab title=".env file">
+  Create a `.env` file in your project root:
+
+  ```bash
+  ANTHROPIC_API_KEY=sk_shinzo_live_your_key_here
+  ANTHROPIC_BASE_URL=https://api.app.shinzo.ai/spotlight/anthropic
+  ```
+
+  Load it with your preferred library (e.g., `dotenv` for Node.js, `python-dotenv` for Python).
+  </Tab>
+  </Tabs>
+</Step>
+
+<Step title="Initialize the SDK">
+  Initialize the Anthropic client without parameters - it will read from environment variables:
+
+  <CodeGroup>
+  ```typescript TypeScript
+  import Anthropic from "@anthropic-ai/sdk";
+
+  // SDK reads from ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL env vars
+  const anthropic = new Anthropic();
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1000,
+    messages: [
+      {
+        role: "user",
+        content: "Hello, Claude"
+      }
+    ]
+  });
+
+  console.log(message);
+  ```
+
+  ```python Python
+  import anthropic
+
+  # SDK reads from ANTHROPIC_API_KEY and ANTHROPIC_BASE_URL env vars
+  client = anthropic.Anthropic()
+
+  message = client.messages.create(
+      model="claude-sonnet-4-5",
+      max_tokens=1000,
+      messages=[
+          {
+              "role": "user",
+              "content": "Hello, Claude"
+          }
+      ]
+  )
+
+  print(message.content)
+  ```
+  </CodeGroup>
+</Step>
+
+<Step title="Verify the configuration">
+  Run your application and make a test request. Then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
+
+  <Check>
+  If your request appears in the dashboard, you're all set.
+  </Check>
+</Step>
+</Steps>
+
+**Benefits:**
+- Configuration is separate from code
+- Easy to manage different environments (dev, staging, production)
+- Works well with container orchestration and CI/CD
+- Follows 12-factor app principles
+
+</Tab>
+</Tabs>
+
+## Comparison of Methods
+
+| Feature | Constructor Parameters | Environment Variables |
+|---------|------------------------|----------------------|
+| Configuration location | In code | External to code |
+| Best for | Explicit configuration, testing | Containerized deployments, CI/CD |
+| Multiple environments | Pass different values | Different env vars per environment |
+| Code readability | Self-documenting | Requires checking environment |
+
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Requests not appearing in dashboard">
+1. Verify your configuration is correct:
+   - Check that `baseURL` / `ANTHROPIC_BASE_URL` is set to `https://api.app.shinzo.ai/spotlight/anthropic`
+   - Check that `apiKey` / `ANTHROPIC_API_KEY` contains your Shinzo API key (not your Anthropic key)
+2. Ensure the Shinzo API key is valid and not revoked
+3. Verify you have a provider key configured in Shinzo (**Settings > API Keys > Provider Keys**)
+</Accordion>
+
+<Accordion title="Authentication errors">
+- **401 Unauthorized**: Your Shinzo API key is invalid or revoked
+- **403 Forbidden - Subscription not supported**: You are attempting to use a Claude subscription OAuth token. Shinzo requires your own Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+- **403 Forbidden - Invalid key**: Your Anthropic key (stored in Shinzo) may be invalid or expired. Update it in **Settings > API Keys > Provider Keys**.
+</Accordion>
+
+<Accordion title="Connection timeouts">
+1. Verify you can reach `api.app.shinzo.ai`:
+   ```bash
+   curl -I https://api.app.shinzo.ai/health
+   ```
+2. Check your network/firewall settings
+3. If using a corporate proxy, ensure it allows HTTPS connections to Shinzo
+</Accordion>
+
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="View Dashboard" icon="chart-line" href="/platform/dashboard">
+    Explore your AI usage analytics in the Shinzo dashboard.
+  </Card>
+  <Card title="Claude Code Setup" icon="terminal" href="/ai-tools/claude-code">
+    Configure Shinzo analytics for Claude Code CLI.
+  </Card>
+</CardGroup>
