@@ -298,23 +298,6 @@ Set environment variables and let the SDK read them automatically. This is usefu
 3. If using a corporate proxy, ensure it allows HTTPS connections to Shinzo
 </Accordion>
 
-<Accordion title="Switching back to direct Anthropic access">
-To bypass Shinzo temporarily, either:
-
-**Constructor method:**
-```typescript
-const anthropic = new Anthropic({
-  apiKey: "sk-ant-api03-your-anthropic-key"
-  // Remove baseURL to use default Anthropic endpoint
-});
-```
-
-**Environment variables method:**
-```bash
-unset ANTHROPIC_BASE_URL
-export ANTHROPIC_API_KEY="sk-ant-api03-your-anthropic-key"
-```
-</Accordion>
 </AccordionGroup>
 
 ## Next Steps
