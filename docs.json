@@ -46,6 +46,8 @@
             "group": "Platform",
             "pages": [
               "platform/dashboard",
+              "platform/spotlight-integration",
+              "platform/spotlight-best-practices",
               "platform/shinzo-mcp-server",
               "platform/install-shinzo-mcp",
               "platform/shinzo-mcp-tools",

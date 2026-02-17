@@ -1,0 +1,749 @@
+---
+title: "Spotlight Integration"
+description: "Complete guide to integrating Spotlight for AI model usage tracking and analytics."
+---
+
+# Spotlight Integration Guide
+
+Spotlight is Shinzo's AI model proxy service that automatically tracks usage, tokens, costs, and session analytics for your AI applications. This guide will help you integrate Spotlight into your projects.
+
+## What is Spotlight?
+
+Spotlight acts as a transparent proxy layer between your application and AI providers like Anthropic. It provides:
+
+- **Automatic Usage Tracking**: Track tokens, costs, and response times without code changes
+- **Session Analytics**: Group and analyze API calls by user sessions
+- **Real-time Monitoring**: Monitor your AI usage in real-time through the Shinzo dashboard
+- **Cost Attribution**: Understand AI costs per user, session, or feature
+- **Performance Insights**: Identify slow requests and optimization opportunities
+
+<Tip>
+Spotlight maintains 100% API compatibility with provider APIs. Your existing code will work without modifications - just change the base URL and API key.
+</Tip>
+
+## Quick Start
+
+Get started with Spotlight in under 5 minutes.
+
+<Steps>
+<Step title="Create a Shinzo account">
+  Sign up at [app.shinzo.ai](https://app.shinzo.ai) if you haven't already.
+</Step>
+
+<Step title="Add your provider API key">
+  Store your AI provider credentials securely in Shinzo:
+
+  1. Navigate to **Settings > API Keys**
+  2. Click the **Provider Keys** tab
+  3. Click **Add Provider Key**
+  4. Select your provider (e.g., **Anthropic**)
+  5. Paste your API key and add a label
+  6. Click **Save**
+
+  <Info>
+  Your provider keys are encrypted at rest and used by Spotlight to make requests on your behalf.
+  </Info>
+</Step>
+
+<Step title="Create a Shinzo Platform API key">
+  Generate a Platform API key for your application:
+
+  1. In **Settings > API Keys**, click the **Shinzo Keys** tab
+  2. Click **Create Key**
+  3. Give your key a descriptive name (e.g., "Production App")
+  4. Copy the generated key (you won't see it again)
+
+  <Warning>
+  Store your API key securely. It provides access to your Shinzo account and usage data.
+  </Warning>
+</Step>
+
+<Step title="Configure your AI SDK">
+  Point your AI SDK to Spotlight by changing the base URL:
+
+  <CodeGroup>
+  ```typescript TypeScript/JavaScript
+  import Anthropic from "@anthropic-ai/sdk";
+
+  const anthropic = new Anthropic({
+    apiKey: "sk_shinzo_live_your_key_here",  // Shinzo Platform API key
+    baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+  });
+
+  // Use the SDK normally
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [
+      { role: "user", content: "Hello, Claude!" }
+    ],
+    metadata: {
+      user_id: "user-123"  // Optional: group requests by session
+    }
+  });
+  ```
+
+  ```python Python
+  import anthropic
+
+  client = anthropic.Anthropic(
+      api_key="sk_shinzo_live_your_key_here",  # Shinzo Platform API key
+      base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+  )
+
+  # Use the SDK normally
+  message = client.messages.create(
+      model="claude-sonnet-4-20250514",
+      max_tokens=1000,
+      messages=[
+          {"role": "user", "content": "Hello, Claude!"}
+      ],
+      metadata={
+          "user_id": "user-123"  # Optional: group requests by session
+      }
+  )
+  ```
+
+  ```bash cURL
+  curl -X POST https://api.app.shinzo.ai/spotlight/anthropic/v1/messages \
+    -H "Authorization: Bearer sk_shinzo_live_your_key_here" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "model": "claude-sonnet-4-20250514",
+      "max_tokens": 1000,
+      "messages": [
+        {"role": "user", "content": "Hello, Claude!"}
+      ],
+      "metadata": {
+        "user_id": "user-123"
+      }
+    }'
+  ```
+  </CodeGroup>
+</Step>
+
+<Step title="View analytics in the dashboard">
+  Go to [app.shinzo.ai](https://app.shinzo.ai) to view your AI usage:
+
+  - **Spotlight Analytics**: View token usage, costs, and performance metrics
+  - **Sessions**: Analyze API calls grouped by user sessions
+  - **Models**: Compare usage across different AI models
+  - **Time Series**: Track usage trends over time
+</Step>
+</Steps>
+
+## Integration Methods
+
+Spotlight supports two methods for providing AI provider credentials.
+
+### Method 1: Stored Provider Keys (Recommended)
+
+Store your provider API keys securely in Shinzo. This is the recommended approach for production applications.
+
+**Advantages:**
+- Keys are encrypted at rest
+- Centralized key management
+- Easy key rotation without code changes
+- Audit trail for key usage
+
+**Setup:**
+1. Add your provider API key in **Settings > API Keys > Provider Keys**
+2. Use your Shinzo Platform API key in your application
+3. Spotlight automatically uses your stored provider key
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.SHINZO_API_KEY,  // Shinzo Platform API key
+  baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+});
+```
+
+```python Python
+import anthropic
+import os
+
+client = anthropic.Anthropic(
+    api_key=os.environ.get("SHINZO_API_KEY"),  # Shinzo Platform API key
+    base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+)
+```
+</CodeGroup>
+
+### Method 2: Pass-Through Credentials
+
+Pass provider credentials directly in requests using the `x-api-key` header. Useful for development or when managing multiple provider keys.
+
+**Advantages:**
+- Quick setup for testing
+- Manage provider keys in your own infrastructure
+- Use different provider keys per request
+
+**Setup:**
+Add the `x-api-key` header with your provider's API key:
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.SHINZO_API_KEY,  // Shinzo Platform API key
+  baseURL: "https://api.app.shinzo.ai/spotlight/anthropic",
+  defaultHeaders: {
+    "x-api-key": process.env.ANTHROPIC_API_KEY  // Provider API key
+  }
+});
+```
+
+```python Python
+import anthropic
+import os
+
+client = anthropic.Anthropic(
+    api_key=os.environ.get("SHINZO_API_KEY"),  # Shinzo Platform API key
+    base_url="https://api.app.shinzo.ai/spotlight/anthropic",
+    default_headers={
+        "x-api-key": os.environ.get("ANTHROPIC_API_KEY")  # Provider API key
+    }
+)
+```
+
+```bash cURL
+curl -X POST https://api.app.shinzo.ai/spotlight/anthropic/v1/messages \
+  -H "Authorization: Bearer $SHINZO_API_KEY" \
+  -H "x-api-key: $ANTHROPIC_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 1000,
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+</CodeGroup>
+
+## Session Tracking
+
+Spotlight automatically groups API requests into sessions for better analytics and cost attribution.
+
+### How Session Tracking Works
+
+Sessions are created using the `metadata.user_id` field in your API requests:
+
+```json
+{
+  "model": "claude-sonnet-4-20250514",
+  "messages": [...],
+  "metadata": {
+    "user_id": "my-session-id"  // Spotlight uses this to group requests
+  }
+}
+```
+
+<Info>
+If no `user_id` is provided, requests are grouped under a `default-session`.
+</Info>
+
+### Session ID Best Practices
+
+Choose session IDs based on your use case:
+
+| Use Case | Session ID Format | Example |
+|----------|------------------|---------|
+| **User sessions** | `user-{userId}` | `user-123` |
+| **Application features** | `feature-{name}-{userId}` | `feature-chat-user-123` |
+| **Request batches** | `batch-{timestamp}` | `batch-2025-01-15T10:30:00Z` |
+| **Multi-tenant** | `tenant-{tenantId}-user-{userId}` | `tenant-acme-user-456` |
+
+### Session Analytics Example
+
+Track user conversations in a chat application:
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+class ChatService {
+  private anthropic: Anthropic;
+
+  constructor() {
+    this.anthropic = new Anthropic({
+      apiKey: process.env.SHINZO_API_KEY,
+      baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+    });
+  }
+
+  async sendMessage(userId: string, conversationId: string, message: string) {
+    const sessionId = `user-${userId}-conversation-${conversationId}`;
+
+    const response = await this.anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [
+        { role: "user", content: message }
+      ],
+      metadata: {
+        user_id: sessionId  // Group by user and conversation
+      }
+    });
+
+    return response;
+  }
+}
+```
+
+```python Python
+import anthropic
+import os
+
+class ChatService:
+    def __init__(self):
+        self.client = anthropic.Anthropic(
+            api_key=os.environ.get("SHINZO_API_KEY"),
+            base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+        )
+
+    def send_message(self, user_id: str, conversation_id: str, message: str):
+        session_id = f"user-{user_id}-conversation-{conversation_id}"
+
+        response = self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[
+                {"role": "user", "content": message}
+            ],
+            metadata={
+                "user_id": session_id  # Group by user and conversation
+            }
+        )
+
+        return response
+```
+</CodeGroup>
+
+View session analytics in the dashboard or via the API:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions?session_id=user-123" \
+  -H "Authorization: Bearer $SHINZO_API_KEY"
+```
+
+## Environment Variables
+
+Configure Spotlight using environment variables for different environments (development, staging, production).
+
+### Recommended Setup
+
+<CodeGroup>
+```bash .env.development
+# Development environment
+SHINZO_API_KEY=sk_shinzo_test_dev_key_here
+SHINZO_BASE_URL=https://api.app.shinzo.ai/spotlight/anthropic
+```
+
+```bash .env.production
+# Production environment
+SHINZO_API_KEY=sk_shinzo_live_prod_key_here
+SHINZO_BASE_URL=https://api.app.shinzo.ai/spotlight/anthropic
+```
+</CodeGroup>
+
+### Using Environment Variables
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.SHINZO_API_KEY,
+  baseURL: process.env.SHINZO_BASE_URL
+});
+```
+
+```python Python
+import anthropic
+import os
+
+client = anthropic.Anthropic(
+    api_key=os.environ.get("SHINZO_API_KEY"),
+    base_url=os.environ.get("SHINZO_BASE_URL")
+)
+```
+</CodeGroup>
+
+## Common Integration Patterns
+
+### Pattern 1: Multi-Tenant SaaS Application
+
+Track AI usage per tenant for cost allocation:
+
+<CodeGroup>
+```typescript TypeScript
+async function processTenantRequest(
+  tenantId: string,
+  userId: string,
+  prompt: string
+) {
+  const sessionId = `tenant-${tenantId}-user-${userId}`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: prompt }],
+    metadata: {
+      user_id: sessionId  // Track by tenant and user
+    }
+  });
+
+  return response;
+}
+```
+
+```python Python
+async def process_tenant_request(
+    tenant_id: str,
+    user_id: str,
+    prompt: str
+):
+    session_id = f"tenant-{tenant_id}-user-{user_id}"
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}],
+        metadata={
+            "user_id": session_id  # Track by tenant and user
+        }
+    )
+
+    return response
+```
+</CodeGroup>
+
+### Pattern 2: Feature-Specific Tracking
+
+Track AI usage by application feature:
+
+<CodeGroup>
+```typescript TypeScript
+enum Feature {
+  CHAT = "chat",
+  SUMMARIZATION = "summarization",
+  TRANSLATION = "translation"
+}
+
+async function callAI(
+  feature: Feature,
+  userId: string,
+  prompt: string
+) {
+  const sessionId = `feature-${feature}-user-${userId}`;
+
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: prompt }],
+    metadata: {
+      user_id: sessionId  // Track by feature and user
+    }
+  });
+
+  return response;
+}
+```
+
+```python Python
+from enum import Enum
+
+class Feature(Enum):
+    CHAT = "chat"
+    SUMMARIZATION = "summarization"
+    TRANSLATION = "translation"
+
+async def call_ai(
+    feature: Feature,
+    user_id: str,
+    prompt: str
+):
+    session_id = f"feature-{feature.value}-user-{user_id}"
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}],
+        metadata={
+            "user_id": session_id  # Track by feature and user
+        }
+    )
+
+    return response
+```
+</CodeGroup>
+
+### Pattern 3: Streaming Responses
+
+Spotlight fully supports streaming responses:
+
+<CodeGroup>
+```typescript TypeScript
+async function streamResponse(userId: string, prompt: string) {
+  const stream = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: prompt }],
+    stream: true,
+    metadata: {
+      user_id: `user-${userId}`
+    }
+  });
+
+  for await (const chunk of stream) {
+    if (chunk.type === "content_block_delta") {
+      process.stdout.write(chunk.delta.text);
+    }
+  }
+}
+```
+
+```python Python
+async def stream_response(user_id: str, prompt: str):
+    stream = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+        metadata={
+            "user_id": f"user-{user_id}"
+        }
+    )
+
+    async for chunk in stream:
+        if chunk.type == "content_block_delta":
+            print(chunk.delta.text, end="", flush=True)
+```
+</CodeGroup>
+
+<Info>
+Token usage for streaming requests is tracked automatically when the stream completes.
+</Info>
+
+## Agent Integration
+
+When creating AI agents, Spotlight integration is automatic. Each agent receives its own Platform API key for tracking.
+
+### How It Works
+
+1. Create an agent using the [Agent API](/api/agents/create)
+2. The response includes a `platform_api_key` for the agent
+3. The agent uses this key to authenticate with Spotlight
+4. All agent AI usage is automatically tracked and attributed
+
+### Example: Creating an Agent with Spotlight
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer $JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "customer-support-agent",
+    "model": "claude-sonnet-4-20250514",
+    "config": {
+      "systemPrompt": "You are a helpful customer support agent.",
+      "maxTokens": 2000
+    }
+  }'
+```
+
+Response includes agent credentials:
+```json
+{
+  "agent_id": "agent_abc123",
+  "platform_api_key": "sk_shinzo_auto_agent_abc123_xyz",
+  "created_at": "2025-01-15T10:00:00Z"
+}
+```
+
+The agent automatically uses this key for Spotlight analytics. View agent usage in **Settings > Spotlight Analytics** filtered by agent ID.
+
+## Viewing Analytics
+
+Access your Spotlight analytics through the dashboard or API.
+
+### Dashboard
+
+View analytics at [app.shinzo.ai](https://app.shinzo.ai):
+
+1. Navigate to **Spotlight Analytics**
+2. Filter by date range, model, or session
+3. View charts for:
+   - Token usage over time
+   - Cost breakdown by model
+   - Request latency distribution
+   - Error rates
+
+### API
+
+Fetch analytics programmatically using the Spotlight API:
+
+<CodeGroup>
+```bash Sessions
+# List sessions with aggregated metrics
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions?limit=10&sort=total_cost&sortDirection=desc" \
+  -H "Authorization: Bearer $SHINZO_API_KEY"
+```
+
+```bash Session Details
+# Get detailed session analytics
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123" \
+  -H "Authorization: Bearer $SHINZO_API_KEY"
+```
+
+```bash Token Analytics
+# Get token usage analytics
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/tokens?start_date=2025-01-01&end_date=2025-01-31" \
+  -H "Authorization: Bearer $SHINZO_API_KEY"
+```
+</CodeGroup>
+
+See the [Spotlight API Reference](/api/spotlight/overview) for complete documentation.
+
+## Troubleshooting
+
+### Authentication Errors
+
+**Error:** `401 Unauthorized`
+
+**Causes:**
+- Invalid Shinzo Platform API key
+- Expired API key
+- Missing `Authorization` header
+
+**Solutions:**
+1. Verify your API key in **Settings > API Keys > Shinzo Keys**
+2. Ensure the key is correctly formatted: `sk_shinzo_live_...` or `sk_shinzo_test_...`
+3. Check that you're using the `Authorization: Bearer` header
+
+### Provider Key Errors
+
+**Error:** `403 Forbidden - Provider key not found`
+
+**Causes:**
+- No provider API key stored in Shinzo
+- Invalid provider API key
+- Provider key not associated with your account
+
+**Solutions:**
+1. Add your provider API key in **Settings > API Keys > Provider Keys**
+2. Test your provider key using the **Test Connection** button
+3. Ensure you're authenticated with the correct Shinzo account
+
+**Error:** `403 Forbidden - Subscription-based access not supported`
+
+**Cause:**
+You're trying to use OAuth tokens from Claude subscriptions (Claude Pro/Team).
+
+**Solution:**
+Get an API key from the [Anthropic Console](https://console.anthropic.com/settings/keys) instead of using subscription credentials.
+
+### Connection Errors
+
+**Error:** `Network request failed`
+
+**Causes:**
+- Incorrect base URL
+- Network/firewall issues
+- Service outage
+
+**Solutions:**
+1. Verify the base URL: `https://api.app.shinzo.ai/spotlight/anthropic`
+2. Check your network connection and firewall settings
+3. Verify Shinzo service status at [status.shinzo.ai](https://status.shinzo.ai)
+
+### Analytics Not Appearing
+
+**Issue:** Requests succeed but analytics don't appear in the dashboard
+
+**Causes:**
+- Using incorrect session ID format
+- Analytics delay (up to 30 seconds)
+- Filtering by wrong date range
+
+**Solutions:**
+1. Wait 30-60 seconds for analytics to appear
+2. Verify the `metadata.user_id` field is included in requests
+3. Check the date range filter in the dashboard
+4. Use the API to verify data: `GET /spotlight/analytics/sessions`
+
+### Performance Issues
+
+**Issue:** Requests are slower than expected
+
+**Causes:**
+- Network latency to Shinzo
+- Large request/response payloads
+- Provider API throttling
+
+**Solutions:**
+1. Use the closest geographic region (contact support for regional endpoints)
+2. Reduce request size or use streaming
+3. Check provider API status and rate limits
+4. Monitor request latency in Spotlight Analytics
+
+## Best Practices
+
+<CardGroup cols={2}>
+<Card title="Use Session IDs" icon="tag">
+  Always include `metadata.user_id` to track usage by user, tenant, or feature.
+</Card>
+
+<Card title="Secure API Keys" icon="lock">
+  Store API keys in environment variables or secret managers, never in code.
+</Card>
+
+<Card title="Monitor Costs" icon="dollar-sign">
+  Set up alerts in the dashboard to track unexpected cost increases.
+</Card>
+
+<Card title="Test Locally" icon="flask">
+  Use test API keys during development to avoid polluting production analytics.
+</Card>
+
+<Card title="Rotate Keys" icon="rotate">
+  Rotate API keys regularly and when team members leave.
+</Card>
+
+<Card title="Use Stored Keys" icon="database">
+  Store provider keys in Shinzo for centralized management and easier rotation.
+</Card>
+
+<Card title="Review Sessions" icon="chart-line">
+  Regularly review session analytics to identify optimization opportunities.
+</Card>
+
+<Card title="Handle Errors" icon="triangle-exclamation">
+  Implement proper error handling and retries for production resilience.
+</Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Spotlight API Reference" icon="book" href="/api/spotlight/overview">
+  Complete API documentation for all Spotlight endpoints
+</Card>
+
+<Card title="Session Analytics" icon="chart-mixed" href="/api/spotlight/sessions">
+  Learn how to query and analyze session data
+</Card>
+
+<Card title="Anthropic SDK Guide" icon="robot" href="/ai-tools/anthropic-sdk">
+  Detailed Anthropic SDK configuration and examples
+</Card>
+
+<Card title="Agent Deployment" icon="rocket" href="/platform/agent-deployment">
+  Deploy AI agents with automatic Spotlight integration
+</Card>
+</CardGroup>

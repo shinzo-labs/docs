@@ -1,0 +1,1192 @@
+---
+title: "Spotlight Best Practices"
+description: "Advanced patterns, optimization strategies, and best practices for using Spotlight in production."
+---
+
+# Spotlight Best Practices
+
+This guide covers advanced patterns, optimization strategies, and production best practices for using Spotlight effectively in your AI applications.
+
+## Architecture Patterns
+
+### Single Client Instance
+
+Create one Anthropic client instance and reuse it throughout your application to improve performance and connection pooling.
+
+<CodeGroup>
+```typescript TypeScript
+// ✅ Good: Single client instance
+import Anthropic from "@anthropic-ai/sdk";
+
+const anthropic = new Anthropic({
+  apiKey: process.env.SHINZO_API_KEY,
+  baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+});
+
+export default anthropic;
+
+// Use in other files
+import anthropic from "./anthropic-client";
+
+async function chat(message: string) {
+  return await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: message }]
+  });
+}
+```
+
+```python Python
+# ✅ Good: Single client instance
+import anthropic
+import os
+
+_client = None
+
+def get_anthropic_client():
+    global _client
+    if _client is None:
+        _client = anthropic.Anthropic(
+            api_key=os.environ.get("SHINZO_API_KEY"),
+            base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+        )
+    return _client
+
+# Use in other files
+def chat(message: str):
+    client = get_anthropic_client()
+    return client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": message}]
+    )
+```
+</CodeGroup>
+
+<Warning>
+**Anti-pattern:** Creating a new client for each request wastes resources and slows down your application.
+</Warning>
+
+### Service Layer Pattern
+
+Encapsulate Spotlight configuration in a service layer for better maintainability and testing.
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+class AIService {
+  private client: Anthropic;
+  private defaultModel: string;
+
+  constructor(config?: { model?: string }) {
+    this.client = new Anthropic({
+      apiKey: process.env.SHINZO_API_KEY,
+      baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+    });
+    this.defaultModel = config?.model || "claude-sonnet-4-20250514";
+  }
+
+  async chat(
+    userId: string,
+    message: string,
+    options?: {
+      model?: string;
+      maxTokens?: number;
+      sessionId?: string;
+    }
+  ) {
+    const sessionId = options?.sessionId || `user-${userId}`;
+
+    return await this.client.messages.create({
+      model: options?.model || this.defaultModel,
+      max_tokens: options?.maxTokens || 1000,
+      messages: [{ role: "user", content: message }],
+      metadata: { user_id: sessionId }
+    });
+  }
+
+  async generateWithContext(
+    userId: string,
+    systemPrompt: string,
+    userMessage: string,
+    conversationHistory?: Array<{ role: string; content: string }>
+  ) {
+    const messages = [
+      ...(conversationHistory || []),
+      { role: "user", content: userMessage }
+    ];
+
+    return await this.client.messages.create({
+      model: this.defaultModel,
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages,
+      metadata: { user_id: `user-${userId}` }
+    });
+  }
+}
+
+// Export singleton instance
+export const aiService = new AIService();
+```
+
+```python Python
+import anthropic
+import os
+from typing import Optional, List, Dict
+
+class AIService:
+    def __init__(self, config: Optional[Dict] = None):
+        config = config or {}
+        self.client = anthropic.Anthropic(
+            api_key=os.environ.get("SHINZO_API_KEY"),
+            base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+        )
+        self.default_model = config.get("model", "claude-sonnet-4-20250514")
+
+    async def chat(
+        self,
+        user_id: str,
+        message: str,
+        model: Optional[str] = None,
+        max_tokens: Optional[int] = None,
+        session_id: Optional[str] = None
+    ):
+        session_id = session_id or f"user-{user_id}"
+
+        return await self.client.messages.create(
+            model=model or self.default_model,
+            max_tokens=max_tokens or 1000,
+            messages=[{"role": "user", "content": message}],
+            metadata={"user_id": session_id}
+        )
+
+    async def generate_with_context(
+        self,
+        user_id: str,
+        system_prompt: str,
+        user_message: str,
+        conversation_history: Optional[List[Dict]] = None
+    ):
+        messages = [
+            *(conversation_history or []),
+            {"role": "user", "content": user_message}
+        ]
+
+        return await self.client.messages.create(
+            model=self.default_model,
+            max_tokens=2000,
+            system=system_prompt,
+            messages=messages,
+            metadata={"user_id": f"user-{user_id}"}
+        )
+
+# Export singleton instance
+ai_service = AIService()
+```
+</CodeGroup>
+
+## Session Management
+
+### Session Naming Convention
+
+Use a consistent naming convention for session IDs across your application.
+
+```typescript
+// Define session ID format based on context
+function buildSessionId(
+  context: "user" | "tenant" | "feature",
+  identifiers: Record<string, string>
+): string {
+  switch (context) {
+    case "user":
+      return `user-${identifiers.userId}`;
+    case "tenant":
+      return `tenant-${identifiers.tenantId}-user-${identifiers.userId}`;
+    case "feature":
+      return `feature-${identifiers.feature}-user-${identifiers.userId}`;
+    default:
+      return "default-session";
+  }
+}
+
+// Examples
+const userSession = buildSessionId("user", { userId: "123" });
+// => "user-123"
+
+const tenantSession = buildSessionId("tenant", {
+  tenantId: "acme",
+  userId: "123"
+});
+// => "tenant-acme-user-123"
+
+const featureSession = buildSessionId("feature", {
+  feature: "chat",
+  userId: "123"
+});
+// => "feature-chat-user-123"
+```
+
+### Session Lifecycle Management
+
+Group related requests into sessions with clear start and end points.
+
+<CodeGroup>
+```typescript TypeScript
+class ConversationManager {
+  private sessionId: string;
+  private startTime: Date;
+  private anthropic: Anthropic;
+
+  constructor(userId: string, conversationId: string) {
+    this.sessionId = `user-${userId}-conv-${conversationId}`;
+    this.startTime = new Date();
+    this.anthropic = new Anthropic({
+      apiKey: process.env.SHINZO_API_KEY,
+      baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+    });
+  }
+
+  async sendMessage(message: string) {
+    return await this.anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: message }],
+      metadata: {
+        user_id: this.sessionId  // All requests use same session ID
+      }
+    });
+  }
+
+  getSessionId(): string {
+    return this.sessionId;
+  }
+
+  getDuration(): number {
+    return Date.now() - this.startTime.getTime();
+  }
+}
+
+// Usage
+const conversation = new ConversationManager("user-123", "conv-456");
+await conversation.sendMessage("Hello!");
+await conversation.sendMessage("How are you?");
+console.log(`Session: ${conversation.getSessionId()}`);
+console.log(`Duration: ${conversation.getDuration()}ms`);
+```
+
+```python Python
+from datetime import datetime
+import anthropic
+import os
+
+class ConversationManager:
+    def __init__(self, user_id: str, conversation_id: str):
+        self.session_id = f"user-{user_id}-conv-{conversation_id}"
+        self.start_time = datetime.now()
+        self.client = anthropic.Anthropic(
+            api_key=os.environ.get("SHINZO_API_KEY"),
+            base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+        )
+
+    async def send_message(self, message: str):
+        return await self.client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": message}],
+            metadata={
+                "user_id": self.session_id  # All requests use same session ID
+            }
+        )
+
+    def get_session_id(self) -> str:
+        return self.session_id
+
+    def get_duration(self) -> float:
+        return (datetime.now() - self.start_time).total_seconds() * 1000
+
+# Usage
+conversation = ConversationManager("user-123", "conv-456")
+await conversation.send_message("Hello!")
+await conversation.send_message("How are you?")
+print(f"Session: {conversation.get_session_id()}")
+print(f"Duration: {conversation.get_duration()}ms")
+```
+</CodeGroup>
+
+## Cost Optimization
+
+### Model Selection Strategy
+
+Choose the right model for each task to optimize cost and performance.
+
+| Model | Best For | Cost | Speed |
+|-------|----------|------|-------|
+| **Claude Haiku** | Simple tasks, classification, extraction | $ | ⚡⚡⚡ |
+| **Claude Sonnet** | Complex reasoning, balanced performance | $$ | ⚡⚡ |
+| **Claude Opus** | Highly complex tasks, research, analysis | $$$ | ⚡ |
+
+<CodeGroup>
+```typescript TypeScript
+// Dynamic model selection based on task complexity
+function selectModel(taskType: "simple" | "medium" | "complex"): string {
+  switch (taskType) {
+    case "simple":
+      return "claude-3-5-haiku-20250116";  // Fast and cheap
+    case "medium":
+      return "claude-sonnet-4-20250514";   // Balanced
+    case "complex":
+      return "claude-opus-4-20250514";     // Most capable
+  }
+}
+
+// Example: Classification (simple task)
+async function classifyIntent(userMessage: string) {
+  return await anthropic.messages.create({
+    model: selectModel("simple"),  // Use Haiku for simple tasks
+    max_tokens: 100,
+    messages: [
+      {
+        role: "user",
+        content: `Classify this message intent: "${userMessage}"`
+      }
+    ]
+  });
+}
+
+// Example: Complex analysis
+async function analyzeDocument(document: string) {
+  return await anthropic.messages.create({
+    model: selectModel("complex"),  // Use Opus for complex tasks
+    max_tokens: 4000,
+    messages: [
+      {
+        role: "user",
+        content: `Analyze this document in detail: ${document}`
+      }
+    ]
+  });
+}
+```
+
+```python Python
+def select_model(task_type: str) -> str:
+    """Select model based on task complexity"""
+    models = {
+        "simple": "claude-3-5-haiku-20250116",   # Fast and cheap
+        "medium": "claude-sonnet-4-20250514",    # Balanced
+        "complex": "claude-opus-4-20250514"      # Most capable
+    }
+    return models.get(task_type, "claude-sonnet-4-20250514")
+
+async def classify_intent(user_message: str):
+    """Classification (simple task)"""
+    return await client.messages.create(
+        model=select_model("simple"),  # Use Haiku
+        max_tokens=100,
+        messages=[
+            {
+                "role": "user",
+                "content": f'Classify this message intent: "{user_message}"'
+            }
+        ]
+    )
+
+async def analyze_document(document: str):
+    """Complex analysis"""
+    return await client.messages.create(
+        model=select_model("complex"),  # Use Opus
+        max_tokens=4000,
+        messages=[
+            {
+                "role": "user",
+                "content": f"Analyze this document in detail: {document}"
+            }
+        ]
+    )
+```
+</CodeGroup>
+
+### Prompt Caching
+
+Use prompt caching to reduce costs for repeated system prompts or large context.
+
+<Info>
+Anthropic automatically caches prompt content when you mark it as cacheable. Spotlight tracks cache hits in analytics.
+</Info>
+
+<CodeGroup>
+```typescript TypeScript
+// Use system prompts with caching for repeated contexts
+const systemPrompt = {
+  type: "text",
+  text: "You are a helpful customer support agent...",
+  cache_control: { type: "ephemeral" }  // Enable caching
+};
+
+async function handleSupportQuery(userId: string, query: string) {
+  return await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    system: [systemPrompt],  // Cached system prompt
+    messages: [{ role: "user", content: query }],
+    metadata: { user_id: `user-${userId}` }
+  });
+}
+```
+
+```python Python
+# Use system prompts with caching for repeated contexts
+system_prompt = {
+    "type": "text",
+    "text": "You are a helpful customer support agent...",
+    "cache_control": {"type": "ephemeral"}  # Enable caching
+}
+
+async def handle_support_query(user_id: str, query: str):
+    return await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        system=[system_prompt],  # Cached system prompt
+        messages=[{"role": "user", "content": query}],
+        metadata={"user_id": f"user-{user_id}"}
+    )
+```
+</CodeGroup>
+
+### Token Estimation
+
+Estimate token usage before making requests to manage costs proactively.
+
+```typescript
+// Use the token counting endpoint
+async function estimateTokens(messages: Array<{ role: string; content: string }>) {
+  const response = await fetch(
+    "https://api.app.shinzo.ai/spotlight/anthropic/v1/messages/count_tokens",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.SHINZO_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        messages
+      })
+    }
+  );
+
+  const data = await response.json();
+  return {
+    inputTokens: data.input_tokens,
+    estimatedCost: calculateCost(data.input_tokens, "input")
+  };
+}
+
+function calculateCost(tokens: number, type: "input" | "output"): number {
+  // Claude Sonnet pricing (as of 2025)
+  const pricePerMToken = type === "input" ? 3 : 15;  // USD per 1M tokens
+  return (tokens / 1_000_000) * pricePerMToken;
+}
+
+// Usage
+const estimate = await estimateTokens([
+  { role: "user", content: "Summarize this long document..." }
+]);
+console.log(`Estimated cost: $${estimate.estimatedCost.toFixed(4)}`);
+```
+
+## Error Handling
+
+### Comprehensive Error Handling
+
+Implement robust error handling for production applications.
+
+<CodeGroup>
+```typescript TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+async function safeAPICall<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  backoff = 1000
+): Promise<T> {
+  let lastError: Error;
+
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+
+      // Handle specific errors
+      if (error instanceof Anthropic.APIError) {
+        switch (error.status) {
+          case 401:
+            throw new Error("Invalid API key - check your Shinzo credentials");
+          case 403:
+            throw new Error("Provider key not found or invalid");
+          case 429:
+            // Rate limit - wait and retry
+            console.log(`Rate limited. Retrying in ${backoff}ms...`);
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            backoff *= 2;  // Exponential backoff
+            continue;
+          case 500:
+          case 503:
+            // Server error - retry
+            if (i < retries - 1) {
+              console.log(`Server error. Retrying in ${backoff}ms...`);
+              await new Promise(resolve => setTimeout(resolve, backoff));
+              backoff *= 2;
+              continue;
+            }
+            break;
+          default:
+            throw error;
+        }
+      }
+
+      // Network error - retry
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, backoff));
+        backoff *= 2;
+        continue;
+      }
+    }
+  }
+
+  throw lastError!;
+}
+
+// Usage
+async function chat(userId: string, message: string) {
+  return await safeAPICall(async () => {
+    return await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: message }],
+      metadata: { user_id: `user-${userId}` }
+    });
+  });
+}
+```
+
+```python Python
+import anthropic
+import asyncio
+from typing import TypeVar, Callable
+
+T = TypeVar('T')
+
+async def safe_api_call(
+    fn: Callable[[], T],
+    retries: int = 3,
+    backoff: float = 1.0
+) -> T:
+    last_error = None
+
+    for i in range(retries):
+        try:
+            return await fn()
+        except anthropic.APIError as error:
+            last_error = error
+
+            # Handle specific errors
+            if error.status_code == 401:
+                raise Exception("Invalid API key - check your Shinzo credentials")
+            elif error.status_code == 403:
+                raise Exception("Provider key not found or invalid")
+            elif error.status_code == 429:
+                # Rate limit - wait and retry
+                print(f"Rate limited. Retrying in {backoff}s...")
+                await asyncio.sleep(backoff)
+                backoff *= 2
+                continue
+            elif error.status_code in [500, 503]:
+                # Server error - retry
+                if i < retries - 1:
+                    print(f"Server error. Retrying in {backoff}s...")
+                    await asyncio.sleep(backoff)
+                    backoff *= 2
+                    continue
+            else:
+                raise
+
+        except Exception as error:
+            last_error = error
+            # Network error - retry
+            if i < retries - 1:
+                await asyncio.sleep(backoff)
+                backoff *= 2
+                continue
+
+    raise last_error
+
+# Usage
+async def chat(user_id: str, message: str):
+    return await safe_api_call(
+        lambda: client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": message}],
+            metadata={"user_id": f"user-{user_id}"}
+        )
+    )
+```
+</CodeGroup>
+
+### Graceful Degradation
+
+Implement fallback strategies when Spotlight is unavailable.
+
+<CodeGroup>
+```typescript TypeScript
+class ResilientAIService {
+  private primaryClient: Anthropic;
+  private fallbackClient?: Anthropic;
+
+  constructor() {
+    // Primary: Spotlight (with analytics)
+    this.primaryClient = new Anthropic({
+      apiKey: process.env.SHINZO_API_KEY,
+      baseURL: "https://api.app.shinzo.ai/spotlight/anthropic"
+    });
+
+    // Fallback: Direct to Anthropic (no analytics)
+    if (process.env.ANTHROPIC_API_KEY) {
+      this.fallbackClient = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY
+      });
+    }
+  }
+
+  async chat(userId: string, message: string) {
+    try {
+      // Try Spotlight first
+      return await this.primaryClient.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: message }],
+        metadata: { user_id: `user-${userId}` }
+      });
+    } catch (error) {
+      console.error("Spotlight unavailable, using fallback", error);
+
+      // Fall back to direct Anthropic
+      if (this.fallbackClient) {
+        return await this.fallbackClient.messages.create({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: message }]
+        });
+      }
+
+      throw error;
+    }
+  }
+}
+```
+
+```python Python
+class ResilientAIService:
+    def __init__(self):
+        # Primary: Spotlight (with analytics)
+        self.primary_client = anthropic.Anthropic(
+            api_key=os.environ.get("SHINZO_API_KEY"),
+            base_url="https://api.app.shinzo.ai/spotlight/anthropic"
+        )
+
+        # Fallback: Direct to Anthropic (no analytics)
+        anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
+        self.fallback_client = (
+            anthropic.Anthropic(api_key=anthropic_key)
+            if anthropic_key
+            else None
+        )
+
+    async def chat(self, user_id: str, message: str):
+        try:
+            # Try Spotlight first
+            return await self.primary_client.messages.create(
+                model="claude-sonnet-4-20250514",
+                max_tokens=1000,
+                messages=[{"role": "user", "content": message}],
+                metadata={"user_id": f"user-{user_id}"}
+            )
+        except Exception as error:
+            print(f"Spotlight unavailable, using fallback: {error}")
+
+            # Fall back to direct Anthropic
+            if self.fallback_client:
+                return await self.fallback_client.messages.create(
+                    model="claude-sonnet-4-20250514",
+                    max_tokens=1000,
+                    messages=[{"role": "user", "content": message}]
+                )
+
+            raise
+```
+</CodeGroup>
+
+## Performance Optimization
+
+### Concurrent Requests
+
+Make multiple independent requests in parallel for better performance.
+
+<CodeGroup>
+```typescript TypeScript
+// Process multiple user requests concurrently
+async function processBatch(requests: Array<{ userId: string; message: string }>) {
+  const promises = requests.map(req =>
+    anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      messages: [{ role: "user", content: req.message }],
+      metadata: { user_id: `user-${req.userId}` }
+    })
+  );
+
+  // Wait for all requests to complete
+  return await Promise.all(promises);
+}
+
+// Usage
+const results = await processBatch([
+  { userId: "user-1", message: "Summarize this..." },
+  { userId: "user-2", message: "Translate this..." },
+  { userId: "user-3", message: "Analyze this..." }
+]);
+```
+
+```python Python
+import asyncio
+
+async def process_batch(requests: List[Dict]):
+    """Process multiple user requests concurrently"""
+    tasks = [
+        client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": req["message"]}],
+            metadata={"user_id": f"user-{req['user_id']}"}
+        )
+        for req in requests
+    ]
+
+    # Wait for all requests to complete
+    return await asyncio.gather(*tasks)
+
+# Usage
+results = await process_batch([
+    {"user_id": "user-1", "message": "Summarize this..."},
+    {"user_id": "user-2", "message": "Translate this..."},
+    {"user_id": "user-3", "message": "Analyze this..."}
+])
+```
+</CodeGroup>
+
+### Streaming for Long Responses
+
+Use streaming to improve perceived performance for long-running requests.
+
+<CodeGroup>
+```typescript TypeScript
+async function streamChat(userId: string, message: string) {
+  const stream = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 2000,
+    messages: [{ role: "user", content: message }],
+    stream: true,
+    metadata: { user_id: `user-${userId}` }
+  });
+
+  let fullResponse = "";
+
+  for await (const chunk of stream) {
+    if (chunk.type === "content_block_delta") {
+      const text = chunk.delta.text;
+      fullResponse += text;
+
+      // Send incremental updates to client
+      await sendToClient(userId, text);
+    }
+  }
+
+  return fullResponse;
+}
+```
+
+```python Python
+async def stream_chat(user_id: str, message: str):
+    stream = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": message}],
+        stream=True,
+        metadata={"user_id": f"user-{user_id}"}
+    )
+
+    full_response = ""
+
+    async for chunk in stream:
+        if chunk.type == "content_block_delta":
+            text = chunk.delta.text
+            full_response += text
+
+            # Send incremental updates to client
+            await send_to_client(user_id, text)
+
+    return full_response
+```
+</CodeGroup>
+
+## Security Best Practices
+
+### API Key Management
+
+Store and rotate API keys securely.
+
+<CardGroup cols={2}>
+<Card title="✅ Do" icon="check">
+  - Store keys in environment variables
+  - Use secret management services (AWS Secrets Manager, Vault)
+  - Rotate keys regularly (every 90 days)
+  - Use different keys per environment
+  - Audit key usage in Spotlight Analytics
+</Card>
+
+<Card title="❌ Don't" icon="xmark">
+  - Hardcode keys in source code
+  - Commit keys to version control
+  - Share keys between environments
+  - Share keys between team members
+  - Use production keys in development
+</Card>
+</CardGroup>
+
+### Input Validation
+
+Always validate and sanitize user input before sending to AI models.
+
+```typescript
+import { z } from "zod";
+
+// Define input schema
+const chatInputSchema = z.object({
+  userId: z.string().uuid(),
+  message: z.string().min(1).max(10000),
+  sessionId: z.string().optional()
+});
+
+async function validateAndChat(input: unknown) {
+  // Validate input
+  const validatedInput = chatInputSchema.parse(input);
+
+  // Sanitize message (remove any potential injection attempts)
+  const sanitizedMessage = validatedInput.message.trim();
+
+  return await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: sanitizedMessage }],
+    metadata: {
+      user_id: validatedInput.sessionId || `user-${validatedInput.userId}`
+    }
+  });
+}
+```
+
+### Rate Limiting
+
+Implement application-level rate limiting to prevent abuse.
+
+<CodeGroup>
+```typescript TypeScript
+import rateLimit from "express-rate-limit";
+
+// Rate limit per user
+const userRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 requests per minute per user
+  keyGenerator: (req) => req.user.id,
+  message: "Too many requests, please try again later"
+});
+
+app.post("/api/chat", userRateLimiter, async (req, res) => {
+  const response = await anthropic.messages.create({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1000,
+    messages: [{ role: "user", content: req.body.message }],
+    metadata: { user_id: `user-${req.user.id}` }
+  });
+
+  res.json(response);
+});
+```
+
+```python Python
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+@app.post("/api/chat")
+@limiter.limit("10/minute")  # 10 requests per minute
+async def chat(request: Request):
+    user_id = request.user.id
+    message = request.json()["message"]
+
+    response = await client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": message}],
+        metadata={"user_id": f"user-{user_id}"}
+    )
+
+    return response
+```
+</CodeGroup>
+
+## Monitoring and Alerts
+
+### Cost Monitoring
+
+Set up alerts for unexpected cost increases.
+
+```typescript
+// Fetch daily costs and compare to threshold
+async function checkDailyCosts() {
+  const today = new Date().toISOString().split("T")[0];
+
+  const response = await fetch(
+    `https://api.app.shinzo.ai/spotlight/analytics/tokens?start_date=${today}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.SHINZO_API_KEY}`
+      }
+    }
+  );
+
+  const data = await response.json();
+  const dailyCost = calculateTotalCost(data);
+
+  const threshold = 100; // $100 per day
+  if (dailyCost > threshold) {
+    await sendAlert(`Daily cost exceeded threshold: $${dailyCost.toFixed(2)}`);
+  }
+
+  return dailyCost;
+}
+
+function calculateTotalCost(analytics: any): number {
+  // Calculate cost based on token usage
+  const inputCost = (analytics.total_input_tokens / 1_000_000) * 3;
+  const outputCost = (analytics.total_output_tokens / 1_000_000) * 15;
+  return inputCost + outputCost;
+}
+```
+
+### Error Rate Monitoring
+
+Track and alert on high error rates.
+
+```typescript
+// Monitor error rates using Spotlight analytics
+async function monitorErrorRates() {
+  const response = await fetch(
+    "https://api.app.shinzo.ai/spotlight/analytics/sessions?limit=100",
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.SHINZO_API_KEY}`
+      }
+    }
+  );
+
+  const data = await response.json();
+  const sessions = data.sessions;
+
+  const totalRequests = sessions.reduce(
+    (sum: number, s: any) => sum + s.total_requests,
+    0
+  );
+  const failedRequests = sessions.reduce(
+    (sum: number, s: any) => sum + (s.failed_requests || 0),
+    0
+  );
+
+  const errorRate = (failedRequests / totalRequests) * 100;
+
+  const threshold = 5; // 5% error rate threshold
+  if (errorRate > threshold) {
+    await sendAlert(`Error rate exceeded threshold: ${errorRate.toFixed(2)}%`);
+  }
+
+  return errorRate;
+}
+```
+
+## Testing
+
+### Unit Testing with Mocks
+
+Mock Spotlight for unit tests to avoid API calls.
+
+<CodeGroup>
+```typescript TypeScript
+import { jest } from "@jest/globals";
+import Anthropic from "@anthropic-ai/sdk";
+
+describe("AIService", () => {
+  let mockAnthropicClient: jest.Mocked<Anthropic>;
+
+  beforeEach(() => {
+    mockAnthropicClient = {
+      messages: {
+        create: jest.fn()
+      }
+    } as any;
+  });
+
+  it("should send message with correct session ID", async () => {
+    mockAnthropicClient.messages.create.mockResolvedValue({
+      id: "msg_123",
+      content: [{ type: "text", text: "Hello!" }]
+    } as any);
+
+    const service = new AIService(mockAnthropicClient);
+    await service.chat("user-123", "Hello");
+
+    expect(mockAnthropicClient.messages.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: { user_id: "user-user-123" }
+      })
+    );
+  });
+});
+```
+
+```python Python
+import pytest
+from unittest.mock import Mock, patch
+
+@pytest.fixture
+def mock_anthropic_client():
+    return Mock()
+
+def test_chat_sends_correct_session_id(mock_anthropic_client):
+    mock_anthropic_client.messages.create.return_value = {
+        "id": "msg_123",
+        "content": [{"type": "text", "text": "Hello!"}]
+    }
+
+    service = AIService(mock_anthropic_client)
+    service.chat("user-123", "Hello")
+
+    mock_anthropic_client.messages.create.assert_called_once()
+    call_args = mock_anthropic_client.messages.create.call_args
+    assert call_args.kwargs["metadata"]["user_id"] == "user-user-123"
+```
+</CodeGroup>
+
+### Integration Testing
+
+Test Spotlight integration in staging environments.
+
+```typescript
+describe("Spotlight Integration", () => {
+  it("should track requests in Spotlight", async () => {
+    const sessionId = `test-${Date.now()}`;
+
+    // Make a request through Spotlight
+    await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 100,
+      messages: [{ role: "user", content: "Test message" }],
+      metadata: { user_id: sessionId }
+    });
+
+    // Wait for analytics to update
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Verify request was tracked
+    const analytics = await fetch(
+      `https://api.app.shinzo.ai/spotlight/analytics/sessions?session_id=${sessionId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SHINZO_API_KEY}`
+        }
+      }
+    );
+
+    const data = await analytics.json();
+    expect(data.sessions).toHaveLength(1);
+    expect(data.sessions[0].session_id).toBe(sessionId);
+    expect(data.sessions[0].total_requests).toBeGreaterThan(0);
+  });
+});
+```
+
+## Troubleshooting Checklist
+
+<AccordionGroup>
+<Accordion title="Authentication Failures">
+  1. Verify API key format: `sk_shinzo_live_...` or `sk_shinzo_test_...`
+  2. Check key hasn't been deleted or expired
+  3. Ensure correct header: `Authorization: Bearer <key>`
+  4. Verify account is active and in good standing
+</Accordion>
+
+<Accordion title="Provider Key Issues">
+  1. Add provider key in **Settings > API Keys > Provider Keys**
+  2. Test provider key using the dashboard test button
+  3. Verify provider key has sufficient quota
+  4. Check if using subscription token (not supported)
+</Accordion>
+
+<Accordion title="Missing Analytics">
+  1. Wait 30-60 seconds for analytics to appear
+  2. Verify `metadata.user_id` is included in requests
+  3. Check correct date range filter in dashboard
+  4. Use API to verify: `GET /spotlight/analytics/sessions`
+</Accordion>
+
+<Accordion title="Slow Requests">
+  1. Check Spotlight Analytics for latency metrics
+  2. Verify provider API status
+  3. Use streaming for long responses
+  4. Check network connectivity and routing
+  5. Consider geographic proximity to API endpoints
+</Accordion>
+
+<Accordion title="High Costs">
+  1. Review token usage in Spotlight Analytics
+  2. Optimize prompts to reduce token consumption
+  3. Use appropriate model for task complexity
+  4. Enable prompt caching for repeated contexts
+  5. Set `max_tokens` appropriately
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+<Card title="Spotlight Integration" icon="plug" href="/platform/spotlight-integration">
+  Quick start guide and integration setup
+</Card>
+
+<Card title="Session Analytics" icon="chart-line" href="/api/spotlight/sessions">
+  Query and analyze session data
+</Card>
+
+<Card title="Agent Deployment" icon="rocket" href="/platform/agent-deployment">
+  Deploy agents with Spotlight integration
+</Card>
+
+<Card title="API Reference" icon="book" href="/api/spotlight/overview">
+  Complete Spotlight API documentation
+</Card>
+</CardGroup>
