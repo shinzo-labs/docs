@@ -45,7 +45,14 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/dashboard"
+              "platform/dashboard",
+              {
+                "group": "Onboarding",
+                "pages": [
+                  "platform/onboarding/mcp-observability"
+                ]
+              },
+              "platform/mcp-dashboard"
             ]
           }
         ]
