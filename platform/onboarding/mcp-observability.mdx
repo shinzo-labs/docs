@@ -1,0 +1,317 @@
+---
+title: "MCP Observability Onboarding"
+description: "Get started with Shinzo Platform for MCP server observability and gain comprehensive insights into your MCP tools and agents."
+---
+
+# MCP Observability Onboarding
+
+Welcome to Shinzo Platform! This guide will help you instrument your MCP (Model Context Protocol) servers with observability in under 10 minutes.
+
+## What You'll Get
+
+By instrumenting your MCP servers with Shinzo, you'll gain visibility into:
+
+- **Tool Usage Analytics**: See which tools are called, how often, and by which agents
+- **Performance Metrics**: Track execution time, success rates, and error patterns
+- **Token Consumption**: Monitor token usage across all MCP interactions
+- **Error Tracking**: Identify and debug issues with detailed traces
+- **User Behavior**: Understand how users interact with your MCP tools
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+1. **A Shinzo Platform account** - [Sign up for free](https://app.shinzo.ai)
+2. **An MCP server** - Built with either:
+   - [TypeScript MCP SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+   - [Python MCP SDK](https://github.com/modelcontextprotocol/python-sdk)
+   - [FastMCP](https://github.com/jlowin/fastmcp)
+3. **Your Ingest Token** - Available in [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens)
+
+## Quick Start
+
+### For TypeScript MCP Servers
+
+<Steps>
+<Step title="Install the SDK">
+  Install the Shinzo instrumentation SDK in your MCP server project:
+
+  <CodeGroup>
+  ```bash npm
+  npm install @shinzolabs/instrumentation-mcp
+  ```
+
+  ```bash pnpm
+  pnpm add @shinzolabs/instrumentation-mcp
+  ```
+
+  ```bash yarn
+  yarn add @shinzolabs/instrumentation-mcp
+  ```
+  </CodeGroup>
+</Step>
+
+<Step title="Instrument Your Server">
+  Add instrumentation to your MCP server:
+
+  ```typescript
+  import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+  import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+
+  // Create your MCP server
+  const server = new McpServer({
+    name: "my-mcp-server",
+    version: "1.0.0"
+  })
+
+  // Add Shinzo instrumentation
+  const telemetry = instrumentServer(server, {
+    serverName: "my-mcp-server",
+    serverVersion: "1.0.0",
+    exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+    exporterAuth: {
+      type: "bearer",
+      token: process.env.SHINZO_TOKEN  // Your ingest token
+    }
+  })
+
+  // Continue with your normal server setup
+  server.tool("example_tool", {
+    description: "An example tool",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string" }
+      }
+    }
+  }, async (args) => {
+    return { content: `Result for: ${args.query}` }
+  })
+  ```
+
+  <Warning>
+  Store your ingest token securely! Use environment variables instead of hardcoding tokens in your source code.
+  </Warning>
+</Step>
+
+<Step title="Run Your Server">
+  Start your instrumented MCP server as usual:
+
+  ```bash
+  SHINZO_TOKEN=your-token-here node server.js
+  ```
+
+  Telemetry data will automatically be collected and sent to Shinzo whenever tools are executed.
+</Step>
+
+<Step title="View Your Data">
+  1. Go to [app.shinzo.ai](https://app.shinzo.ai)
+  2. Navigate to the **Dashboard** to see real-time metrics
+  3. Check **Traces** to see individual tool executions
+  4. Visit **Resources** to monitor server performance
+
+  <Check>
+  You should see data appearing within seconds of your first tool execution!
+  </Check>
+</Step>
+</Steps>
+
+### For Python MCP Servers
+
+<Steps>
+<Step title="Install the SDK">
+  Install the Shinzo instrumentation SDK:
+
+  ```bash
+  pip install shinzo
+  ```
+</Step>
+
+<Step title="Instrument Your Server">
+  <Tabs>
+  <Tab title="MCP SDK">
+  ```python
+  import os
+  from mcp.server import Server
+  from shinzo import instrument_server
+
+  # Create your MCP server
+  server = Server("my-mcp-server")
+
+  # Add Shinzo instrumentation
+  observability = instrument_server(
+      server,
+      config={
+          "server_name": "my-mcp-server",
+          "server_version": "1.0.0",
+          "exporter_auth": {
+              "type": "bearer",
+              "token": os.getenv("SHINZO_TOKEN")
+          }
+      }
+  )
+
+  # Define your tools
+  @server.call_tool()
+  async def example_tool(query: str) -> str:
+      """An example tool."""
+      return f"Result for: {query}"
+
+  # Clean shutdown
+  async def shutdown():
+      await observability.shutdown()
+  ```
+  </Tab>
+
+  <Tab title="FastMCP">
+  ```python
+  import os
+  from mcp.server.fastmcp import FastMCP
+  from shinzo import instrument_server
+
+  # Create FastMCP server
+  mcp = FastMCP(name="my-mcp-server")
+
+  # Add Shinzo instrumentation
+  observability = instrument_server(
+      mcp,
+      config={
+          "server_name": "my-mcp-server",
+          "server_version": "1.0.0",
+          "exporter_auth": {
+              "type": "bearer",
+              "token": os.getenv("SHINZO_TOKEN")
+          }
+      }
+  )
+
+  # Define your tools
+  @mcp.tool()
+  def example_tool(query: str) -> str:
+      """An example tool."""
+      return f"Result for: {query}"
+
+  # Run the server
+  if __name__ == "__main__":
+      mcp.run()
+  ```
+  </Tab>
+  </Tabs>
+</Step>
+
+<Step title="Run Your Server">
+  Start your instrumented MCP server:
+
+  ```bash
+  SHINZO_TOKEN=your-token-here python server.py
+  ```
+</Step>
+
+<Step title="View Your Data">
+  Visit [app.shinzo.ai](https://app.shinzo.ai) to see your MCP server metrics and traces!
+</Step>
+</Steps>
+
+## What Data Is Collected?
+
+Shinzo automatically collects:
+
+| Data Type | Description | Use Case |
+|-----------|-------------|----------|
+| **Tool Calls** | Which tools are executed and when | Usage analytics, feature adoption |
+| **Execution Time** | How long each tool takes to complete | Performance optimization |
+| **Success/Failure** | Whether tool calls succeed or fail | Error tracking, reliability |
+| **Arguments** | Input parameters to tools | Debugging, understanding usage patterns |
+| **Results** | Output from tool executions | Validation, quality assurance |
+| **Token Usage** | Tokens consumed in tool responses | Cost tracking, quota management |
+| **Error Details** | Stack traces and error messages | Debugging and troubleshooting |
+
+## Configuration Options
+
+### Environment Variables
+
+For better security and flexibility, use environment variables:
+
+```bash
+# .env file
+SHINZO_TOKEN=your-ingest-token-here
+SHINZO_ENDPOINT=https://api.app.shinzo.ai/telemetry/ingest_http
+```
+
+### Console Logging (Development)
+
+For local development, you can output telemetry to the console:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterType: "console",  // Output to console instead of HTTP
+  enableMetrics: false  // Console exporter doesn't support metrics
+})
+```
+
+### Sampling
+
+Reduce data volume by sampling telemetry:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  sampling: {
+    probability: 0.5  // Sample 50% of tool calls
+  }
+})
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="TypeScript SDK Docs" icon="code" href="/sdk/typescript/configuration">
+    Explore advanced configuration options for TypeScript.
+  </Card>
+  <Card title="Python SDK Docs" icon="python" href="/sdk/python/configuration">
+    Explore advanced configuration options for Python.
+  </Card>
+  <Card title="MCP Dashboard" icon="chart-line" href="/platform/mcp-dashboard">
+    Learn how to analyze your MCP server data.
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+### Not Seeing Data?
+
+1. **Check your ingest token**: Ensure it's correct and active in [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens)
+2. **Verify network access**: Ensure your server can reach `api.app.shinzo.ai`
+3. **Check console logs**: Use `exporterType: "console"` temporarily to see telemetry locally
+4. **Verify tool execution**: Make sure your tools are actually being called by an agent
+
+### Authentication Errors?
+
+- **401 Unauthorized**: Your ingest token may be invalid or revoked
+- **403 Forbidden**: Check that you're using an ingest token (not a platform API key)
+
+### Performance Concerns?
+
+The Shinzo SDK is designed to be lightweight:
+- Telemetry is exported asynchronously in batches
+- Network calls are non-blocking
+- Minimal CPU and memory overhead
+- Sampling can reduce data volume if needed
+
+### Still Having Issues?
+
+- Check our [Troubleshooting Guide](/troubleshooting/sdk)
+- Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com)
+- Join our community Discord (coming soon)
+
+---
+
+**Ready to dive deeper?** Check out the [MCP Dashboard Guide](/platform/mcp-dashboard) to learn how to analyze your data and gain insights into your MCP server performance.
