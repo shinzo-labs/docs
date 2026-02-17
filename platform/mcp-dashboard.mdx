@@ -1,0 +1,334 @@
+---
+title: "MCP Dashboard Analytics"
+description: "Learn how to analyze your MCP server metrics, traces, and performance data in the Shinzo dashboard."
+---
+
+# MCP Dashboard Analytics
+
+Once your MCP server is instrumented, the Shinzo dashboard provides powerful analytics to help you understand tool usage, optimize performance, and troubleshoot issues.
+
+## Dashboard Overview
+
+The Shinzo dashboard is organized into several key sections:
+
+<CardGroup cols={2}>
+  <Card title="Dashboard" icon="chart-line">
+    Real-time metrics and high-level overview of all your MCP servers
+  </Card>
+  <Card title="Traces" icon="list">
+    Detailed traces of individual tool executions with full context
+  </Card>
+  <Card title="Resources" icon="server">
+    MCP server health, performance metrics, and resource usage
+  </Card>
+  <Card title="Analytics" icon="chart-bar">
+    Usage trends, patterns, and insights over time
+  </Card>
+</CardGroup>
+
+## Understanding MCP Traces
+
+### Trace Structure
+
+Each MCP tool execution creates a trace with the following structure:
+
+```
+Trace (Root Span)
+└── Tool Execution Span
+    ├── Input Processing
+    ├── External API Call (if any)
+    └── Response Formatting
+```
+
+### Trace Attributes
+
+Shinzo automatically captures MCP-specific attributes:
+
+| Attribute | Description | Example |
+|-----------|-------------|---------|
+| `mcp.server.name` | Name of your MCP server | `"my-mcp-server"` |
+| `mcp.server.version` | Version of your MCP server | `"1.0.0"` |
+| `mcp.tool.name` | Name of the tool executed | `"search_files"` |
+| `mcp.tool.arguments` | Input arguments to the tool | `{"query": "auth", "path": "/src"}` |
+| `mcp.tool.result` | Output from the tool | `{"files": [...]}` |
+| `mcp.tool.success` | Whether the tool succeeded | `true` / `false` |
+| `mcp.tool.duration_ms` | Execution time in milliseconds | `145` |
+| `mcp.tool.error` | Error message (if failed) | `"File not found"` |
+
+### Viewing Traces
+
+1. Navigate to **Traces** in the sidebar
+2. Filter by:
+   - MCP server name
+   - Tool name
+   - Success/failure status
+   - Date range
+   - Duration
+3. Click on any trace to see full details including:
+   - Complete input arguments
+   - Full output/response
+   - Timing breakdown
+   - Error stack traces (if applicable)
+
+<Tip>
+Use the search bar to quickly find traces by keywords in arguments or results.
+</Tip>
+
+## Tool Usage Analytics
+
+### Most Popular Tools
+
+See which tools are used most frequently:
+
+```
+┌─────────────────────────────────────┐
+│ search_files         1,234 calls    │
+│ read_file             987 calls     │
+│ list_directory        456 calls     │
+│ write_file            123 calls     │
+└─────────────────────────────────────┘
+```
+
+**Insights**:
+- Identify your most valuable tools
+- Focus optimization efforts on frequently-used tools
+- Discover under-utilized tools that may need better documentation
+
+### Tool Success Rates
+
+Monitor reliability of each tool:
+
+```
+Tool: search_files
+Success Rate: 98.5%
+Total Calls: 1,234
+Failures: 18
+
+Common Errors:
+  - "Invalid regex pattern" (12 occurrences)
+  - "Timeout exceeded" (6 occurrences)
+```
+
+**Insights**:
+- Identify tools with reliability issues
+- Understand common failure modes
+- Track improvements after bug fixes
+
+### Tool Performance
+
+Analyze execution times to find bottlenecks:
+
+```
+Tool: read_file
+P50 Latency: 12ms
+P95 Latency: 45ms
+P99 Latency: 250ms
+Max Latency: 2,100ms
+
+Slowest Executions:
+  - 2,100ms - /large-dataset.json (15MB file)
+  - 1,850ms - /archive/old-logs.txt
+```
+
+**Insights**:
+- Identify slow tools that impact user experience
+- Find performance outliers
+- Optimize based on actual usage patterns
+
+## MCP Server Health
+
+### Server Metrics
+
+Monitor the health of your MCP servers:
+
+| Metric | Description | Healthy Range |
+|--------|-------------|---------------|
+| **Uptime** | How long the server has been running | > 99% |
+| **Request Rate** | Tool calls per minute | Varies by use case |
+| **Error Rate** | Percentage of failed tool calls | < 1% |
+| **Response Time** | Average tool execution time | Varies by tool complexity |
+
+### Resource Usage
+
+Track resource consumption:
+
+- **Token Usage**: Total tokens consumed by tool responses
+- **API Calls**: External API calls made by your tools
+- **Data Transfer**: Network bandwidth used
+
+<Warning>
+High token usage may indicate inefficient tool responses. Consider optimizing output formatting.
+</Warning>
+
+## Usage Patterns
+
+### Time-Based Analysis
+
+Understand when your MCP server is used:
+
+```
+Usage by Hour (UTC)
+────────────────────────────────────
+00:00-06:00  ▁▁▁▁▁▁ (Low activity)
+06:00-12:00  ▃▃▅▅▇▇ (Morning peak)
+12:00-18:00  █████████ (Highest usage)
+18:00-24:00  ▅▅▃▃▂▂ (Evening decline)
+```
+
+**Insights**:
+- Plan maintenance windows during low-usage periods
+- Scale resources based on peak usage times
+- Understand global vs. regional usage patterns
+
+### User Behavior
+
+See how users interact with your tools:
+
+**Tool Chains**: Common sequences of tool calls
+```
+read_file → search_files → read_file  (23% of sessions)
+list_directory → read_file → write_file  (18% of sessions)
+```
+
+**Session Duration**: How long users engage with your MCP server
+```
+P50: 2.5 minutes
+P95: 15 minutes
+Average tools per session: 8
+```
+
+## Debugging with Traces
+
+### Finding Errors
+
+1. Filter traces by `status: error`
+2. Group by error message to find patterns
+3. Click on a failing trace to see:
+   - Input that caused the error
+   - Full error message and stack trace
+   - Related context from surrounding calls
+
+### Performance Debugging
+
+1. Sort traces by duration (slowest first)
+2. Identify slow executions
+3. Analyze span breakdown to see where time is spent:
+   - Was it an external API call?
+   - File I/O operations?
+   - CPU-intensive processing?
+
+### Example: Debugging a Slow Tool
+
+```
+Trace: search_files (2,345ms)
+└── Tool Execution (2,345ms)
+    ├── Parse Arguments (2ms)
+    ├── File System Scan (2,300ms) ← Bottleneck!
+    └── Format Response (43ms)
+```
+
+**Solution**: Implement file indexing or caching to reduce scan time.
+
+## Token Usage Tracking
+
+### Token Consumption by Tool
+
+See which tools consume the most tokens:
+
+```
+Tool              Input Tokens    Output Tokens    Total Cost
+──────────────────────────────────────────────────────────────
+search_files            2,345           45,678    $0.73
+read_file               1,234           23,456    $0.37
+list_directory            890            4,567    $0.08
+```
+
+<Tip>
+Token usage is tracked automatically when tools return text responses. Use this data to optimize token-heavy operations.
+</Tip>
+
+### Cost Optimization
+
+Strategies to reduce token costs:
+
+1. **Minimize output verbosity**: Return only necessary information
+2. **Implement pagination**: For large result sets, use pagination
+3. **Cache common responses**: Cache frequently-requested data
+4. **Compress output**: Use abbreviations or structured formats
+
+## Custom Dashboards
+
+### Creating Filters
+
+Save custom filters for quick access:
+
+- **Production Issues**: `server:prod AND status:error`
+- **Slow Queries**: `duration:>1000ms`
+- **High-Value Tools**: `tool:search_files OR tool:read_file`
+
+### Exporting Data
+
+Export trace data for deeper analysis:
+
+- **CSV**: For spreadsheet analysis
+- **JSON**: For programmatic processing
+- **API**: Query telemetry data programmatically
+
+```bash
+# Example: Export last 7 days of traces
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.app.shinzo.ai/v1/telemetry/fetch?server=my-mcp-server&days=7"
+```
+
+## Alerting (Coming Soon)
+
+Set up alerts for critical issues:
+
+- **Error Rate Spike**: Alert when error rate exceeds 5%
+- **Performance Degradation**: Alert when P95 latency increases 2x
+- **Downtime**: Alert when server becomes unavailable
+
+## Best Practices
+
+### Regular Monitoring
+
+- **Daily**: Check error rates and recent failures
+- **Weekly**: Review usage trends and top tools
+- **Monthly**: Analyze cost trends and optimization opportunities
+
+### Performance Baselines
+
+Establish baseline metrics for each tool:
+
+```
+Tool: search_files
+Baseline P95: 150ms
+Alert threshold: 300ms (2x baseline)
+```
+
+### Documentation from Analytics
+
+Use analytics to improve documentation:
+
+- Document frequently-used tools prominently
+- Add examples for tools with high error rates
+- Highlight best practices for slow operations
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="SDK Configuration" icon="gear" href="/sdk/typescript/configuration">
+    Configure advanced telemetry options
+  </Card>
+  <Card title="API Reference" icon="book" href="/api/telemetry/fetch">
+    Query telemetry data programmatically
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+If you have questions about interpreting your MCP analytics:
+
+- Check our [Troubleshooting Guide](/troubleshooting/telemetry)
+- Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com)
+- Review [MCP Protocol Documentation](https://modelcontextprotocol.io/)
