@@ -1,0 +1,384 @@
+---
+title: "Agent Analytics Dashboard"
+description: "Explore your AI agent conversations, tool usage, token consumption, and performance metrics in the Shinzo agent analytics dashboard."
+---
+
+# Agent Analytics Dashboard
+
+The Shinzo agent analytics dashboard provides comprehensive visibility into your AI agents' behavior, performance, and usage patterns. Whether you're running Claude Code or building custom agents with the Anthropic SDK, the dashboard gives you the insights you need to optimize performance and understand usage.
+
+## Accessing the Dashboard
+
+Navigate to the agent analytics dashboard from the Shinzo platform:
+
+1. Log in to [app.shinzo.ai](https://app.shinzo.ai)
+2. Click **Analytics** in the left sidebar
+3. Select **Agent Analytics**
+
+<Info>
+Make sure you've configured observability for your agents first. See our onboarding guides:
+- [Claude Code Observability](/ai-tools/claude-code-observability)
+- [Anthropic SDK Observability](/ai-tools/anthropic-sdk-observability)
+</Info>
+
+## Dashboard Overview
+
+The agent analytics dashboard is organized into several key sections:
+
+### Conversation Traces
+
+View all agent conversations with full context and timing data.
+
+**What you'll see**:
+- **Conversation list**: All conversations sorted by recency
+- **Session grouping**: Conversations grouped by session ID
+- **Timestamps**: When each conversation started and ended
+- **Duration**: Total conversation time
+- **Token count**: Total input + output tokens
+- **Cost estimate**: Estimated cost based on model pricing
+
+**How to use it**:
+- Click on any conversation to see the full transcript
+- Use filters to find specific conversations (by date, model, token count, etc.)
+- Export conversations for analysis or compliance
+
+### Token Usage & Costs
+
+Track token consumption and associated costs over time.
+
+**Key metrics**:
+- **Total tokens**: Input + output tokens across all conversations
+- **Token breakdown**: Input tokens vs. output tokens
+- **Token trends**: Daily/weekly/monthly token usage trends
+- **Cost estimates**: Based on current Anthropic pricing
+- **Cost by model**: Costs broken down by Claude model (Opus, Sonnet, Haiku)
+
+**Visualizations**:
+- Time series charts showing token usage over time
+- Cost trends with projections
+- Model usage distribution (pie chart)
+- Token efficiency metrics (tokens per conversation)
+
+**How to use it**:
+- Set up budget alerts in **Settings > Billing**
+- Identify high-token conversations for optimization
+- Track cost trends to predict future spending
+- Compare token efficiency across different agent configurations
+
+### Tool & MCP Server Usage
+
+Monitor which tools and MCP servers your agents use most frequently.
+
+**Tool usage metrics**:
+- **Tool invocations**: Count of how many times each tool was called
+- **Success rate**: Percentage of successful vs. failed tool calls
+- **Average execution time**: How long each tool takes to execute
+- **Error patterns**: Common errors for each tool
+
+**MCP server metrics**:
+- **MCP server connections**: Which MCP servers are being used
+- **Resource access**: What files/resources are accessed via MCP
+- **Performance**: Latency for MCP operations
+- **Usage patterns**: Which tools from each MCP server are popular
+
+**How to use it**:
+- Identify underutilized tools that could be removed
+- Find slow tools that need optimization
+- Spot error patterns that indicate tool issues
+- Understand which MCP servers are critical to your workflows
+
+### Session Management
+
+Organize and analyze agent conversations by session.
+
+**Session features**:
+- **Session list**: All active and completed sessions
+- **Session metadata**: User, start time, duration, token count
+- **Conversation count**: Number of conversations per session
+- **Session timeline**: Visual timeline of conversations in a session
+
+**How to use it**:
+- Track user engagement with agents over time
+- Identify long-running sessions that may need attention
+- Analyze conversation patterns within sessions
+- Group related conversations for context
+
+### Performance Metrics
+
+Track agent response times, throughput, and reliability.
+
+**Key metrics**:
+- **Response time**: Time from user prompt to agent response
+  - **p50**: Median response time
+  - **p95**: 95th percentile response time
+  - **p99**: 99th percentile response time
+- **Throughput**: Messages per second, tokens per second
+- **Error rate**: Percentage of failed requests
+- **Cache hit rate**: How often prompt caching is used (reduces latency & cost)
+
+**Performance trends**:
+- Response time over time (identify degradation)
+- Throughput trends (capacity planning)
+- Error rate spikes (incident detection)
+- Cache efficiency trends
+
+**How to use it**:
+- Set up alerts for high error rates or slow responses
+- Identify performance regressions after agent changes
+- Monitor cache hit rates to optimize prompt caching
+- Track SLAs and performance goals
+
+## Detailed Conversation View
+
+Click on any conversation to see detailed information:
+
+### Conversation Transcript
+
+Full conversation history with all messages:
+
+- **User messages**: Prompts sent to the agent
+- **Agent responses**: Claude's text responses
+- **Tool calls**: Tools invoked during the conversation with parameters
+- **Tool results**: Outputs returned from tool executions
+- **System messages**: Any system prompts or context
+
+### Trace Timeline
+
+Visual timeline of all operations in the conversation:
+
+- **Spans**: Each operation (API call, tool invocation, etc.) as a span
+- **Duration**: How long each operation took
+- **Nesting**: Parent-child relationships between operations
+- **Attributes**: Metadata attached to each span
+
+**Example timeline**:
+```
+Conversation Start
+├─ API Request (500ms)
+│  ├─ Prompt Processing (50ms)
+│  ├─ Model Inference (400ms)
+│  └─ Response Generation (50ms)
+├─ Tool Call: search_knowledge_base (200ms)
+│  ├─ Database Query (150ms)
+│  └─ Result Processing (50ms)
+└─ API Request (300ms)
+   └─ Model Inference (300ms)
+```
+
+### Token Breakdown
+
+Detailed token usage for the conversation:
+
+- **Input tokens**: Tokens in user prompts and context
+- **Output tokens**: Tokens in agent responses
+- **Cache tokens**: Tokens served from cache (if prompt caching enabled)
+- **Cost estimate**: Based on model pricing
+
+### Metadata & Attributes
+
+Custom attributes and metadata attached to the conversation:
+
+- **Service name**: Name of your agent service
+- **Environment**: production, staging, development
+- **Version**: Agent version
+- **User ID**: User who initiated the conversation
+- **Custom attributes**: Any attributes you've added via telemetry
+
+## Search and Filtering
+
+Powerful search and filtering to find specific conversations:
+
+### Filter by Date Range
+
+- **Presets**: Today, Last 7 days, Last 30 days, Last 90 days
+- **Custom range**: Select any date range
+
+### Filter by Model
+
+- **Claude Opus 4.5**: High-capability model
+- **Claude Sonnet 4.5**: Balanced performance and cost
+- **Claude Haiku 4**: Fast and economical
+
+### Filter by Token Count
+
+- **Low usage**: < 1,000 tokens
+- **Medium usage**: 1,000 - 10,000 tokens
+- **High usage**: > 10,000 tokens
+- **Custom range**: Specify exact token ranges
+
+### Filter by Tool Usage
+
+- **Conversations with tool calls**: Only show conversations where tools were used
+- **Specific tool**: Filter by specific tool name (e.g., "bash", "read_file")
+- **Tool success**: Filter by tool success or failure
+
+### Filter by Status
+
+- **Successful**: Conversations that completed successfully
+- **Failed**: Conversations that ended in error
+- **Partial**: Conversations interrupted or incomplete
+
+### Search by Content
+
+- **Full-text search**: Search conversation content for keywords
+- **User prompts**: Search only in user messages
+- **Agent responses**: Search only in agent responses
+
+**Example queries**:
+- "authentication error" → Find conversations mentioning authentication errors
+- "pricing" → Find conversations about pricing
+- tool:bash → Find conversations using the bash tool
+
+## Exporting Data
+
+Export conversation data for analysis, compliance, or archival:
+
+### Export Formats
+
+- **JSON**: Full conversation data including metadata and traces
+- **CSV**: Conversation list with key metrics
+- **PDF**: Individual conversation transcripts
+
+### Export Options
+
+1. **Single conversation**: Export one conversation
+2. **Filtered conversations**: Export all conversations matching current filters
+3. **Date range**: Export all conversations in a date range
+4. **Full export**: Export all conversation data (Enterprise only)
+
+**How to export**:
+1. Apply filters to select conversations
+2. Click **Export** button in the top right
+3. Choose format (JSON, CSV, PDF)
+4. Download or send to email
+
+## Dashboard Configuration
+
+Customize the dashboard to fit your needs:
+
+### Time Zone
+
+Set your preferred time zone for all timestamps:
+- **Settings > Profile > Time Zone**
+
+### Data Retention
+
+Configure how long conversation data is stored:
+- **Settings > Data Retention**
+- Default: 90 days
+- Range: 7 days - 365 days (depending on plan)
+
+### Dashboard Refresh
+
+Control how often the dashboard refreshes:
+- **Manual**: Refresh only when you click refresh
+- **Auto (30s)**: Refresh every 30 seconds
+- **Auto (1m)**: Refresh every minute
+
+## Alerts and Notifications
+
+Set up alerts to be notified of important events:
+
+### Available Alerts
+
+- **High token usage**: Alert when token usage exceeds threshold
+- **High error rate**: Alert when error rate spikes
+- **Slow response time**: Alert when response time exceeds SLA
+- **Budget limit**: Alert when estimated costs approach budget
+
+**Configure alerts**:
+1. Go to **Settings > Alerts**
+2. Click **Create Alert**
+3. Select alert type and threshold
+4. Choose notification method (email, webhook)
+5. Save alert
+
+## Best Practices
+
+### Organizing Conversations
+
+- **Use session IDs**: Group related conversations with consistent session IDs
+- **Add custom attributes**: Tag conversations with environment, user type, or feature
+- **Descriptive service names**: Use clear service names for different agents
+
+### Monitoring Performance
+
+- **Set baseline metrics**: Establish normal response time and error rate
+- **Monitor trends**: Watch for degradation over time
+- **Investigate spikes**: Dive into anomalies immediately
+- **Cache optimization**: Aim for >50% cache hit rate with prompt caching
+
+### Optimizing Costs
+
+- **Review high-token conversations**: Identify opportunities to reduce context
+- **Prompt optimization**: Iteratively improve prompts to reduce output tokens
+- **Model selection**: Use Haiku for simple tasks, Sonnet for balanced workloads
+- **Batch processing**: Combine multiple requests when possible
+
+### Privacy & Compliance
+
+- **Review data retention**: Set appropriate retention based on compliance requirements
+- **Export for audit**: Regularly export conversations for audit trails
+- **Redact sensitive data**: Use attribute filtering to avoid logging PII
+- **Monitor access**: Review who accesses conversation data
+
+## Troubleshooting
+
+<AccordionGroup>
+<Accordion title="Conversations not appearing in dashboard">
+1. **Check observability setup**: Verify your agent is configured to send telemetry to Shinzo
+   - [Claude Code setup](/ai-tools/claude-code-observability)
+   - [Anthropic SDK setup](/ai-tools/anthropic-sdk-observability)
+2. **Check API key**: Ensure your Shinzo API key is valid and not revoked
+3. **Verify connectivity**: Test that your agent can reach `api.app.shinzo.ai`
+4. **Check date range**: Expand the date filter to include older conversations
+</Accordion>
+
+<Accordion title="Missing token counts">
+Token counts require full telemetry instrumentation. If you're only using API proxying (Option 1 in SDK setup), token counts may not be available.
+
+**Solution**: Use Shinzo's telemetry SDK for complete token tracking.
+</Accordion>
+
+<Accordion title="Missing tool usage data">
+Tool traces require advanced telemetry instrumentation. If you see conversations but not tool data:
+
+1. Ensure you're using Shinzo's telemetry SDK (not just API proxying)
+2. Verify tools are actually being invoked in your agent
+3. Check that your telemetry SDK version is up to date
+</Accordion>
+
+<Accordion title="Performance metrics missing">
+Performance metrics (p95, p99) require sufficient data volume. If you have fewer than 100 conversations, some metrics may not be available.
+
+**Solution**: Continue using your agent - metrics will appear as you collect more data.
+</Accordion>
+
+<Accordion title="Dashboard loading slowly">
+If the dashboard is slow:
+
+1. **Reduce date range**: Use shorter date ranges (e.g., Last 7 days instead of Last 90 days)
+2. **Apply filters**: Filter by specific models, tools, or status to reduce data volume
+3. **Check network**: Verify your internet connection is stable
+4. **Clear cache**: Clear your browser cache and reload
+
+If issues persist, contact [austin@shinzolabs.com](mailto:austin@shinzolabs.com).
+</Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Claude Code Setup" icon="terminal" href="/ai-tools/claude-code-observability">
+    Configure observability for Claude Code
+  </Card>
+  <Card title="Anthropic SDK Setup" icon="code" href="/ai-tools/anthropic-sdk-observability">
+    Instrument custom agents with the Anthropic SDK
+  </Card>
+  <Card title="MCP Dashboard" icon="puzzle-piece" href="/platform/mcp-dashboard">
+    Explore MCP server observability
+  </Card>
+  <Card title="Contact Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+    Get help or request advanced features
+  </Card>
+</CardGroup>

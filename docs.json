@@ -32,7 +32,9 @@
             "group": "AI Tools",
             "pages": [
               "ai-tools/claude-code",
-              "ai-tools/anthropic-sdk"
+              "ai-tools/claude-code-observability",
+              "ai-tools/anthropic-sdk",
+              "ai-tools/anthropic-sdk-observability"
             ]
           },
           {
@@ -45,7 +47,14 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/dashboard"
+              "platform/dashboard",
+              {
+                "group": "Onboarding",
+                "pages": [
+                  "platform/onboarding/agent-observability"
+                ]
+              },
+              "platform/agent-analytics"
             ]
           }
         ]

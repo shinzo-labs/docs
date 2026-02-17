@@ -1,0 +1,147 @@
+---
+title: "Agent Observability Onboarding"
+description: "Get started with Shinzo Platform for AI agent observability and gain comprehensive insights into your Claude Code and Anthropic SDK agents."
+---
+
+# Agent Observability Onboarding
+
+Welcome to Shinzo Platform! This guide will help you set up observability for your AI agents, whether you're using Claude Code or building custom agents with the Anthropic SDK.
+
+## What You'll Get
+
+By connecting your AI agents to Shinzo, you'll gain visibility into:
+
+- **Conversation Traces**: See the full history of agent interactions and decisions
+- **Token Usage & Costs**: Track token consumption and associated costs across all agent conversations
+- **Tool & MCP Server Usage**: Monitor which tools and MCP servers your agents use most
+- **Performance Metrics**: Track response times, success rates, and error patterns
+- **Session Management**: Organize and analyze agent conversations by session
+- **User Behavior**: Understand how users interact with your AI agents
+
+## Supported Agent Frameworks
+
+Shinzo provides observability for:
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/ai-tools/claude-code-observability">
+    Anthropic's official CLI for Claude with built-in telemetry support
+  </Card>
+  <Card title="Anthropic SDK" icon="code" href="/ai-tools/anthropic-sdk-observability">
+    Build custom agents with observability using the Anthropic SDK
+  </Card>
+</CardGroup>
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+1. **A Shinzo Platform account** - [Sign up for free](https://app.shinzo.ai)
+2. **An Anthropic API key** - Get one from the [Anthropic Console](https://console.anthropic.com/settings/keys)
+3. **Your agent framework**:
+   - [Claude Code](https://github.com/anthropics/claude-code) for CLI-based agents
+   - [Anthropic SDK](https://github.com/anthropics/anthropic-sdk-typescript) or [Python SDK](https://github.com/anthropics/anthropic-sdk-python) for custom agents
+
+## Quick Start by Framework
+
+### Claude Code Users
+
+If you're using Claude Code, follow our dedicated guide for the easiest setup experience:
+
+<Card title="Claude Code Observability Setup" icon="terminal" href="/ai-tools/claude-code-observability">
+  Learn how to configure Claude Code to send telemetry to Shinzo
+</Card>
+
+**Setup time**: ~5 minutes
+
+### Anthropic SDK Users
+
+If you're building custom agents with the Anthropic SDK, follow our SDK integration guide:
+
+<Card title="Anthropic SDK Observability Setup" icon="code" href="/ai-tools/anthropic-sdk-observability">
+  Learn how to instrument your agents with Shinzo telemetry
+</Card>
+
+**Setup time**: ~10 minutes
+
+## What Data is Collected?
+
+Shinzo collects observability data to help you understand and improve your AI agents:
+
+### Conversation Data
+- User prompts and agent responses
+- Tool calls and results
+- Token counts (input/output)
+- Model used and configuration
+- Timestamps and latency
+
+### Tool & MCP Usage
+- Which tools/MCP servers are invoked
+- Tool execution time and success rate
+- Tool parameters and results
+- Error messages and stack traces
+
+### Performance Metrics
+- Response time per message
+- Token throughput
+- Error rates
+- Cache hit rates
+
+<Warning>
+**Privacy Note**: All telemetry data is encrypted in transit and at rest. You control your data retention policies in Settings. We never train models on your data.
+</Warning>
+
+## Current Limitations
+
+<Warning>
+**Early Access Notice**: Agent observability is currently in early access and has some limitations.
+
+### Subscription-Based Support
+
+Due to current platform architecture, agent observability has limitations with subscription-based Anthropic accounts (Claude Pro/Team with OAuth tokens).
+
+**For best results:**
+- Use API key-based Anthropic authentication from the [Anthropic Console](https://console.anthropic.com/settings/keys)
+- Ensure your Anthropic API key is added to Shinzo (**Settings > API Keys > Provider Keys**)
+- Contact [austin@shinzolabs.com](mailto:austin@shinzolabs.com) for early access to agent deployment features
+
+### Coming Soon
+
+We're actively working on:
+- Full support for subscription-based Claude Code accounts
+- Enhanced agent conversation analytics
+- Agent performance benchmarking
+- Multi-agent orchestration observability
+- Custom dashboard widgets for agent metrics
+</Warning>
+
+## Getting Help
+
+If you run into issues or have questions:
+
+<CardGroup cols={2}>
+  <Card title="Email Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+    Contact our team for early access or technical support
+  </Card>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/shinzo-labs/docs/issues">
+    Report documentation issues or feature requests
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+Choose your agent framework to continue:
+
+<CardGroup cols={2}>
+  <Card title="Claude Code Setup" icon="terminal" href="/ai-tools/claude-code-observability">
+    Configure observability for Claude Code
+  </Card>
+  <Card title="Anthropic SDK Setup" icon="code" href="/ai-tools/anthropic-sdk-observability">
+    Instrument custom agents with the Anthropic SDK
+  </Card>
+  <Card title="Agent Analytics" icon="chart-line" href="/platform/agent-analytics">
+    Explore the agent analytics dashboard
+  </Card>
+  <Card title="MCP Observability" icon="puzzle-piece" href="/platform/onboarding/mcp-observability">
+    Set up observability for MCP servers
+  </Card>
+</CardGroup>
