@@ -1,0 +1,613 @@
+---
+title: 'Install Shinzo MCP Server'
+description: 'Step-by-step guide to connecting your AI agents to the Shinzo platform'
+icon: 'download'
+---
+
+## Prerequisites
+
+Before installing the Shinzo MCP Server, ensure you have:
+
+<Steps>
+  <Step title="Shinzo Account">
+    [Sign up](https://app.shinzo.ai) for a free Shinzo account
+  </Step>
+
+  <Step title="Platform API Key">
+    Generate an API key from your [dashboard settings](https://app.shinzo.ai/settings/api-keys)
+  </Step>
+
+  <Step title="MCP-Compatible AI Tool">
+    One of: Claude Code, Claude Desktop, or a custom agent with MCP support
+  </Step>
+</Steps>
+
+<Info>
+**New to Shinzo?** Check out our [Quickstart Guide](/quickstart) to get your account set up quickly.
+</Info>
+
+## Choose Your Connection Method
+
+The Shinzo MCP Server supports two connection modes:
+
+<Tabs>
+  <Tab title="HTTP/SSE (Recommended)">
+    ### HTTP/SSE Mode
+
+    **Best for:** Most users, simplest setup, always up-to-date
+
+    Connect directly to the hosted MCP server via HTTPS. No local installation required.
+
+    **Pros:**
+    - ✅ Zero maintenance—we handle updates
+    - ✅ Works immediately
+    - ✅ No Node.js required
+
+    **Cons:**
+    - ❌ Requires internet connection
+    - ❌ Subject to API rate limits
+  </Tab>
+
+  <Tab title="stdio (npm)">
+    ### stdio Mode
+
+    **Best for:** Offline work, advanced users, lower latency
+
+    Run the MCP server locally as a Node.js process.
+
+    **Pros:**
+    - ✅ Works offline (after setup)
+    - ✅ Lower latency
+    - ✅ No rate limits
+
+    **Cons:**
+    - ❌ Requires Node.js (v18+)
+    - ❌ Manual package updates
+    - ❌ More complex setup
+
+    **Requirements:**
+    - Node.js v18 or higher
+    - npm or npx
+  </Tab>
+</Tabs>
+
+<Warning>
+**For this guide, we recommend HTTP/SSE mode** unless you have specific requirements for offline functionality or lower latency.
+</Warning>
+
+---
+
+## Installation Instructions
+
+Choose your AI tool:
+
+<Tabs>
+  <Tab title="Claude Code">
+    ## Installing in Claude Code
+
+    Claude Code is Anthropic's AI coding assistant with built-in MCP support.
+
+    ### HTTP/SSE Mode Setup
+
+    <Steps>
+      <Step title="Open Claude Code Settings">
+        Access the MCP server configuration in Claude Code settings
+      </Step>
+
+      <Step title="Add Shinzo MCP Server">
+        Add the following configuration:
+
+        ```json
+        {
+          "mcpServers": {
+            "shinzo": {
+              "url": "https://api.app.shinzo.ai/v1/mcp",
+              "headers": {
+                "Authorization": "Bearer YOUR_API_KEY"
+              }
+            }
+          }
+        }
+        ```
+
+        Replace `YOUR_API_KEY` with your actual Platform API key from the dashboard.
+      </Step>
+
+      <Step title="Reload Claude Code">
+        Restart Claude Code or reload the MCP servers to activate the connection
+      </Step>
+
+      <Step title="Verify Connection">
+        Test the connection by asking Claude Code:
+
+        > "Can you list my Shinzo agents?"
+
+        If configured correctly, Claude Code will use the `shinzo` MCP server to query your agents.
+      </Step>
+    </Steps>
+
+    ### stdio Mode Setup
+
+    <Steps>
+      <Step title="Verify Node.js Installation">
+        Check that you have Node.js v18+ installed:
+
+        ```bash
+        node --version
+        ```
+
+        If not installed, download from [nodejs.org](https://nodejs.org)
+      </Step>
+
+      <Step title="Configure MCP Server">
+        Add this configuration to Claude Code:
+
+        ```json
+        {
+          "mcpServers": {
+            "shinzo": {
+              "command": "npx",
+              "args": ["-y", "@shinzo-labs/mcp-server"],
+              "env": {
+                "SHINZO_API_KEY": "YOUR_API_KEY"
+              }
+            }
+          }
+        }
+        ```
+
+        Replace `YOUR_API_KEY` with your Platform API key.
+      </Step>
+
+      <Step title="Reload and Test">
+        Restart Claude Code and verify the connection as described above.
+      </Step>
+    </Steps>
+
+    ### Using Environment Variables (Recommended)
+
+    For better security, store your API key in an environment variable:
+
+    1. **Set the environment variable:**
+
+       **macOS/Linux:**
+       ```bash
+       export SHINZO_API_KEY="your_api_key_here"
+       ```
+
+       **Windows (PowerShell):**
+       ```powershell
+       $env:SHINZO_API_KEY="your_api_key_here"
+       ```
+
+    2. **Update your configuration:**
+
+       **HTTP/SSE mode:**
+       ```json
+       {
+         "mcpServers": {
+           "shinzo": {
+             "url": "https://api.app.shinzo.ai/v1/mcp",
+             "headers": {
+               "Authorization": "Bearer ${SHINZO_API_KEY}"
+             }
+           }
+         }
+       }
+       ```
+
+       **stdio mode:**
+       ```json
+       {
+         "mcpServers": {
+           "shinzo": {
+             "command": "npx",
+             "args": ["-y", "@shinzo-labs/mcp-server"],
+             "env": {
+               "SHINZO_API_KEY": "${SHINZO_API_KEY}"
+             }
+           }
+         }
+       }
+       ```
+
+    <Warning>
+    **Important:** Environment variables must be set in the shell where Claude Code is launched. If using macOS/Linux, consider adding the export to your `~/.bashrc`, `~/.zshrc`, or equivalent.
+    </Warning>
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    ## Installing in Claude Desktop
+
+    Claude Desktop is Anthropic's desktop application for conversational AI.
+
+    ### Configuration File Location
+
+    The MCP server configuration file is located at:
+
+    **macOS:**
+    ```
+    ~/Library/Application Support/Claude/claude_desktop_config.json
+    ```
+
+    **Windows:**
+    ```
+    %APPDATA%\Claude\claude_desktop_config.json
+    ```
+
+    **Linux:**
+    ```
+    ~/.config/Claude/claude_desktop_config.json
+    ```
+
+    ### HTTP/SSE Mode Setup
+
+    <Steps>
+      <Step title="Create or Edit Config File">
+        Open the configuration file in your text editor. If it doesn't exist, create it.
+      </Step>
+
+      <Step title="Add Shinzo Configuration">
+        ```json
+        {
+          "mcpServers": {
+            "shinzo": {
+              "url": "https://api.app.shinzo.ai/v1/mcp",
+              "headers": {
+                "Authorization": "Bearer YOUR_API_KEY"
+              }
+            }
+          }
+        }
+        ```
+
+        Replace `YOUR_API_KEY` with your Platform API key.
+      </Step>
+
+      <Step title="Restart Claude Desktop">
+        Quit and relaunch Claude Desktop to load the new configuration.
+      </Step>
+
+      <Step title="Verify Connection">
+        Ask Claude:
+
+        > "Can you list my Shinzo agents?"
+
+        Claude should use the Shinzo MCP server to retrieve your agents.
+      </Step>
+    </Steps>
+
+    ### stdio Mode Setup
+
+    <Steps>
+      <Step title="Verify Node.js">
+        Ensure Node.js v18+ is installed and accessible in your PATH:
+
+        ```bash
+        node --version
+        ```
+      </Step>
+
+      <Step title="Configure stdio Server">
+        Edit your `claude_desktop_config.json`:
+
+        ```json
+        {
+          "mcpServers": {
+            "shinzo": {
+              "command": "npx",
+              "args": ["-y", "@shinzo-labs/mcp-server"],
+              "env": {
+                "SHINZO_API_KEY": "YOUR_API_KEY"
+              }
+            }
+          }
+        }
+        ```
+      </Step>
+
+      <Step title="Restart and Test">
+        Restart Claude Desktop and verify the connection.
+      </Step>
+    </Steps>
+
+    ### Multiple MCP Servers
+
+    You can configure multiple MCP servers alongside Shinzo:
+
+    ```json
+    {
+      "mcpServers": {
+        "shinzo": {
+          "url": "https://api.app.shinzo.ai/v1/mcp",
+          "headers": {
+            "Authorization": "Bearer ${SHINZO_API_KEY}"
+          }
+        },
+        "filesystem": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/you/projects"]
+        },
+        "github": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-github"],
+          "env": {
+            "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+          }
+        }
+      }
+    }
+    ```
+
+    Claude will have access to all configured servers simultaneously.
+  </Tab>
+
+  <Tab title="Custom Agent">
+    ## Installing in a Custom Agent
+
+    If you're building a custom AI agent with MCP support, you can integrate the Shinzo MCP Server.
+
+    ### Using the MCP SDK
+
+    **TypeScript:**
+
+    ```typescript
+    import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+    import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+
+    // HTTP/SSE Mode
+    const transport = new SSEClientTransport(
+      new URL("https://api.app.shinzo.ai/v1/mcp"),
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SHINZO_API_KEY}`
+        }
+      }
+    );
+
+    const client = new Client({
+      name: "my-custom-agent",
+      version: "1.0.0"
+    }, {
+      capabilities: {}
+    });
+
+    await client.connect(transport);
+
+    // List available tools
+    const tools = await client.listTools();
+    console.log("Available Shinzo tools:", tools);
+
+    // Call a tool
+    const result = await client.callTool({
+      name: "shinzo_list_agents",
+      arguments: {}
+    });
+    console.log("My agents:", result);
+    ```
+
+    **Python:**
+
+    ```python
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
+    # stdio Mode
+    server_params = StdioServerParameters(
+        command="npx",
+        args=["-y", "@shinzo-labs/mcp-server"],
+        env={
+            "SHINZO_API_KEY": os.environ["SHINZO_API_KEY"]
+        }
+    )
+
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+
+            # List tools
+            tools = await session.list_tools()
+            print(f"Available tools: {tools}")
+
+            # Call a tool
+            result = await session.call_tool("shinzo_list_agents", {})
+            print(f"My agents: {result}")
+    ```
+
+    ### Configuration Management
+
+    For custom agents, we recommend:
+
+    1. **Use environment variables** for API keys
+    2. **Implement retry logic** for network failures
+    3. **Cache tool schemas** to reduce initialization time
+    4. **Handle rate limits** gracefully (see [Troubleshooting](/platform/shinzo-mcp-troubleshooting))
+
+    ### Advanced: HTTP Client Integration
+
+    If you're not using the MCP SDK, you can integrate directly with the HTTP endpoint:
+
+    ```typescript
+    // Example: Direct HTTP integration (not using MCP SDK)
+    const response = await fetch("https://api.app.shinzo.ai/v1/mcp/call-tool", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.SHINZO_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        tool: "shinzo_list_agents",
+        arguments: {}
+      })
+    });
+
+    const result = await response.json();
+    ```
+
+    <Info>
+    **Need help?** Check out the [MCP SDK documentation](https://github.com/modelcontextprotocol/sdk) or reach out to [support](mailto:austin@shinzolabs.com).
+    </Info>
+  </Tab>
+</Tabs>
+
+---
+
+## Verifying Installation
+
+After installation, verify that the Shinzo MCP Server is working correctly:
+
+### Quick Test Commands
+
+Ask your AI agent to execute these commands:
+
+1. **List your agents:**
+   > "Can you list my Shinzo agents?"
+
+2. **Check your quota:**
+   > "What's my current Shinzo quota usage?"
+
+3. **View recent telemetry:**
+   > "Show me my token usage from the last 7 days"
+
+If these commands work, your installation is successful! 🎉
+
+### Debugging Connection Issues
+
+If the commands fail, see our [Troubleshooting Guide](/platform/shinzo-mcp-troubleshooting) for help with:
+
+- Authentication errors
+- Network connectivity issues
+- Tool execution failures
+- Configuration problems
+
+---
+
+## Configuration Options
+
+### Rate Limiting
+
+The Shinzo MCP Server respects platform rate limits:
+
+- **HTTP/SSE mode:** 100 requests per minute per API key
+- **stdio mode:** Limited only by platform API (higher limits available)
+
+If you hit rate limits, consider:
+- Batching requests where possible
+- Implementing exponential backoff
+- Upgrading to a higher-tier plan
+
+### Timeout Configuration
+
+**HTTP/SSE mode:**
+```json
+{
+  "mcpServers": {
+    "shinzo": {
+      "url": "https://api.app.shinzo.ai/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${SHINZO_API_KEY}"
+      },
+      "timeout": 30000  // 30 seconds (default)
+    }
+  }
+}
+```
+
+**stdio mode:**
+Timeouts are handled by the underlying MCP SDK. You can configure them in your agent's transport layer.
+
+### Logging and Debugging
+
+Enable verbose logging to debug issues:
+
+**HTTP/SSE mode:**
+Set the `MCP_LOG_LEVEL` environment variable:
+
+```bash
+export MCP_LOG_LEVEL=debug
+```
+
+**stdio mode:**
+The npm package respects the `DEBUG` environment variable:
+
+```bash
+export DEBUG=shinzo:*
+```
+
+---
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Store API Keys Securely">
+    **❌ Don't:**
+    - Hardcode keys in configuration files
+    - Commit keys to version control
+    - Share keys in screenshots or logs
+
+    **✅ Do:**
+    - Use environment variables
+    - Use secret management services (AWS Secrets Manager, 1Password, etc.)
+    - Rotate keys regularly
+    - Use separate keys for dev/prod
+  </Accordion>
+
+  <Accordion title="Limit API Key Permissions">
+    When creating Platform API keys, use the principle of least privilege:
+
+    - **For MCP server access:** Full platform access (required for agent management)
+    - **For CI/CD:** Read-only access where possible
+    - **For testing:** Use separate keys with limited scope
+
+    <Info>
+    Granular permission scopes are available on Team and Enterprise plans.
+    </Info>
+  </Accordion>
+
+  <Accordion title="Monitor Usage">
+    Regularly check your [API key usage](https://app.shinzo.ai/settings/api-keys) to detect:
+
+    - Unexpected spikes in requests
+    - Requests from unknown IPs
+    - Unusual access patterns
+
+    Set up alerts for anomalous behavior.
+  </Accordion>
+
+  <Accordion title="Rotate Keys Regularly">
+    We recommend rotating API keys every 90 days:
+
+    1. Generate a new key
+    2. Update your configuration
+    3. Test the new key
+    4. Revoke the old key
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Explore Available Tools" icon="toolbox" href="/platform/shinzo-mcp-tools">
+    See all the tools provided by the Shinzo MCP Server
+  </Card>
+
+  <Card title="View Examples" icon="book" href="/platform/shinzo-mcp-examples">
+    Learn through real-world use cases and workflows
+  </Card>
+
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Dive into the underlying Platform API
+  </Card>
+
+  <Card title="Troubleshooting" icon="wrench" href="/platform/shinzo-mcp-troubleshooting">
+    Debug common issues and errors
+  </Card>
+</CardGroup>
+
+## Need Help?
+
+<Card title="Contact Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+  Having trouble with installation? Our team is here to help.
+</Card>

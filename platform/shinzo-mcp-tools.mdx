@@ -1,0 +1,1124 @@
+---
+title: 'Shinzo MCP Tools Reference'
+description: 'Complete reference of all tools provided by the Shinzo MCP Server'
+icon: 'toolbox'
+---
+
+## Overview
+
+The Shinzo MCP Server provides a comprehensive set of tools that enable your AI agents to interact with the Shinzo platform. Tools are organized into functional categories for easy discovery and use.
+
+<Info>
+**Using these tools:** Your AI agent automatically discovers and invokes these tools based on natural language requests. You don't need to call them manually—just describe what you want to do in conversation.
+</Info>
+
+---
+
+## Tool Categories
+
+<CardGroup cols={2}>
+  <Card title="Agent Management" icon="robot">
+    Create, list, update, delete, pause, and resume agents
+  </Card>
+
+  <Card title="Task Management" icon="list-check">
+    Submit tasks, monitor progress, retrieve results
+  </Card>
+
+  <Card title="MCP Configuration" icon="server">
+    Add, list, and remove MCP servers from agents
+  </Card>
+
+  <Card title="Observability" icon="chart-line">
+    Query telemetry, view traces, analyze performance
+  </Card>
+
+  <Card title="Platform Keys" icon="key">
+    Manage Platform API keys for authentication
+  </Card>
+
+  <Card title="Webhooks" icon="webhook">
+    Configure webhooks for real-time notifications
+  </Card>
+</CardGroup>
+
+---
+
+## Agent Management Tools
+
+### `shinzo_create_agent`
+
+Create a new AI agent with specified configuration.
+
+**Input Schema:**
+
+```typescript
+{
+  name: string;              // Agent display name (required)
+  model: string;             // AI model (e.g., "claude-3-7-sonnet-20250219", required)
+  systemPrompt?: string;     // System prompt/instructions
+  mcpServers?: Array<{       // MCP servers to configure
+    name: string;
+    type: 'github' | 'filesystem' | 'postgres' | 'slack' | 'custom';
+    config: object;          // Server-specific configuration
+  }>;
+  initialFiles?: Array<{     // Files to initialize in agent workspace
+    path: string;
+    content: string;
+  }>;
+  resourceLimits?: {         // Optional resource constraints
+    maxTokensPerMonth?: number;
+    maxCostPerMonth?: number;  // in dollars
+    maxStorageMB?: number;
+  };
+}
+```
+
+**Example Usage:**
+
+```
+"Create a new agent named 'docs-writer' using Claude 3.7 Sonnet.
+Configure it with access to my GitHub repos and give it instructions
+to help write technical documentation."
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "name": "docs-writer",
+  "status": "active",
+  "createdAt": "2026-02-17T20:00:00Z",
+  "url": "https://app.shinzo.ai/agents/agent_abc123"
+}
+```
+
+---
+
+### `shinzo_list_agents`
+
+List all agents in your account.
+
+**Input Schema:**
+
+```typescript
+{
+  status?: 'active' | 'paused' | 'all';  // Filter by status (default: 'all')
+  limit?: number;                         // Max results (default: 50)
+  offset?: number;                        // Pagination offset
+}
+```
+
+**Example Usage:**
+
+```
+"Show me all my active agents"
+```
+
+**Example Response:**
+
+```json
+{
+  "agents": [
+    {
+      "agentId": "agent_abc123",
+      "name": "docs-writer",
+      "model": "claude-3-7-sonnet-20250219",
+      "status": "active",
+      "createdAt": "2026-02-17T20:00:00Z",
+      "lastActiveAt": "2026-02-17T21:30:00Z"
+    },
+    {
+      "agentId": "agent_def456",
+      "name": "code-reviewer",
+      "model": "claude-3-7-sonnet-20250219",
+      "status": "paused",
+      "createdAt": "2026-02-15T10:00:00Z",
+      "lastActiveAt": "2026-02-16T18:00:00Z"
+    }
+  ],
+  "total": 2,
+  "hasMore": false
+}
+```
+
+---
+
+### `shinzo_get_agent`
+
+Get detailed information about a specific agent.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;  // Agent ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Get details for agent_abc123"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "name": "docs-writer",
+  "model": "claude-3-7-sonnet-20250219",
+  "status": "active",
+  "systemPrompt": "You are a technical documentation writer...",
+  "mcpServers": [
+    {
+      "name": "github",
+      "type": "github",
+      "config": { "repos": ["owner/repo"] }
+    }
+  ],
+  "resourceLimits": {
+    "maxTokensPerMonth": 1000000,
+    "maxCostPerMonth": 50.00
+  },
+  "usage": {
+    "tokensThisMonth": 45000,
+    "costThisMonth": 2.35
+  },
+  "createdAt": "2026-02-17T20:00:00Z",
+  "lastActiveAt": "2026-02-17T21:30:00Z"
+}
+```
+
+---
+
+### `shinzo_update_agent`
+
+Update an existing agent's configuration.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;           // Agent ID (required)
+  name?: string;             // New display name
+  systemPrompt?: string;     // Updated system prompt
+  resourceLimits?: {         // Updated resource limits
+    maxTokensPerMonth?: number;
+    maxCostPerMonth?: number;
+    maxStorageMB?: number;
+  };
+}
+```
+
+**Example Usage:**
+
+```
+"Update agent_abc123 to increase the token limit to 2 million per month"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "updated": true,
+  "changes": {
+    "resourceLimits.maxTokensPerMonth": {
+      "from": 1000000,
+      "to": 2000000
+    }
+  }
+}
+```
+
+---
+
+### `shinzo_pause_agent`
+
+Pause an active agent (stops accepting new tasks).
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;  // Agent ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Pause my docs-writer agent"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "status": "paused",
+  "message": "Agent paused successfully. Existing tasks will complete."
+}
+```
+
+---
+
+### `shinzo_resume_agent`
+
+Resume a paused agent.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;  // Agent ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Resume agent_abc123"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "status": "active",
+  "message": "Agent resumed successfully"
+}
+```
+
+---
+
+### `shinzo_delete_agent`
+
+Permanently delete an agent and all its data.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;           // Agent ID (required)
+  confirm: boolean;          // Must be true to proceed
+}
+```
+
+<Warning>
+**This action is irreversible.** All agent data, tasks, and files will be permanently deleted.
+</Warning>
+
+**Example Usage:**
+
+```
+"Delete agent_abc123"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "deleted": true,
+  "message": "Agent and all associated data deleted successfully"
+}
+```
+
+---
+
+## Task Management Tools
+
+### `shinzo_create_task`
+
+Submit a new task to an agent.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;           // Target agent ID (required)
+  prompt: string;            // Task description (required)
+  priority?: 'low' | 'normal' | 'high';  // Priority level
+  context?: object;          // Additional context data
+  webhook?: {                // Optional webhook for completion notification
+    url: string;
+    secret?: string;
+  };
+}
+```
+
+**Example Usage:**
+
+```
+"Create a task for agent_abc123 to review the latest PR and suggest improvements"
+```
+
+**Example Response:**
+
+```json
+{
+  "taskId": "task_xyz789",
+  "agentId": "agent_abc123",
+  "status": "pending",
+  "createdAt": "2026-02-17T21:45:00Z",
+  "estimatedCompletion": "2026-02-17T21:50:00Z"
+}
+```
+
+---
+
+### `shinzo_list_tasks`
+
+List tasks for an agent or across all agents.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId?: string;          // Filter by agent (optional)
+  status?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  limit?: number;            // Max results (default: 50)
+  offset?: number;           // Pagination offset
+}
+```
+
+**Example Usage:**
+
+```
+"Show me all running tasks"
+```
+
+**Example Response:**
+
+```json
+{
+  "tasks": [
+    {
+      "taskId": "task_xyz789",
+      "agentId": "agent_abc123",
+      "agentName": "docs-writer",
+      "prompt": "Review the latest PR...",
+      "status": "running",
+      "progress": 65,
+      "createdAt": "2026-02-17T21:45:00Z",
+      "startedAt": "2026-02-17T21:45:30Z"
+    }
+  ],
+  "total": 1,
+  "hasMore": false
+}
+```
+
+---
+
+### `shinzo_get_task`
+
+Get detailed information about a specific task.
+
+**Input Schema:**
+
+```typescript
+{
+  taskId: string;  // Task ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Get details for task_xyz789"
+```
+
+**Example Response:**
+
+```json
+{
+  "taskId": "task_xyz789",
+  "agentId": "agent_abc123",
+  "agentName": "docs-writer",
+  "prompt": "Review the latest PR and suggest improvements",
+  "status": "completed",
+  "result": {
+    "summary": "Reviewed PR #42. Found 3 areas for improvement...",
+    "output": "## Review Summary\n\n1. Code quality...",
+    "tokensUsed": 4500,
+    "cost": 0.12
+  },
+  "createdAt": "2026-02-17T21:45:00Z",
+  "startedAt": "2026-02-17T21:45:30Z",
+  "completedAt": "2026-02-17T21:48:15Z",
+  "duration": 165  // seconds
+}
+```
+
+---
+
+### `shinzo_cancel_task`
+
+Cancel a pending or running task.
+
+**Input Schema:**
+
+```typescript
+{
+  taskId: string;  // Task ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Cancel task_xyz789"
+```
+
+**Example Response:**
+
+```json
+{
+  "taskId": "task_xyz789",
+  "status": "cancelled",
+  "message": "Task cancelled successfully"
+}
+```
+
+---
+
+## MCP Configuration Tools
+
+### `shinzo_add_mcp_server`
+
+Add an MCP server to an agent's configuration.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;           // Agent ID (required)
+  serverName: string;        // Server name (required)
+  serverType: 'github' | 'filesystem' | 'postgres' | 'slack' | 'custom';
+  config: object;            // Server-specific configuration
+}
+```
+
+**Server Type Configs:**
+
+<Tabs>
+  <Tab title="GitHub">
+    ```typescript
+    {
+      serverType: 'github',
+      config: {
+        repos: ['owner/repo'],      // Repositories to access
+        token: 'ghp_xxxx'            // GitHub personal access token
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Filesystem">
+    ```typescript
+    {
+      serverType: 'filesystem',
+      config: {
+        allowedPaths: ['/path/to/dir']  // Paths the agent can access
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="PostgreSQL">
+    ```typescript
+    {
+      serverType: 'postgres',
+      config: {
+        connectionString: 'postgresql://...'
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Slack">
+    ```typescript
+    {
+      serverType: 'slack',
+      config: {
+        botToken: 'xoxb-...',
+        teamId: 'T1234567'
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Custom">
+    ```typescript
+    {
+      serverType: 'custom',
+      config: {
+        url: 'https://my-mcp-server.com/v1/mcp',
+        headers: {
+          'Authorization': 'Bearer token'
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+**Example Usage:**
+
+```
+"Add the GitHub MCP server to agent_abc123 with access to shinzo-labs/docs"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "serverName": "github",
+  "added": true,
+  "message": "GitHub MCP server added successfully"
+}
+```
+
+---
+
+### `shinzo_list_mcp_servers`
+
+List all MCP servers configured for an agent.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;  // Agent ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"What MCP servers are configured for my docs-writer agent?"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "servers": [
+    {
+      "name": "github",
+      "type": "github",
+      "config": {
+        "repos": ["shinzo-labs/docs"]
+      },
+      "status": "active"
+    },
+    {
+      "name": "filesystem",
+      "type": "filesystem",
+      "config": {
+        "allowedPaths": ["/workspace"]
+      },
+      "status": "active"
+    }
+  ]
+}
+```
+
+---
+
+### `shinzo_remove_mcp_server`
+
+Remove an MCP server from an agent.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId: string;      // Agent ID (required)
+  serverName: string;   // Server name to remove (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Remove the GitHub server from agent_abc123"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "serverName": "github",
+  "removed": true,
+  "message": "GitHub MCP server removed successfully"
+}
+```
+
+---
+
+## Observability Tools
+
+### `shinzo_query_telemetry`
+
+Query telemetry data for tokens, costs, and performance metrics.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId?: string;          // Filter by agent (optional)
+  startDate?: string;        // ISO 8601 start date
+  endDate?: string;          // ISO 8601 end date
+  metrics?: Array<'tokens' | 'cost' | 'latency' | 'requests'>;
+  groupBy?: 'hour' | 'day' | 'week' | 'month';
+}
+```
+
+**Example Usage:**
+
+```
+"Show me token usage for all my agents over the last 7 days, grouped by day"
+```
+
+**Example Response:**
+
+```json
+{
+  "timeRange": {
+    "start": "2026-02-10T00:00:00Z",
+    "end": "2026-02-17T23:59:59Z"
+  },
+  "groupBy": "day",
+  "data": [
+    {
+      "date": "2026-02-17",
+      "tokens": 125000,
+      "cost": 6.50,
+      "requests": 45
+    },
+    {
+      "date": "2026-02-16",
+      "tokens": 98000,
+      "cost": 5.10,
+      "requests": 38
+    }
+  ],
+  "totals": {
+    "tokens": 650000,
+    "cost": 33.80,
+    "requests": 280
+  }
+}
+```
+
+---
+
+### `shinzo_get_traces`
+
+Retrieve execution traces for debugging agent behavior.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId?: string;          // Filter by agent
+  taskId?: string;           // Filter by task
+  startDate?: string;        // ISO 8601 start date
+  endDate?: string;          // ISO 8601 end date
+  limit?: number;            // Max results (default: 20)
+}
+```
+
+**Example Usage:**
+
+```
+"Show me the execution trace for task_xyz789"
+```
+
+**Example Response:**
+
+```json
+{
+  "traces": [
+    {
+      "traceId": "trace_123",
+      "taskId": "task_xyz789",
+      "agentId": "agent_abc123",
+      "spans": [
+        {
+          "spanId": "span_001",
+          "name": "process_task",
+          "startTime": "2026-02-17T21:45:30Z",
+          "duration": 165000,  // milliseconds
+          "attributes": {
+            "model": "claude-3-7-sonnet-20250219",
+            "tokens": 4500
+          }
+        },
+        {
+          "spanId": "span_002",
+          "name": "github.search_code",
+          "startTime": "2026-02-17T21:45:35Z",
+          "duration": 1200,
+          "attributes": {
+            "query": "function review",
+            "results": 15
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### `shinzo_analyze_performance`
+
+Get performance analytics and recommendations.
+
+**Input Schema:**
+
+```typescript
+{
+  agentId?: string;          // Filter by agent
+  timeRange?: 'day' | 'week' | 'month';
+}
+```
+
+**Example Usage:**
+
+```
+"Analyze performance for agent_abc123 over the last month"
+```
+
+**Example Response:**
+
+```json
+{
+  "agentId": "agent_abc123",
+  "timeRange": "month",
+  "summary": {
+    "averageTaskDuration": 145,  // seconds
+    "successRate": 98.5,         // percentage
+    "averageTokensPerTask": 4200,
+    "averageCostPerTask": 0.11
+  },
+  "trends": {
+    "taskDuration": "stable",
+    "tokenUsage": "increasing_slightly",
+    "errorRate": "decreasing"
+  },
+  "recommendations": [
+    "Consider caching frequent GitHub queries to reduce latency",
+    "Token usage trending up—review system prompt for optimization opportunities"
+  ]
+}
+```
+
+---
+
+## Platform Keys Tools
+
+### `shinzo_list_api_keys`
+
+List all Platform API keys for your account.
+
+**Input Schema:**
+
+```typescript
+{
+  includeRevoked?: boolean;  // Include revoked keys (default: false)
+}
+```
+
+**Example Usage:**
+
+```
+"Show me all my API keys"
+```
+
+**Example Response:**
+
+```json
+{
+  "keys": [
+    {
+      "keyId": "key_abc123",
+      "name": "Production MCP",
+      "prefix": "sk_live_abc...",
+      "createdAt": "2026-01-15T10:00:00Z",
+      "lastUsedAt": "2026-02-17T21:45:00Z",
+      "status": "active"
+    },
+    {
+      "keyId": "key_def456",
+      "name": "Development",
+      "prefix": "sk_test_def...",
+      "createdAt": "2026-02-01T12:00:00Z",
+      "lastUsedAt": "2026-02-17T20:30:00Z",
+      "status": "active"
+    }
+  ]
+}
+```
+
+---
+
+### `shinzo_create_api_key`
+
+Generate a new Platform API key.
+
+**Input Schema:**
+
+```typescript
+{
+  name: string;              // Key name (required)
+  scopes?: string[];         // Permission scopes (optional)
+  expiresAt?: string;        // ISO 8601 expiration date
+}
+```
+
+**Example Usage:**
+
+```
+"Create a new API key named 'CI/CD Pipeline'"
+```
+
+**Example Response:**
+
+```json
+{
+  "keyId": "key_ghi789",
+  "name": "CI/CD Pipeline",
+  "key": "sk_live_ghi789...",  // ⚠️ Only shown once
+  "createdAt": "2026-02-17T22:00:00Z",
+  "message": "⚠️ Save this key securely. It will not be shown again."
+}
+```
+
+<Warning>
+**Important:** The full API key is only shown once during creation. Store it securely immediately.
+</Warning>
+
+---
+
+### `shinzo_revoke_api_key`
+
+Revoke (disable) an API key.
+
+**Input Schema:**
+
+```typescript
+{
+  keyId: string;  // Key ID to revoke (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Revoke key_abc123"
+```
+
+**Example Response:**
+
+```json
+{
+  "keyId": "key_abc123",
+  "status": "revoked",
+  "message": "API key revoked successfully. All requests using this key will now fail."
+}
+```
+
+---
+
+## Webhook Tools
+
+### `shinzo_configure_webhook`
+
+Configure a webhook endpoint for real-time notifications.
+
+**Input Schema:**
+
+```typescript
+{
+  url: string;               // Webhook URL (required)
+  events: string[];          // Events to subscribe to (required)
+  secret?: string;           // Webhook signature secret
+  enabled?: boolean;         // Enable/disable (default: true)
+}
+```
+
+**Available Events:**
+- `agent.created`
+- `agent.updated`
+- `agent.deleted`
+- `task.created`
+- `task.started`
+- `task.completed`
+- `task.failed`
+- `quota.warning` (approaching limit)
+- `quota.exceeded`
+
+**Example Usage:**
+
+```
+"Set up a webhook at https://my-app.com/webhooks for task completion events"
+```
+
+**Example Response:**
+
+```json
+{
+  "webhookId": "webhook_123",
+  "url": "https://my-app.com/webhooks",
+  "events": ["task.completed"],
+  "enabled": true,
+  "createdAt": "2026-02-17T22:05:00Z"
+}
+```
+
+---
+
+### `shinzo_list_webhooks`
+
+List all configured webhooks.
+
+**Input Schema:**
+
+```typescript
+{
+  includeDisabled?: boolean;  // Include disabled webhooks (default: false)
+}
+```
+
+**Example Usage:**
+
+```
+"Show me all my webhooks"
+```
+
+**Example Response:**
+
+```json
+{
+  "webhooks": [
+    {
+      "webhookId": "webhook_123",
+      "url": "https://my-app.com/webhooks",
+      "events": ["task.completed"],
+      "enabled": true,
+      "lastTriggered": "2026-02-17T21:48:15Z",
+      "successRate": 100.0
+    }
+  ]
+}
+```
+
+---
+
+### `shinzo_delete_webhook`
+
+Delete a webhook configuration.
+
+**Input Schema:**
+
+```typescript
+{
+  webhookId: string;  // Webhook ID (required)
+}
+```
+
+**Example Usage:**
+
+```
+"Delete webhook_123"
+```
+
+**Example Response:**
+
+```json
+{
+  "webhookId": "webhook_123",
+  "deleted": true,
+  "message": "Webhook deleted successfully"
+}
+```
+
+---
+
+## Error Handling
+
+All tools follow a consistent error response format:
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Agent not found: agent_abc123",
+    "details": {
+      "agentId": "agent_abc123"
+    }
+  }
+}
+```
+
+**Common Error Codes:**
+
+| Code | Description | Resolution |
+|------|-------------|------------|
+| `AUTHENTICATION_FAILED` | Invalid or expired API key | Check your API key configuration |
+| `RATE_LIMIT_EXCEEDED` | Too many requests | Wait and retry with exponential backoff |
+| `RESOURCE_NOT_FOUND` | Agent/task/server not found | Verify the ID is correct |
+| `VALIDATION_ERROR` | Invalid input parameters | Check the input schema |
+| `QUOTA_EXCEEDED` | Monthly quota limit reached | Upgrade plan or wait for reset |
+| `PERMISSION_DENIED` | Insufficient permissions | Check API key scopes |
+| `SERVER_ERROR` | Internal server error | Retry or contact support |
+
+---
+
+## Rate Limits
+
+| Plan | Requests/Minute | Burst Allowance |
+|------|----------------|-----------------|
+| Free | 100 | 120 |
+| Pro | 500 | 600 |
+| Team | 1000 | 1200 |
+| Enterprise | Custom | Custom |
+
+<Info>
+**Handling rate limits:** Implement exponential backoff when receiving `429 Too Many Requests` responses. Start with a 1-second delay and double it with each retry, up to a maximum of 60 seconds.
+</Info>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="View Examples" icon="book" href="/platform/shinzo-mcp-examples">
+    See these tools in action with real-world workflows
+  </Card>
+
+  <Card title="Installation Guide" icon="download" href="/platform/install-shinzo-mcp">
+    Set up the Shinzo MCP Server if you haven't already
+  </Card>
+
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore the underlying Platform API
+  </Card>
+
+  <Card title="Troubleshooting" icon="wrench" href="/platform/shinzo-mcp-troubleshooting">
+    Debug issues with tool execution
+  </Card>
+</CardGroup>

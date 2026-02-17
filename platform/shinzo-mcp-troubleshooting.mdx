@@ -1,0 +1,848 @@
+---
+title: 'Troubleshooting Shinzo MCP'
+description: 'Debug common issues and connection problems with the Shinzo MCP Server'
+icon: 'wrench'
+---
+
+## Overview
+
+This guide helps you diagnose and resolve common issues when using the Shinzo MCP Server. If you're experiencing problems, start with the Quick Diagnostics section below.
+
+<Info>
+**Still stuck?** Reach out to [support](mailto:austin@shinzolabs.com) with your error logs and we'll help you resolve the issue.
+</Info>
+
+---
+
+## Quick Diagnostics
+
+### Step 1: Verify Your Setup
+
+Run through this checklist:
+
+<Steps>
+  <Step title="API Key Valid">
+    Ensure your Platform API key is active and not revoked.
+
+    Check at: [https://app.shinzo.ai/settings/api-keys](https://app.shinzo.ai/settings/api-keys)
+  </Step>
+
+  <Step title="Configuration Correct">
+    Verify your MCP server configuration matches the installation guide:
+
+    ```json
+    {
+      "mcpServers": {
+        "shinzo": {
+          "url": "https://api.app.shinzo.ai/v1/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+
+  <Step title="Network Connectivity">
+    Test that you can reach the Shinzo API:
+
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://api.app.shinzo.ai/v1/health
+    ```
+
+    Expected response: `{"status": "ok"}`
+  </Step>
+
+  <Step title="MCP Server Loaded">
+    In your AI tool, ask: "What MCP servers do you have access to?"
+
+    The response should include "shinzo" in the list.
+  </Step>
+</Steps>
+
+### Step 2: Test a Simple Command
+
+Try this basic command:
+
+```
+Can you list my Shinzo agents?
+```
+
+**Expected behavior:** The AI agent should call `shinzo_list_agents` and return your agents.
+
+**If it fails:** Continue to the detailed troubleshooting sections below.
+
+---
+
+## Common Issues
+
+### Authentication Errors
+
+#### Error: `401 Unauthorized`
+
+**Symptom:**
+```
+Error: Authentication failed
+Code: AUTHENTICATION_FAILED
+Message: Invalid or expired API key
+```
+
+**Possible Causes:**
+
+1. **API key is incorrect**
+   - Double-check your key from [dashboard settings](https://app.shinzo.ai/settings/api-keys)
+   - Ensure there are no extra spaces or newlines
+   - Verify you copied the full key (starts with `sk_live_` or `sk_test_`)
+
+2. **API key was revoked**
+   - Check if the key status is "Active" in the dashboard
+   - If revoked, generate a new key
+
+3. **Wrong authorization header format**
+   - Must be: `Authorization: Bearer YOUR_API_KEY`
+   - Not: `Authorization: YOUR_API_KEY`
+
+**Solution:**
+
+<Tabs>
+  <Tab title="HTTP/SSE Mode">
+    Update your configuration:
+
+    ```json
+    {
+      "mcpServers": {
+        "shinzo": {
+          "url": "https://api.app.shinzo.ai/v1/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_ACTUAL_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+
+    Restart your AI tool after updating.
+  </Tab>
+
+  <Tab title="stdio Mode">
+    Update your environment variable:
+
+    **macOS/Linux:**
+    ```bash
+    export SHINZO_API_KEY="your_actual_api_key"
+    ```
+
+    **Windows:**
+    ```powershell
+    $env:SHINZO_API_KEY="your_actual_api_key"
+    ```
+
+    Restart your AI tool from the same terminal session.
+  </Tab>
+</Tabs>
+
+---
+
+#### Error: `403 Forbidden`
+
+**Symptom:**
+```
+Error: Permission denied
+Code: PERMISSION_DENIED
+Message: API key does not have required permissions
+```
+
+**Possible Causes:**
+
+1. **API key has insufficient scopes**
+   - Your key might be read-only but you're trying to create/update/delete
+   - Check key permissions in the dashboard
+
+2. **Quota exceeded**
+   - You might have hit your monthly quota limit
+   - Check usage at: [https://app.shinzo.ai/usage](https://app.shinzo.ai/usage)
+
+**Solution:**
+
+1. **Check key scopes:**
+   - Go to [API Keys settings](https://app.shinzo.ai/settings/api-keys)
+   - Verify your key has "Full Access" or appropriate scopes
+   - If not, create a new key with correct permissions
+
+2. **Check quota:**
+   - Review your current usage in the dashboard
+   - Upgrade your plan if needed
+   - Wait for quota to reset (monthly on 1st of each month)
+
+---
+
+### Connection Issues
+
+#### Error: `ECONNREFUSED` or `Network Error`
+
+**Symptom:**
+```
+Error: Could not connect to Shinzo MCP server
+Details: Connection refused at https://api.app.shinzo.ai/v1/mcp
+```
+
+**Possible Causes:**
+
+1. **No internet connection**
+2. **Firewall blocking HTTPS requests**
+3. **Proxy configuration needed**
+4. **API endpoint is down** (rare)
+
+**Solution:**
+
+<Steps>
+  <Step title="Test Internet Connection">
+    ```bash
+    curl https://api.app.shinzo.ai/v1/health
+    ```
+
+    If this fails, check your internet connection.
+  </Step>
+
+  <Step title="Check Firewall/Proxy">
+    If behind a corporate firewall:
+
+    **HTTP/SSE mode:** Configure proxy in your MCP client settings
+
+    **stdio mode:** Set proxy environment variables:
+    ```bash
+    export HTTP_PROXY="http://proxy.example.com:8080"
+    export HTTPS_PROXY="http://proxy.example.com:8080"
+    ```
+  </Step>
+
+  <Step title="Check API Status">
+    Visit [https://status.shinzo.ai](https://status.shinzo.ai) to see if there's an outage.
+
+    If the API is down, you'll see a status page with updates.
+  </Step>
+
+  <Step title="Contact Support">
+    If none of the above work, email [support](mailto:austin@shinzolabs.com) with:
+    - Your error message
+    - Output of `curl https://api.app.shinzo.ai/v1/health`
+    - Your network environment (corporate, home, VPN, etc.)
+  </Step>
+</Steps>
+
+---
+
+#### Error: `Timeout` or `Request Timeout`
+
+**Symptom:**
+```
+Error: Request timeout
+Message: MCP server did not respond within 30 seconds
+```
+
+**Possible Causes:**
+
+1. **Slow internet connection**
+2. **Large result sets taking too long**
+3. **Agent processing complex task**
+
+**Solution:**
+
+1. **Increase timeout:**
+
+   **HTTP/SSE mode:**
+   ```json
+   {
+     "mcpServers": {
+       "shinzo": {
+         "url": "https://api.app.shinzo.ai/v1/mcp",
+         "headers": {
+           "Authorization": "Bearer ${SHINZO_API_KEY}"
+         },
+         "timeout": 60000  // 60 seconds
+       }
+     }
+   }
+   ```
+
+2. **Use pagination for large queries:**
+
+   Instead of:
+   ```
+   "Show me all my agents"
+   ```
+
+   Try:
+   ```
+   "Show me my first 10 agents"
+   ```
+
+3. **Break down complex tasks:**
+
+   Instead of one large task, split into smaller chunks that can be processed faster.
+
+---
+
+### Tool Execution Errors
+
+#### Error: `Tool Not Found`
+
+**Symptom:**
+```
+Error: Tool "shinzo_create_agent" not found
+Message: MCP server does not provide this tool
+```
+
+**Possible Causes:**
+
+1. **MCP server not properly initialized**
+2. **Outdated stdio package** (if using npm mode)
+3. **AI tool didn't discover the server**
+
+**Solution:**
+
+<Steps>
+  <Step title="Restart Your AI Tool">
+    Sometimes the MCP server needs to be reloaded:
+
+    1. Quit your AI tool completely
+    2. Restart it
+    3. Wait for MCP servers to initialize (usually 5-10 seconds)
+  </Step>
+
+  <Step title="Verify Server is Loaded">
+    Ask your AI: "What MCP servers do you have access to?"
+
+    If "shinzo" is not in the list, check your configuration.
+  </Step>
+
+  <Step title="Update stdio Package (if applicable)">
+    ```bash
+    npm install -g @shinzo-labs/mcp-server@latest
+    ```
+
+    Then restart your AI tool.
+  </Step>
+</Steps>
+
+---
+
+#### Error: `Validation Error`
+
+**Symptom:**
+```
+Error: Validation error
+Code: VALIDATION_ERROR
+Message: Invalid input: "model" is required
+```
+
+**Possible Causes:**
+
+1. **Missing required parameters**
+2. **Invalid parameter values**
+3. **Wrong parameter types**
+
+**Solution:**
+
+Check the [tool reference](/platform/shinzo-mcp-tools) for the correct input schema.
+
+**Common mistakes:**
+
+❌ **Missing required fields:**
+```json
+{
+  "name": "my-agent"
+  // Missing "model" field
+}
+```
+
+✅ **Correct:**
+```json
+{
+  "name": "my-agent",
+  "model": "claude-3-7-sonnet-20250219"
+}
+```
+
+❌ **Wrong type:**
+```json
+{
+  "agentId": 12345  // Should be string, not number
+}
+```
+
+✅ **Correct:**
+```json
+{
+  "agentId": "agent_abc123"
+}
+```
+
+---
+
+#### Error: `Resource Not Found`
+
+**Symptom:**
+```
+Error: Resource not found
+Code: RESOURCE_NOT_FOUND
+Message: Agent not found: agent_abc123
+```
+
+**Possible Causes:**
+
+1. **Agent/task/resource was deleted**
+2. **Wrong ID (typo)**
+3. **Resource belongs to different account**
+
+**Solution:**
+
+1. **List all resources to verify IDs:**
+
+   ```
+   "List all my agents and show their IDs"
+   ```
+
+2. **Double-check the ID:**
+
+   Agent IDs start with `agent_`
+   Task IDs start with `task_`
+   Webhook IDs start with `webhook_`
+
+3. **Check if resource was deleted:**
+
+   If you recently deleted it, it won't be accessible. Create a new one if needed.
+
+---
+
+### Rate Limiting
+
+#### Error: `429 Too Many Requests`
+
+**Symptom:**
+```
+Error: Rate limit exceeded
+Code: RATE_LIMIT_EXCEEDED
+Message: Too many requests. Please try again in 42 seconds.
+Retry-After: 42
+```
+
+**Possible Causes:**
+
+1. **Making too many requests in a short time**
+2. **Hitting per-minute rate limit (100 requests/min for Free plan)**
+
+**Solution:**
+
+1. **Implement exponential backoff:**
+
+   Your AI agent should automatically retry with delays:
+   - Wait 1 second, retry
+   - If still failing, wait 2 seconds, retry
+   - If still failing, wait 4 seconds, retry
+   - Continue doubling up to 60 seconds
+
+2. **Batch requests:**
+
+   Instead of multiple individual queries, combine them:
+
+   ❌ **Don't:**
+   ```
+   "Get agent_abc123"
+   "Get agent_def456"
+   "Get agent_ghi789"
+   ```
+
+   ✅ **Do:**
+   ```
+   "List all my agents and show details for each"
+   ```
+
+3. **Upgrade your plan:**
+
+   Higher-tier plans have increased rate limits:
+   - Free: 100 req/min
+   - Pro: 500 req/min
+   - Team: 1000 req/min
+   - Enterprise: Custom
+
+---
+
+### Agent-Specific Issues
+
+#### Agent Status is "Error"
+
+**Symptom:**
+```
+Agent status: error
+Error: Agent failed to start due to configuration issue
+```
+
+**Possible Causes:**
+
+1. **Invalid MCP server configuration**
+2. **Missing required credentials (GitHub token, etc.)**
+3. **Malformed system prompt**
+
+**Solution:**
+
+<Steps>
+  <Step title="Check Agent Details">
+    ```
+    "Get details for agent_xyz including error messages"
+    ```
+
+    Look for specific error information.
+  </Step>
+
+  <Step title="Verify MCP Server Config">
+    Common issues:
+    - GitHub server without valid token
+    - Filesystem server with inaccessible paths
+    - PostgreSQL server with wrong connection string
+
+    Update configuration using `shinzo_update_agent` or `shinzo_add_mcp_server`.
+  </Step>
+
+  <Step title="Recreate Agent if Needed">
+    If configuration is too broken to fix:
+
+    ```
+    "Delete agent_xyz and create a new one with corrected configuration"
+    ```
+  </Step>
+</Steps>
+
+---
+
+#### Tasks Stuck in "Pending" Status
+
+**Symptom:**
+```
+Task has been in "pending" status for 10+ minutes
+```
+
+**Possible Causes:**
+
+1. **Agent is paused**
+2. **Agent hit quota limit**
+3. **Too many concurrent tasks**
+
+**Solution:**
+
+<Steps>
+  <Step title="Check Agent Status">
+    ```
+    "What's the status of my agent that's supposed to be running this task?"
+    ```
+
+    If paused, resume it:
+    ```
+    "Resume agent_xyz"
+    ```
+  </Step>
+
+  <Step title="Check Quota">
+    ```
+    "Check quota usage for agent_xyz"
+    ```
+
+    If quota exceeded, either:
+    - Wait for monthly reset
+    - Increase quota limits
+    - Upgrade plan
+  </Step>
+
+  <Step title="Check Task Queue">
+    ```
+    "How many tasks are queued for agent_xyz?"
+    ```
+
+    If there are many tasks, the agent might be backlogged. Wait for previous tasks to complete or cancel some:
+
+    ```
+    "Cancel task_abc123"
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Configuration Issues
+
+### Environment Variables Not Loading
+
+**Symptom:**
+```
+Error: SHINZO_API_KEY is not set
+```
+
+**Possible Causes:**
+
+1. **Environment variable not set in current shell**
+2. **AI tool started from different shell**
+3. **Variable not exported**
+
+**Solution:**
+
+<Tabs>
+  <Tab title="macOS/Linux">
+    1. **Add to shell profile:**
+
+       Edit `~/.bashrc`, `~/.zshrc`, or equivalent:
+       ```bash
+       export SHINZO_API_KEY="your_api_key_here"
+       ```
+
+    2. **Reload profile:**
+       ```bash
+       source ~/.zshrc  # or ~/.bashrc
+       ```
+
+    3. **Verify:**
+       ```bash
+       echo $SHINZO_API_KEY
+       ```
+
+    4. **Launch AI tool from same terminal**
+  </Tab>
+
+  <Tab title="Windows (PowerShell)">
+    1. **Set persistent variable:**
+       ```powershell
+       [System.Environment]::SetEnvironmentVariable(
+         'SHINZO_API_KEY',
+         'your_api_key_here',
+         'User'
+       )
+       ```
+
+    2. **Restart PowerShell**
+
+    3. **Verify:**
+       ```powershell
+       $env:SHINZO_API_KEY
+       ```
+
+    4. **Launch AI tool from same PowerShell session**
+  </Tab>
+
+  <Tab title="Alternative: Use Direct Config">
+    Instead of environment variables, use direct configuration:
+
+    ```json
+    {
+      "mcpServers": {
+        "shinzo": {
+          "url": "https://api.app.shinzo.ai/v1/mcp",
+          "headers": {
+            "Authorization": "Bearer your_actual_api_key_here"
+          }
+        }
+      }
+    }
+    ```
+
+    <Warning>
+    This is less secure. Only use for testing.
+    </Warning>
+  </Tab>
+</Tabs>
+
+---
+
+### stdio Mode: Command Not Found
+
+**Symptom:**
+```
+Error: Command not found: npx
+```
+
+**Possible Causes:**
+
+1. **Node.js not installed**
+2. **Node.js not in PATH**
+3. **Wrong command path**
+
+**Solution:**
+
+<Steps>
+  <Step title="Install Node.js">
+    Download and install from [nodejs.org](https://nodejs.org)
+
+    Verify installation:
+    ```bash
+    node --version
+    npm --version
+    npx --version
+    ```
+  </Step>
+
+  <Step title="Add to PATH">
+    If Node.js is installed but not found:
+
+    **macOS/Linux:**
+    ```bash
+    export PATH="/usr/local/bin:$PATH"
+    ```
+
+    **Windows:**
+    Add Node.js installation directory to PATH in System Environment Variables.
+  </Step>
+
+  <Step title="Use Full Path">
+    If still not working, use full path to npx:
+
+    ```json
+    {
+      "mcpServers": {
+        "shinzo": {
+          "command": "/usr/local/bin/npx",  // Full path
+          "args": ["-y", "@shinzo-labs/mcp-server"],
+          "env": {
+            "SHINZO_API_KEY": "${SHINZO_API_KEY}"
+          }
+        }
+      }
+    }
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Debugging Tips
+
+### Enable Verbose Logging
+
+Get detailed logs to diagnose issues:
+
+**HTTP/SSE mode:**
+
+```bash
+export MCP_LOG_LEVEL=debug
+```
+
+**stdio mode:**
+
+```bash
+export DEBUG=shinzo:*
+```
+
+Then restart your AI tool and reproduce the issue. Check logs for detailed error information.
+
+---
+
+### Check MCP Server Health Directly
+
+Test the Shinzo API directly without going through your AI tool:
+
+```bash
+# Test authentication
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.app.shinzo.ai/v1/health
+
+# Test MCP endpoint
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"method": "tools/list"}' \
+  https://api.app.shinzo.ai/v1/mcp
+```
+
+If these work but your AI tool doesn't, the issue is with your MCP client configuration.
+
+---
+
+### Inspect MCP Traffic
+
+Some AI tools support MCP traffic inspection:
+
+**Claude Desktop:**
+
+1. Open Developer Tools: `View` → `Developer` → `Toggle Developer Tools`
+2. Go to `Console` tab
+3. Filter for "MCP" messages
+4. Reproduce your issue
+5. Check for error messages in the console
+
+---
+
+### Test with Minimal Configuration
+
+Strip down to the simplest possible config to isolate the issue:
+
+```json
+{
+  "mcpServers": {
+    "shinzo": {
+      "url": "https://api.app.shinzo.ai/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+If this works, gradually add back your customizations to find the problematic configuration.
+
+---
+
+## Getting Help
+
+If you're still stuck after trying these troubleshooting steps:
+
+<Card title="Contact Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+  Email us with:
+  - Description of the issue
+  - Error messages (full text)
+  - Your configuration (redact API keys)
+  - Steps to reproduce
+  - AI tool and version (Claude Code, Claude Desktop, etc.)
+  - Operating system
+
+  We typically respond within 24 hours.
+</Card>
+
+---
+
+## Known Issues
+
+### Issue: Slow Tool Response Times
+
+**Status:** Investigating
+
+**Workaround:** Use stdio mode for lower latency, or implement caching in your workflow.
+
+---
+
+### Issue: Large Result Sets Cause Timeouts
+
+**Status:** Fix planned for v1.1
+
+**Workaround:** Use pagination parameters (`limit` and `offset`) when querying large datasets.
+
+---
+
+## Useful Resources
+
+<CardGroup cols={2}>
+  <Card title="Installation Guide" icon="download" href="/platform/install-shinzo-mcp">
+    Review setup instructions
+  </Card>
+
+  <Card title="Tool Reference" icon="toolbox" href="/platform/shinzo-mcp-tools">
+    Check tool schemas and parameters
+  </Card>
+
+  <Card title="API Status" icon="signal" href="https://status.shinzo.ai">
+    Check for service outages
+  </Card>
+
+  <Card title="Community Discord" icon="discord" href="https://discord.gg/shinzo">
+    Get help from other users
+  </Card>
+</CardGroup>

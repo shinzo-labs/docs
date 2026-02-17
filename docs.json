@@ -45,7 +45,12 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/dashboard"
+              "platform/dashboard",
+              "platform/shinzo-mcp-server",
+              "platform/install-shinzo-mcp",
+              "platform/shinzo-mcp-tools",
+              "platform/shinzo-mcp-examples",
+              "platform/shinzo-mcp-troubleshooting"
             ]
           }
         ]

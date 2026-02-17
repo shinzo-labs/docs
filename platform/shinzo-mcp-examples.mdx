@@ -1,0 +1,746 @@
+---
+title: 'Shinzo MCP Examples'
+description: 'Real-world use cases and workflows using the Shinzo MCP Server'
+icon: 'book'
+---
+
+## Overview
+
+This guide demonstrates practical workflows using the Shinzo MCP Server. These examples show how AI agents can use natural language to interact with the Shinzo platform, automating common tasks and building sophisticated workflows.
+
+<Info>
+**Try these yourself!** Copy the example prompts and ask your AI agent (Claude Code, Claude Desktop, etc.) to execute them. The agent will automatically use the appropriate Shinzo MCP tools.
+</Info>
+
+---
+
+## Example 1: Deploy an Agent from Claude Code
+
+**Scenario:** You want to create a new documentation writing agent with access to your GitHub repositories.
+
+### Natural Language Prompt
+
+```
+Create a new Shinzo agent named "docs-writer" using Claude 3.7 Sonnet.
+Give it access to the shinzo-labs/docs GitHub repository and configure it
+with these instructions:
+
+"You are a technical documentation writer. Help maintain high-quality
+documentation by reviewing PRs, suggesting improvements, and writing
+new docs when requested."
+
+Set a monthly token limit of 1 million tokens and a cost cap of $50.
+```
+
+### What Happens Behind the Scenes
+
+Your AI agent will:
+
+1. **Call `shinzo_create_agent`** with the parsed configuration:
+   ```json
+   {
+     "name": "docs-writer",
+     "model": "claude-3-7-sonnet-20250219",
+     "systemPrompt": "You are a technical documentation writer...",
+     "resourceLimits": {
+       "maxTokensPerMonth": 1000000,
+       "maxCostPerMonth": 50.00
+     }
+   }
+   ```
+
+2. **Call `shinzo_add_mcp_server`** to configure GitHub access:
+   ```json
+   {
+     "agentId": "agent_abc123",
+     "serverName": "github",
+     "serverType": "github",
+     "config": {
+       "repos": ["shinzo-labs/docs"]
+     }
+   }
+   ```
+
+3. **Confirm the setup** and provide the agent URL
+
+### Result
+
+```
+✅ Agent created successfully!
+
+Name: docs-writer
+Agent ID: agent_abc123
+Model: Claude 3.7 Sonnet
+Status: Active
+
+Configured with:
+- GitHub MCP server (shinzo-labs/docs)
+- Token limit: 1M/month
+- Cost cap: $50/month
+
+View in dashboard: https://app.shinzo.ai/agents/agent_abc123
+```
+
+---
+
+## Example 2: Check Token Usage for Last Week
+
+**Scenario:** You want to understand how much your agents have cost over the last 7 days.
+
+### Natural Language Prompt
+
+```
+Show me token usage and costs for all my Shinzo agents over the last 7 days,
+grouped by day. Also tell me which agent used the most tokens.
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_query_telemetry`**:
+   ```json
+   {
+     "startDate": "2026-02-10T00:00:00Z",
+     "endDate": "2026-02-17T23:59:59Z",
+     "metrics": ["tokens", "cost"],
+     "groupBy": "day"
+   }
+   ```
+
+2. **Analyze the results** to identify the highest-usage agent
+
+3. **Format the response** in a readable way
+
+### Result
+
+```
+📊 Token Usage Report (Feb 10-17, 2026)
+
+Daily Breakdown:
+┌────────────┬──────────┬─────────┐
+│ Date       │ Tokens   │ Cost    │
+├────────────┼──────────┼─────────┤
+│ Feb 17     │ 125,000  │ $6.50   │
+│ Feb 16     │ 98,000   │ $5.10   │
+│ Feb 15     │ 87,500   │ $4.55   │
+│ Feb 14     │ 110,000  │ $5.72   │
+│ Feb 13     │ 95,000   │ $4.94   │
+│ Feb 12     │ 78,000   │ $4.06   │
+│ Feb 11     │ 56,500   │ $2.93   │
+└────────────┴──────────┴─────────┘
+
+Total: 650,000 tokens | $33.80
+
+🏆 Top Agent: docs-writer (agent_abc123)
+   - 385,000 tokens (59%)
+   - $20.02 (59%)
+
+💡 Insight: Usage is trending upward. Consider reviewing your
+   system prompts for optimization opportunities.
+```
+
+---
+
+## Example 3: Configure Agent with New MCP Server
+
+**Scenario:** You want to add filesystem access to an existing agent so it can read and write files.
+
+### Natural Language Prompt
+
+```
+Add the filesystem MCP server to my "docs-writer" agent.
+Give it read/write access to /Users/me/projects/docs
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_list_agents`** to find the agent by name
+2. **Call `shinzo_add_mcp_server`**:
+   ```json
+   {
+     "agentId": "agent_abc123",
+     "serverName": "filesystem",
+     "serverType": "filesystem",
+     "config": {
+       "allowedPaths": ["/Users/me/projects/docs"]
+     }
+   }
+   ```
+
+3. **Confirm the configuration**
+
+### Result
+
+```
+✅ Filesystem MCP server added to docs-writer
+
+The agent now has access to:
+- /Users/me/projects/docs (read/write)
+
+It can:
+- Read files and directories
+- Create and modify files
+- List directory contents
+- Search for files
+
+⚠️ Security Note: The agent can only access the specified path.
+   Files outside this directory are not accessible.
+```
+
+---
+
+## Example 4: Create and Monitor a Task
+
+**Scenario:** You want to ask an agent to review a pull request and get notified when it's done.
+
+### Natural Language Prompt
+
+```
+Create a task for my docs-writer agent to review PR #42 in shinzo-labs/docs.
+Ask it to check for:
+- Technical accuracy
+- Clarity and readability
+- Consistency with existing docs
+- Missing examples or code snippets
+
+Let me know when it's done.
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_create_task`**:
+   ```json
+   {
+     "agentId": "agent_abc123",
+     "prompt": "Review PR #42 in shinzo-labs/docs. Check for technical accuracy, clarity, consistency, and completeness...",
+     "priority": "normal"
+   }
+   ```
+
+2. **Poll `shinzo_get_task`** periodically to check status
+
+3. **Display progress updates** as the task runs
+
+4. **Show the final result** when complete
+
+### Result
+
+```
+📝 Task created: task_xyz789
+Status: Running...
+
+[Progress indicator]
+⏳ Analyzing PR #42...
+⏳ Reviewing 3 changed files...
+⏳ Generating feedback...
+
+✅ Task completed!
+
+## Review Summary
+
+I've reviewed PR #42: "Add MCP instrumentation guide"
+
+### Technical Accuracy ✅
+The content is technically accurate. OpenTelemetry setup is correct.
+
+### Clarity & Readability ✅
+Writing is clear and well-structured. Good use of examples.
+
+### Consistency with Existing Docs ⚠️
+Minor issue: Code block styling differs from other SDK guides.
+Recommend using the same tab structure.
+
+### Completeness ⚠️
+Missing:
+- Troubleshooting section for common instrumentation issues
+- Example of viewing traces in the dashboard
+
+### Recommended Changes:
+1. Update code block styling to match sdk/typescript/installation.mdx
+2. Add troubleshooting section
+3. Include screenshot of trace data in dashboard
+
+Overall: Good PR with minor improvements needed.
+
+---
+Task ID: task_xyz789
+Tokens used: 4,500
+Cost: $0.12
+Duration: 2m 45s
+```
+
+---
+
+## Example 5: Analyze Agent Performance
+
+**Scenario:** You want to understand if your agent is performing efficiently and identify optimization opportunities.
+
+### Natural Language Prompt
+
+```
+Analyze the performance of my docs-writer agent over the last month.
+Are there any bottlenecks or areas where I could reduce costs?
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_analyze_performance`**:
+   ```json
+   {
+     "agentId": "agent_abc123",
+     "timeRange": "month"
+   }
+   ```
+
+2. **Call `shinzo_get_traces`** to inspect execution patterns
+
+3. **Synthesize recommendations** based on the data
+
+### Result
+
+```
+🔍 Performance Analysis: docs-writer (Last 30 Days)
+
+## Key Metrics
+- Average task duration: 2m 25s
+- Success rate: 98.5%
+- Total tasks completed: 127
+- Average tokens per task: 4,200
+- Average cost per task: $0.11
+
+## Performance Trends
+📈 Task duration: Stable
+📈 Token usage: Increasing slightly (+8% vs. previous month)
+📉 Error rate: Decreasing (-2%)
+
+## Bottlenecks Identified
+
+1. **GitHub API Latency** (30% of task time)
+   - Many tasks spend significant time waiting for GitHub responses
+   - Recommendation: Consider caching frequently accessed repository data
+
+2. **Repetitive Context Loading** (15% of tokens)
+   - Agent re-loads similar context across multiple tasks
+   - Recommendation: Use initial files to pre-load common reference docs
+
+## Cost Optimization Opportunities
+
+💰 Potential savings: ~$45/month (25% reduction)
+
+1. **Optimize System Prompt** (Est. savings: $20/month)
+   - Current prompt is verbose (450 tokens)
+   - Recommendation: Reduce to <200 tokens by removing redundant instructions
+   - Example: "Help maintain high-quality documentation" → "Maintain docs"
+
+2. **Cache Common Queries** (Est. savings: $15/month)
+   - GitHub file lookups are repeated frequently
+   - Recommendation: Use prompt caching for repository structure
+
+3. **Batch Similar Tasks** (Est. savings: $10/month)
+   - Many small tasks could be combined
+   - Recommendation: Group related documentation reviews
+
+## Recommended Actions
+1. ✅ Update system prompt (do this now)
+2. 🔄 Enable prompt caching in agent config
+3. 📋 Review task creation workflow to batch similar work
+
+Would you like me to implement any of these optimizations?
+```
+
+---
+
+## Example 6: Set Up Automated Monitoring
+
+**Scenario:** You want to be notified when tasks complete or when you're approaching quota limits.
+
+### Natural Language Prompt
+
+```
+Configure a webhook at https://my-app.com/webhooks/shinzo to notify me when:
+- Any task completes (success or failure)
+- I'm approaching my monthly quota limit
+
+Use the secret "webhook_secret_123" for signature verification.
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_configure_webhook`** for task events:
+   ```json
+   {
+     "url": "https://my-app.com/webhooks/shinzo",
+     "events": ["task.completed", "task.failed"],
+     "secret": "webhook_secret_123",
+     "enabled": true
+   }
+   ```
+
+2. **Call `shinzo_configure_webhook`** again for quota warnings:
+   ```json
+   {
+     "url": "https://my-app.com/webhooks/shinzo",
+     "events": ["quota.warning", "quota.exceeded"],
+     "secret": "webhook_secret_123",
+     "enabled": true
+   }
+   ```
+
+3. **Explain the webhook payload format**
+
+### Result
+
+```
+✅ Webhooks configured successfully!
+
+Endpoint: https://my-app.com/webhooks/shinzo
+
+Subscribed Events:
+- task.completed
+- task.failed
+- quota.warning (triggers at 80% usage)
+- quota.exceeded
+
+Your endpoint will receive POST requests with this format:
+
+{
+  "event": "task.completed",
+  "timestamp": "2026-02-17T22:00:00Z",
+  "data": {
+    "taskId": "task_xyz789",
+    "agentId": "agent_abc123",
+    "status": "completed",
+    "result": { ... }
+  },
+  "signature": "sha256=..."
+}
+
+Verify signatures using your secret: "webhook_secret_123"
+
+Example verification (Node.js):
+```javascript
+const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const hmac = crypto.createHmac('sha256', secret);
+  const digest = 'sha256=' + hmac.update(payload).digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(digest)
+  );
+}
+```
+
+🔐 Security: Always verify webhook signatures before processing events.
+```
+
+---
+
+## Example 7: Multi-Agent Workflow
+
+**Scenario:** You want to coordinate multiple agents to work together on a complex task.
+
+### Natural Language Prompt
+
+```
+I need to set up a code review workflow using multiple agents:
+
+1. Create a "code-reviewer" agent that checks for code quality
+2. Create a "security-auditor" agent that looks for security issues
+3. Create a "docs-checker" agent that verifies documentation
+
+Configure each with appropriate MCP servers and system prompts.
+Then submit PR #42 to all three agents and combine their feedback.
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Create three agents** using `shinzo_create_agent` (3 calls)
+2. **Configure MCP servers** for each agent
+3. **Submit the same task** to all three agents using `shinzo_create_task` (3 calls)
+4. **Monitor all tasks** until complete
+5. **Combine and summarize** the results
+
+### Result (Abbreviated)
+
+```
+🤖 Multi-Agent Workflow Setup
+
+✅ Created 3 agents:
+
+1. code-reviewer (agent_abc123)
+   - Model: Claude 3.7 Sonnet
+   - MCP servers: GitHub (shinzo-labs/docs)
+   - Focus: Code quality and best practices
+
+2. security-auditor (agent_def456)
+   - Model: Claude 3.7 Sonnet
+   - MCP servers: GitHub (shinzo-labs/docs)
+   - Focus: Security vulnerabilities
+
+3. docs-checker (agent_ghi789)
+   - Model: Claude 3.7 Sonnet
+   - MCP servers: GitHub (shinzo-labs/docs)
+   - Focus: Documentation completeness
+
+📋 Tasks submitted:
+- Task task_001 → code-reviewer
+- Task task_002 → security-auditor
+- Task task_003 → docs-checker
+
+⏳ Waiting for all agents to complete...
+
+✅ All tasks completed! Here's the combined feedback:
+
+---
+
+## Combined Review: PR #42
+
+### Code Quality (code-reviewer)
+✅ Code structure is clean
+⚠️ Found 2 areas for improvement:
+   - Consider extracting repeated logic into a helper function
+   - Add error handling for API calls
+
+### Security (security-auditor)
+✅ No critical security issues
+💡 Recommendations:
+   - Sanitize user input in configuration parsing
+   - Add rate limiting to webhook endpoints
+
+### Documentation (docs-checker)
+✅ Documentation is comprehensive
+⚠️ Missing:
+   - Troubleshooting section
+   - Example for advanced use case
+
+---
+
+## Summary
+Overall: **Approve with minor changes**
+
+Critical: 0 | High: 0 | Medium: 2 | Low: 3
+
+Total cost: $0.36 (3 agents × ~4.5k tokens each)
+Duration: 3m 10s (parallel execution)
+
+Would you like me to create GitHub PR comments with this feedback?
+```
+
+---
+
+## Example 8: Cost Monitoring and Alerts
+
+**Scenario:** You want to proactively monitor costs and get alerts before exceeding your budget.
+
+### Natural Language Prompt
+
+```
+Check if any of my agents are close to their monthly cost limits.
+If any agent has used more than 80% of its budget, pause it and let me know.
+Also show me a forecast for end-of-month costs based on current usage.
+```
+
+### What Happens Behind the Scenes
+
+The agent will:
+
+1. **Call `shinzo_list_agents`** to get all agents
+2. **Call `shinzo_get_agent`** for each agent to check usage vs. limits
+3. **Call `shinzo_pause_agent`** if any agent exceeds 80%
+4. **Call `shinzo_query_telemetry`** to get usage trends
+5. **Calculate projections** based on daily average
+
+### Result
+
+```
+💰 Cost Monitoring Report
+
+## Current Status (Feb 17, 2026)
+
+✅ docs-writer (agent_abc123)
+   - Budget: $50.00/month
+   - Used: $20.02 (40%)
+   - Remaining: $29.98
+   - Status: Active
+
+⚠️ code-reviewer (agent_def456)
+   - Budget: $30.00/month
+   - Used: $25.50 (85%)
+   - Remaining: $4.50
+   - Status: PAUSED (exceeded 80% threshold)
+
+✅ security-auditor (agent_ghi789)
+   - Budget: $25.00/month
+   - Used: $12.00 (48%)
+   - Remaining: $13.00
+   - Status: Active
+
+---
+
+## Actions Taken
+⏸️ Paused agent: code-reviewer
+   Reason: Used 85% of monthly budget ($25.50 / $30.00)
+   You can resume it manually or wait for the next billing cycle.
+
+---
+
+## End-of-Month Forecast
+
+Based on current usage trends (last 7 days):
+
+📊 Projected Total: $87.50
+
+Agent Breakdown:
+- docs-writer: $45.00 (within budget)
+- code-reviewer: $30.00 (paused, at limit)
+- security-auditor: $22.50 (within budget)
+
+💡 Recommendations:
+1. ✅ Consider increasing code-reviewer's budget to $40/month
+2. 📉 docs-writer usage is trending up—review for optimization
+3. ✅ security-auditor is well within budget
+
+Would you like me to adjust any budget limits?
+```
+
+---
+
+## Common Workflow Patterns
+
+### Pattern 1: Deploy, Configure, Test
+
+```
+1. Create agent with base configuration
+2. Add necessary MCP servers (GitHub, filesystem, etc.)
+3. Submit a test task to verify setup
+4. Review results and adjust configuration
+5. Set resource limits and monitoring
+```
+
+### Pattern 2: Batch Processing
+
+```
+1. List all pending tasks from external source (e.g., GitHub issues)
+2. Create tasks for each item
+3. Monitor progress in real-time
+4. Aggregate results when all tasks complete
+5. Post summary back to external source
+```
+
+### Pattern 3: Cost-Aware Execution
+
+```
+1. Check current quota usage before submitting tasks
+2. If approaching limit, pause non-critical agents
+3. Execute high-priority tasks only
+4. Monitor costs during execution
+5. Resume agents when budget allows
+```
+
+### Pattern 4: Progressive Enhancement
+
+```
+1. Start with basic agent (minimal configuration)
+2. Run initial tasks and collect performance data
+3. Analyze bottlenecks and usage patterns
+4. Add MCP servers as needed
+5. Optimize system prompt based on actual usage
+6. Iterate and refine
+```
+
+---
+
+## Tips for Effective Usage
+
+<AccordionGroup>
+  <Accordion title="Be Specific with Task Descriptions">
+    **Bad:** "Review this PR"
+
+    **Good:** "Review PR #42 for code quality, security issues, and documentation completeness. Focus on error handling and input validation."
+
+    Specific prompts lead to better results and avoid unnecessary token usage.
+  </Accordion>
+
+  <Accordion title="Use Resource Limits">
+    Always set monthly token and cost limits when creating agents:
+
+    ```json
+    {
+      "resourceLimits": {
+        "maxTokensPerMonth": 1000000,
+        "maxCostPerMonth": 50.00
+      }
+    }
+    ```
+
+    This prevents unexpected bills and forces you to optimize.
+  </Accordion>
+
+  <Accordion title="Monitor and Optimize Regularly">
+    Check performance weekly:
+    - Review token usage trends
+    - Identify high-cost tasks
+    - Optimize system prompts
+    - Remove unused MCP servers
+
+    Small optimizations compound over time.
+  </Accordion>
+
+  <Accordion title="Leverage Webhooks for Automation">
+    Use webhooks to build event-driven workflows:
+    - Trigger CI/CD on task completion
+    - Send Slack notifications for failures
+    - Update external systems (Jira, Linear, etc.)
+    - Implement custom retry logic
+  </Accordion>
+
+  <Accordion title="Use Initial Files for Context">
+    Pre-load common reference materials as initial files:
+    - API documentation
+    - Code style guides
+    - Architecture diagrams
+    - Common code snippets
+
+    This reduces token usage by avoiding repeated context loading.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Tool Reference" icon="toolbox" href="/platform/shinzo-mcp-tools">
+    Explore all available tools and their schemas
+  </Card>
+
+  <Card title="Troubleshooting" icon="wrench" href="/platform/shinzo-mcp-troubleshooting">
+    Debug common issues and errors
+  </Card>
+
+  <Card title="Agent Deployment Guide" icon="rocket" href="/platform/agent-deployment">
+    Learn advanced deployment patterns
+  </Card>
+
+  <Card title="API Reference" icon="code" href="/api/overview">
+    Explore the underlying Platform API
+  </Card>
+</CardGroup>
+
+## Need More Help?
+
+<Card title="Contact Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+  Have a specific use case? We're here to help!
+</Card>
