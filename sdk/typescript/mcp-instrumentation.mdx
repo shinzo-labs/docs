@@ -1,0 +1,366 @@
+---
+title: "MCP Server Instrumentation"
+description: "Learn how to instrument your MCP servers with Shinzo for comprehensive observability and telemetry."
+---
+
+# Instrumenting MCP Servers with TypeScript
+
+This guide shows you how to add comprehensive observability to your MCP (Model Context Protocol) servers using the Shinzo TypeScript SDK.
+
+<Note>
+Already have the SDK installed? If not, check out the [Installation Guide](/sdk/typescript/installation) first.
+</Note>
+
+## Overview
+
+The Shinzo SDK provides automatic instrumentation for MCP servers, capturing:
+
+- **Tool executions**: Track which tools are called and when
+- **Performance metrics**: Measure execution time and throughput
+- **Error tracking**: Capture failures and exceptions with stack traces
+- **Token usage**: Monitor token consumption across tool calls
+- **User behavior**: Understand how agents interact with your tools
+
+## Basic Instrumentation
+
+### Step 1: Import Dependencies
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+```
+
+### Step 2: Create and Instrument Server
+
+```typescript
+// Create your MCP server
+const server = new McpServer({
+  name: "my-mcp-server",
+  version: "1.0.0"
+})
+
+// Add Shinzo instrumentation
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+### Step 3: Define Your Tools
+
+Continue defining tools as normal - telemetry is automatically captured:
+
+```typescript
+server.tool("search_files", {
+  description: "Search for files in a directory",
+  inputSchema: {
+    type: "object",
+    properties: {
+      path: { type: "string" },
+      pattern: { type: "string" }
+    },
+    required: ["path", "pattern"]
+  }
+}, async (args) => {
+  // Your tool implementation
+  const results = await searchFiles(args.path, args.pattern)
+  return { content: JSON.stringify(results) }
+})
+```
+
+## Configuration Options
+
+### Authentication
+
+The SDK supports multiple authentication methods:
+
+#### Bearer Token (Recommended)
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+Get your ingest token from [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens) in the Shinzo Platform.
+
+### Exporter Types
+
+#### HTTP Exporter (Production)
+
+The default exporter sends telemetry to the Shinzo Platform:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterType: "http",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+```
+
+#### Console Exporter (Development)
+
+For local development and debugging, use the console exporter:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterType: "console",
+  enableMetrics: false  // Console exporter doesn't support metrics
+})
+```
+
+This outputs telemetry data to stdout, making it easy to see what's being captured.
+
+### Sampling
+
+For high-volume MCP servers, you can reduce data collection by sampling:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  sampling: {
+    probability: 0.5  // Sample 50% of tool calls
+  }
+})
+```
+
+<Warning>
+Sampling reduces data volume but may cause you to miss important events. Use carefully in production.
+</Warning>
+
+### Metrics Configuration
+
+Control which metrics are collected:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  enableMetrics: true,  // Enable metrics collection (default: true)
+  metricsInterval: 60000  // Export metrics every 60 seconds
+})
+```
+
+## Example: Instrumenting a Filesystem MCP Server
+
+Here's a complete example of instrumenting a filesystem MCP server:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
+import { instrumentServer } from "@shinzolabs/instrumentation-mcp"
+import { readFile, readdir } from "fs/promises"
+import { join } from "path"
+
+// Create server
+const server = new McpServer({
+  name: "filesystem-server",
+  version: "1.0.0"
+})
+
+// Add instrumentation
+const telemetry = instrumentServer(server, {
+  serverName: "filesystem-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  }
+})
+
+// Define tools
+server.tool("read_file", {
+  description: "Read contents of a file",
+  inputSchema: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description: "Path to the file to read"
+      }
+    },
+    required: ["path"]
+  }
+}, async (args) => {
+  try {
+    const content = await readFile(args.path, "utf-8")
+    return {
+      content: content,
+      mimeType: "text/plain"
+    }
+  } catch (error) {
+    throw new Error(`Failed to read file: ${error.message}`)
+  }
+})
+
+server.tool("list_directory", {
+  description: "List files in a directory",
+  inputSchema: {
+    type: "object",
+    properties: {
+      path: {
+        type: "string",
+        description: "Directory path to list"
+      }
+    },
+    required: ["path"]
+  }
+}, async (args) => {
+  try {
+    const files = await readdir(args.path)
+    return {
+      content: JSON.stringify(files, null, 2),
+      mimeType: "application/json"
+    }
+  } catch (error) {
+    throw new Error(`Failed to list directory: ${error.message}`)
+  }
+})
+
+// Set up transport and start server
+const transport = new StdioServerTransport()
+await server.connect(transport)
+
+// Handle graceful shutdown
+process.on("SIGINT", async () => {
+  await telemetry.shutdown()
+  await server.close()
+  process.exit(0)
+})
+```
+
+Run this server with:
+
+```bash
+SHINZO_TOKEN=your-token-here node server.js
+```
+
+## Advanced Usage
+
+### Custom Attributes
+
+Add custom attributes to telemetry data:
+
+```typescript
+const telemetry = instrumentServer(server, {
+  serverName: "my-mcp-server",
+  serverVersion: "1.0.0",
+  exporterEndpoint: "https://api.app.shinzo.ai/telemetry/ingest_http",
+  exporterAuth: {
+    type: "bearer",
+    token: process.env.SHINZO_TOKEN
+  },
+  attributes: {
+    "environment": process.env.NODE_ENV || "development",
+    "deployment.region": "us-east-1",
+    "service.instance": process.env.HOSTNAME
+  }
+})
+```
+
+These attributes will be attached to all telemetry data, making it easier to filter and analyze in the Shinzo Platform.
+
+### Manual Span Creation
+
+For more fine-grained instrumentation, you can create custom spans:
+
+```typescript
+import { trace } from "@opentelemetry/api"
+
+server.tool("complex_operation", {
+  description: "A complex multi-step operation",
+  inputSchema: {
+    type: "object",
+    properties: {
+      input: { type: "string" }
+    }
+  }
+}, async (args) => {
+  const tracer = trace.getTracer("my-mcp-server")
+
+  // Create a custom span for a specific operation
+  const span = tracer.startSpan("database_query")
+  try {
+    const result = await queryDatabase(args.input)
+    span.setStatus({ code: 0 }) // Success
+    return { content: result }
+  } catch (error) {
+    span.setStatus({
+      code: 2, // Error
+      message: error.message
+    })
+    throw error
+  } finally {
+    span.end()
+  }
+})
+```
+
+## Troubleshooting
+
+### Not Seeing Telemetry Data?
+
+1. **Check your ingest token**: Verify it's correct in [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens)
+2. **Test with console exporter**: Switch to `exporterType: "console"` to see data locally
+3. **Verify network connectivity**: Ensure your server can reach `api.app.shinzo.ai`
+4. **Check for errors**: Look for error messages in your server logs
+
+### High Memory Usage?
+
+If telemetry is consuming too much memory:
+
+1. **Enable sampling**: Reduce data volume with `sampling: { probability: 0.5 }`
+2. **Increase export interval**: Set `metricsInterval` to a higher value
+3. **Disable metrics**: Set `enableMetrics: false` if you only need traces
+
+### Performance Impact?
+
+The Shinzo SDK is designed to be lightweight:
+
+- Telemetry is exported asynchronously in batches
+- Network calls are non-blocking
+- Typical overhead is < 1ms per tool call
+- Sampling can further reduce impact if needed
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration Reference" icon="gear" href="/sdk/typescript/configuration">
+    Explore all configuration options in detail.
+  </Card>
+  <Card title="MCP Dashboard" icon="chart-line" href="/platform/mcp-dashboard">
+    Learn how to analyze your MCP server data.
+  </Card>
+</CardGroup>
+
+Need help? Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com) or check our [GitHub repository](https://github.com/shinzo-labs/shinzo-ts).

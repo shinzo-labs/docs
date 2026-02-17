@@ -1,0 +1,484 @@
+---
+title: "MCP Server Instrumentation"
+description: "Learn how to instrument your Python MCP servers with Shinzo for comprehensive observability and telemetry."
+---
+
+# Instrumenting MCP Servers with Python
+
+This guide shows you how to add comprehensive observability to your MCP (Model Context Protocol) servers using the Shinzo Python SDK.
+
+<Note>
+Already have the SDK installed? If not, check out the [Installation Guide](/sdk/python/installation) first.
+</Note>
+
+## Overview
+
+The Shinzo SDK provides automatic instrumentation for Python MCP servers, capturing:
+
+- **Tool executions**: Track which tools are called and when
+- **Performance metrics**: Measure execution time and throughput
+- **Error tracking**: Capture failures and exceptions with stack traces
+- **Token usage**: Monitor token consumption across tool calls
+- **User behavior**: Understand how agents interact with your tools
+
+The SDK works with both the traditional MCP SDK and FastMCP implementations.
+
+## Basic Instrumentation
+
+### Using FastMCP
+
+<Steps>
+<Step title="Import Dependencies">
+```python
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+```
+</Step>
+
+<Step title="Create and Instrument Server">
+```python
+# Create FastMCP server
+mcp = FastMCP(name="my-mcp-server")
+
+# Add Shinzo instrumentation
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+</Step>
+
+<Step title="Define Your Tools">
+Continue defining tools as normal - telemetry is automatically captured:
+
+```python
+@mcp.tool()
+def search_files(path: str, pattern: str) -> dict:
+    """Search for files in a directory."""
+    # Your tool implementation
+    results = find_files(path, pattern)
+    return {"files": results}
+
+@mcp.tool()
+def read_file(file_path: str) -> str:
+    """Read contents of a file."""
+    with open(file_path, 'r') as f:
+        return f.read()
+```
+</Step>
+
+<Step title="Run Your Server">
+```python
+if __name__ == "__main__":
+    mcp.run()
+```
+</Step>
+</Steps>
+
+### Using Traditional MCP SDK
+
+<Steps>
+<Step title="Import Dependencies">
+```python
+import os
+from mcp.server import Server
+from shinzo import instrument_server
+```
+</Step>
+
+<Step title="Create and Instrument Server">
+```python
+# Create your MCP server
+server = Server("my-mcp-server")
+
+# Add Shinzo instrumentation
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+</Step>
+
+<Step title="Define Your Tools">
+```python
+@server.call_tool()
+async def search_files(path: str, pattern: str) -> dict:
+    """Search for files in a directory."""
+    results = await find_files_async(path, pattern)
+    return {"files": results}
+
+@server.call_tool()
+async def read_file(file_path: str) -> str:
+    """Read contents of a file."""
+    async with aiofiles.open(file_path, 'r') as f:
+        return await f.read()
+```
+</Step>
+
+<Step title="Handle Shutdown">
+```python
+async def shutdown():
+    await observability.shutdown()
+```
+</Step>
+</Steps>
+
+<Warning>
+Store your ingest token securely! Use environment variables instead of hardcoding tokens in your source code.
+</Warning>
+
+## Configuration Options
+
+### Authentication
+
+The SDK supports bearer token authentication:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+Get your ingest token from [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens) in the Shinzo Platform.
+
+### Exporter Types
+
+#### HTTP Exporter (Production)
+
+The default exporter sends telemetry to the Shinzo Platform:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_type": "http",
+        "exporter_endpoint": "https://api.app.shinzo.ai/telemetry/ingest_http",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+```
+
+#### Console Exporter (Development)
+
+For local development and debugging, use the console exporter:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_type": "console",
+        "enable_metrics": False  # Console exporter doesn't support metrics
+    }
+)
+```
+
+This outputs telemetry data to stdout, making it easy to see what's being captured.
+
+### Sampling
+
+For high-volume MCP servers, you can reduce data collection by sampling:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        },
+        "sampling": {
+            "probability": 0.5  # Sample 50% of tool calls
+        }
+    }
+)
+```
+
+<Warning>
+Sampling reduces data volume but may cause you to miss important events. Use carefully in production.
+</Warning>
+
+### Metrics Configuration
+
+Control which metrics are collected:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        },
+        "enable_metrics": True,  # Enable metrics collection (default: True)
+        "metrics_interval": 60  # Export metrics every 60 seconds
+    }
+)
+```
+
+## Example: Instrumenting a Filesystem MCP Server
+
+Here's a complete example using FastMCP:
+
+```python
+import os
+from pathlib import Path
+from mcp.server.fastmcp import FastMCP
+from shinzo import instrument_server
+
+# Create FastMCP server
+mcp = FastMCP(name="filesystem-server", version="1.0.0")
+
+# Add instrumentation
+observability = instrument_server(
+    mcp,
+    config={
+        "server_name": "filesystem-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        }
+    }
+)
+
+@mcp.tool()
+def read_file(file_path: str) -> dict:
+    """Read contents of a file."""
+    try:
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        content = path.read_text()
+        return {
+            "content": content,
+            "mime_type": "text/plain",
+            "size": len(content)
+        }
+    except Exception as e:
+        raise RuntimeError(f"Failed to read file: {str(e)}")
+
+@mcp.tool()
+def list_directory(dir_path: str) -> dict:
+    """List files in a directory."""
+    try:
+        path = Path(dir_path)
+        if not path.is_dir():
+            raise ValueError(f"Not a directory: {dir_path}")
+
+        files = []
+        for item in path.iterdir():
+            files.append({
+                "name": item.name,
+                "type": "directory" if item.is_dir() else "file",
+                "size": item.stat().st_size if item.is_file() else None
+            })
+
+        return {"files": files}
+    except Exception as e:
+        raise RuntimeError(f"Failed to list directory: {str(e)}")
+
+@mcp.tool()
+def search_files(dir_path: str, pattern: str) -> dict:
+    """Search for files matching a pattern."""
+    try:
+        path = Path(dir_path)
+        if not path.is_dir():
+            raise ValueError(f"Not a directory: {dir_path}")
+
+        matches = list(path.rglob(pattern))
+        results = [str(match) for match in matches]
+
+        return {
+            "matches": results,
+            "count": len(results)
+        }
+    except Exception as e:
+        raise RuntimeError(f"Failed to search files: {str(e)}")
+
+if __name__ == "__main__":
+    mcp.run()
+```
+
+Run this server with:
+
+```bash
+SHINZO_TOKEN=your-token-here python server.py
+```
+
+## Advanced Usage
+
+### Custom Attributes
+
+Add custom attributes to telemetry data:
+
+```python
+observability = instrument_server(
+    server,
+    config={
+        "server_name": "my-mcp-server",
+        "server_version": "1.0.0",
+        "exporter_auth": {
+            "type": "bearer",
+            "token": os.getenv("SHINZO_TOKEN")
+        },
+        "attributes": {
+            "environment": os.getenv("ENV", "development"),
+            "deployment.region": "us-east-1",
+            "service.instance": os.getenv("HOSTNAME", "unknown")
+        }
+    }
+)
+```
+
+These attributes will be attached to all telemetry data, making it easier to filter and analyze in the Shinzo Platform.
+
+### Manual Span Creation
+
+For more fine-grained instrumentation, you can create custom spans:
+
+```python
+from opentelemetry import trace
+
+tracer = trace.get_tracer("my-mcp-server")
+
+@mcp.tool()
+def complex_operation(input_data: str) -> dict:
+    """A complex multi-step operation."""
+
+    # Create a custom span for a specific operation
+    with tracer.start_as_current_span("database_query") as span:
+        try:
+            result = query_database(input_data)
+            span.set_status(trace.Status(trace.StatusCode.OK))
+            return {"result": result}
+        except Exception as e:
+            span.set_status(
+                trace.Status(trace.StatusCode.ERROR, str(e))
+            )
+            span.record_exception(e)
+            raise
+```
+
+### Error Handling and Telemetry
+
+The SDK automatically captures errors, but you can add additional context:
+
+```python
+from opentelemetry import trace
+
+@mcp.tool()
+def risky_operation(input_data: str) -> dict:
+    """An operation that might fail."""
+    span = trace.get_current_span()
+
+    try:
+        # Add context before attempting risky operation
+        span.set_attribute("input.length", len(input_data))
+        span.set_attribute("operation.type", "risky")
+
+        result = perform_risky_operation(input_data)
+
+        # Add success context
+        span.set_attribute("result.status", "success")
+        return {"result": result}
+
+    except ValueError as e:
+        # Add error context
+        span.set_attribute("error.type", "validation")
+        span.record_exception(e)
+        raise
+    except Exception as e:
+        # Add error context
+        span.set_attribute("error.type", "unknown")
+        span.record_exception(e)
+        raise
+```
+
+## Troubleshooting
+
+### Not Seeing Telemetry Data?
+
+1. **Check your ingest token**: Verify it's correct in [Settings → Ingest Tokens](https://app.shinzo.ai/settings/tokens)
+2. **Test with console exporter**: Switch to `exporter_type: "console"` to see data locally
+3. **Verify network connectivity**: Ensure your server can reach `api.app.shinzo.ai`
+4. **Check for errors**: Look for error messages in your server logs
+5. **Verify tool execution**: Make sure your tools are actually being called by an agent
+
+### High Memory Usage?
+
+If telemetry is consuming too much memory:
+
+1. **Enable sampling**: Reduce data volume with `sampling: {"probability": 0.5}`
+2. **Increase export interval**: Set `metrics_interval` to a higher value (in seconds)
+3. **Disable metrics**: Set `enable_metrics: False` if you only need traces
+
+### Performance Impact?
+
+The Shinzo SDK is designed to be lightweight:
+
+- Telemetry is exported asynchronously in batches
+- Network calls are non-blocking
+- Typical overhead is < 1ms per tool call
+- Sampling can further reduce impact if needed
+
+### Import Errors?
+
+If you encounter import errors:
+
+```python
+# Make sure you have the SDK installed
+pip install shinzo
+
+# For FastMCP
+pip install fastmcp
+
+# For traditional MCP SDK
+pip install mcp
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration Reference" icon="gear" href="/sdk/python/configuration">
+    Explore all configuration options in detail.
+  </Card>
+  <Card title="MCP Dashboard" icon="chart-line" href="/platform/mcp-dashboard">
+    Learn how to analyze your MCP server data.
+  </Card>
+</CardGroup>
+
+Need help? Contact us at [austin@shinzolabs.com](mailto:austin@shinzolabs.com) or check our [GitHub repository](https://github.com/shinzo-labs/shinzo-py).
