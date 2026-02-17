@@ -1,0 +1,536 @@
+---
+title: "Agent Deployment"
+description: "Learn how to deploy and configure AI agents on the Shinzo Platform."
+---
+
+# Agent Deployment Guide
+
+Deploy autonomous AI agents on the Shinzo Platform with custom configurations, persistent storage, and external service integrations. This guide covers everything from basic deployment to advanced production configurations.
+
+## Overview
+
+Shinzo AI agents run in isolated Kubernetes environments with:
+
+- **Isolated Execution**: Each agent runs in its own container with dedicated resources
+- **Persistent Storage**: Configurable persistent volumes for files and state
+- **Task Management**: Queue and execute multiple tasks with priority scheduling
+- **Webhook Integration**: Real-time notifications for task lifecycle events
+- **MCP Support**: Connect to external services via Model Context Protocol servers
+- **Filesystem API**: Programmatic access to agent workspace files
+
+## Prerequisites
+
+Before deploying agents, ensure you have:
+
+- ✅ Shinzo Platform account with AI Agents feature enabled
+- ✅ Valid authentication (JWT token or Platform API key)
+- ✅ Anthropic API key for your agent
+- ✅ Basic understanding of agent concepts and use cases
+
+<Info>
+**Feature Access**: AI Agents is a premium feature. If you receive a `403 Forbidden` error, contact [support@shinzolabs.com](mailto:support@shinzolabs.com) to enable it for your account.
+</Info>
+
+## Quick Start
+
+### Basic Deployment
+
+Deploy a simple agent with default configuration:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-first-agent",
+    "description": "A general-purpose AI assistant",
+    "anthropic_api_key": "sk-ant-api03-..."
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "uuid": "agt_abc123def456",
+  "name": "my-first-agent",
+  "status": "active",
+  "created_at": "2026-01-15T10:00:00Z",
+  "endpoint_url": "https://agent-abc123.shinzo.ai",
+  "container_id": "k8s-pod-xyz789",
+  "platform_api_key": "sk_shinzo_auto_generated...",
+  "configuration": {
+    "timeout_seconds": 3600,
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 1024,
+      "persistence": "persistent"
+    }
+  }
+}
+```
+
+<Tip>
+**Save Your Credentials**: Store the `uuid` and `platform_api_key` securely. The API key enables Spotlight analytics and telemetry for your agent.
+</Tip>
+
+### Submit Your First Task
+
+```bash
+curl -X POST https://api.app.shinzo.ai/agent/request/agt_abc123def456 \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Analyze the files in /workspace and provide a summary"
+  }'
+```
+
+## Configuration Options
+
+### Basic Configuration
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | - | Agent name (1-100 characters) |
+| `description` | string | No | - | Agent description (max 500 characters) |
+| `anthropic_api_key` | string | Yes | - | Anthropic API key for the agent |
+| `pvc_size` | string | No | `2Gi` | Persistent volume size (e.g., `5Gi`, `10Gi`) |
+
+### Advanced Configuration
+
+```json
+{
+  "name": "production-agent",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "pvc_size": "10Gi",
+  "configuration": {
+    "timeout_seconds": 7200,
+    "mcp_servers": {
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_TOKEN": "ghp_..."
+        }
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace/data"]
+      }
+    },
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 2048,
+      "persistence": "persistent"
+    },
+    "webhooks": {
+      "task_complete": "https://myapp.com/webhooks/agent-task-complete",
+      "task_failed": "https://myapp.com/webhooks/agent-task-failed",
+      "task_awaiting_input": "https://myapp.com/webhooks/agent-needs-input",
+      "agent_error": "https://myapp.com/webhooks/agent-error"
+    }
+  }
+}
+```
+
+### Configuration Details
+
+#### Timeout Settings
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `timeout_seconds` | number | `3600` | Maximum task execution time (1-28800 seconds) |
+
+**Recommendations:**
+- **Quick tasks**: 300-900 seconds (5-15 minutes)
+- **Standard tasks**: 1800-3600 seconds (30-60 minutes)
+- **Long-running tasks**: 7200+ seconds (2+ hours)
+
+#### MCP Server Configuration
+
+Connect agents to external services via MCP servers:
+
+```json
+{
+  "mcp_servers": {
+    "server-name": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_...",
+        "GITHUB_OWNER": "my-org"
+      }
+    }
+  }
+}
+```
+
+**Popular MCP Servers:**
+
+| Server | Command | Environment Variables |
+|--------|---------|----------------------|
+| GitHub | `npx -y @modelcontextprotocol/server-github` | `GITHUB_TOKEN` |
+| Filesystem | `npx -y @modelcontextprotocol/server-filesystem <path>` | None |
+| PostgreSQL | `npx -y @modelcontextprotocol/server-postgres` | `DATABASE_URL` |
+| Slack | `npx -y @modelcontextprotocol/server-slack` | `SLACK_TOKEN` |
+
+<Warning>
+**Security**: MCP server environment variables are stored encrypted but accessible to the agent. Never share agents with untrusted parties when they contain sensitive credentials.
+</Warning>
+
+#### Memory Configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `type` | string | `hierarchical` | Memory structure: `hierarchical` or `flat` |
+| `max_size_mb` | number | `1024` | Maximum memory size in MB |
+| `persistence` | string | `persistent` | Memory persistence: `persistent` or `ephemeral` |
+
+**Memory Types:**
+- **Hierarchical**: Organized in a tree structure with topics and subtopics (recommended for complex agents)
+- **Flat**: Simple key-value storage (suitable for basic agents)
+
+**Persistence Modes:**
+- **Persistent**: Memory survives agent restarts
+- **Ephemeral**: Memory is cleared on restart (useful for testing)
+
+#### Webhook Configuration
+
+Receive real-time notifications when agent events occur:
+
+```json
+{
+  "webhooks": {
+    "task_complete": "https://myapp.com/webhooks/task-complete",
+    "task_failed": "https://myapp.com/webhooks/task-failed",
+    "task_awaiting_input": "https://myapp.com/webhooks/awaiting-input",
+    "agent_error": "https://myapp.com/webhooks/error"
+  }
+}
+```
+
+**Webhook Payload Example:**
+
+```json
+{
+  "event": "task_complete",
+  "agent_id": "agt_abc123def456",
+  "task_id": "tsk_xyz789abc123",
+  "timestamp": "2026-01-20T10:02:30Z",
+  "data": {
+    "status": "completed",
+    "result": {
+      "summary": "Task completed successfully",
+      "output": "..."
+    }
+  }
+}
+```
+
+<Tip>
+**Webhook Security**: Shinzo includes a signature header (`X-Shinzo-Signature`) in webhook requests. Verify this signature to ensure requests are authentic.
+</Tip>
+
+## Initial Files
+
+Pre-populate your agent's workspace with configuration files, documentation, or data:
+
+```json
+{
+  "initial_files": [
+    {
+      "path": "config/settings.json",
+      "content": "{\"environment\": \"production\", \"debug\": false}"
+    },
+    {
+      "path": "docs/README.md",
+      "content": "# Agent Documentation\n\nThis agent handles..."
+    },
+    {
+      "path": "data/sample.csv",
+      "content": "name,age,city\nAlice,30,NYC\nBob,25,SF",
+      "encoding": "utf-8"
+    }
+  ]
+}
+```
+
+**Use Cases:**
+- Configuration files for agent behavior
+- Documentation and instructions
+- Sample data for testing
+- Scripts and utilities
+
+## Deployment Workflows
+
+### Development Environment
+
+For development and testing:
+
+```json
+{
+  "name": "dev-agent",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "pvc_size": "2Gi",
+  "configuration": {
+    "timeout_seconds": 1800,
+    "memory_config": {
+      "type": "flat",
+      "max_size_mb": 512,
+      "persistence": "ephemeral"
+    }
+  }
+}
+```
+
+**Characteristics:**
+- ✅ Smaller storage allocation
+- ✅ Shorter timeouts
+- ✅ Ephemeral memory for clean testing
+- ✅ Minimal MCP server configuration
+
+### Production Environment
+
+For production workloads:
+
+```json
+{
+  "name": "prod-agent",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "pvc_size": "10Gi",
+  "configuration": {
+    "timeout_seconds": 7200,
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 2048,
+      "persistence": "persistent"
+    },
+    "webhooks": {
+      "task_complete": "https://myapp.com/webhooks/complete",
+      "task_failed": "https://myapp.com/webhooks/failed"
+    }
+  }
+}
+```
+
+**Characteristics:**
+- ✅ Larger storage for data and logs
+- ✅ Extended timeouts for complex tasks
+- ✅ Persistent memory for context retention
+- ✅ Webhook notifications for monitoring
+
+### Multi-Agent Deployment
+
+Deploy specialized agents for different workloads:
+
+```bash
+# Agent 1: Code Review
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer <jwt_token>" \
+  -d '{
+    "name": "code-reviewer",
+    "anthropic_api_key": "sk-ant-api03-...",
+    "configuration": {
+      "mcp_servers": {
+        "github": {...}
+      }
+    }
+  }'
+
+# Agent 2: Data Analysis
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer <jwt_token>" \
+  -d '{
+    "name": "data-analyst",
+    "anthropic_api_key": "sk-ant-api03-...",
+    "pvc_size": "20Gi",
+    "configuration": {
+      "mcp_servers": {
+        "postgres": {...}
+      }
+    }
+  }'
+
+# Agent 3: Customer Support
+curl -X POST https://api.app.shinzo.ai/agent/create \
+  -H "Authorization: Bearer <jwt_token>" \
+  -d '{
+    "name": "support-agent",
+    "anthropic_api_key": "sk-ant-api03-...",
+    "configuration": {
+      "mcp_servers": {
+        "slack": {...}
+      },
+      "webhooks": {
+        "task_awaiting_input": "https://myapp.com/webhooks/support-input"
+      }
+    }
+  }'
+```
+
+## Resource Limits
+
+Each agent is provisioned with these Kubernetes resource limits:
+
+| Resource | Request | Limit | Description |
+|----------|---------|-------|-------------|
+| **CPU** | 250m | 1000m | 0.25-1 CPU cores |
+| **Memory** | 512Mi | 2Gi | 512MB-2GB RAM |
+| **Storage** | Configurable | Max 100Gi | Persistent volume (PVC) |
+
+<Info>
+**Performance**: Agents share CPU resources but have dedicated memory and storage. Complex tasks may take longer during high platform usage.
+</Info>
+
+## Deployment Checklist
+
+Before deploying to production, verify:
+
+- [ ] **Authentication**: JWT token or API key is valid
+- [ ] **API Key**: Anthropic API key has sufficient credits
+- [ ] **Storage**: PVC size is appropriate for your workload
+- [ ] **Timeout**: Task timeout matches expected execution time
+- [ ] **MCP Servers**: External service credentials are correct
+- [ ] **Webhooks**: Webhook URLs are accessible and secured
+- [ ] **Initial Files**: Configuration files are correct
+- [ ] **Monitoring**: Observability is configured (see [Agent Observability](/platform/onboarding/agent-observability))
+
+## Common Deployment Patterns
+
+### Pattern 1: Async Processing Agent
+
+Perfect for batch processing, report generation, and scheduled tasks:
+
+```json
+{
+  "name": "batch-processor",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "pvc_size": "20Gi",
+  "configuration": {
+    "timeout_seconds": 14400,
+    "webhooks": {
+      "task_complete": "https://myapp.com/webhooks/batch-complete"
+    },
+    "mcp_servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace/data"]
+      }
+    }
+  }
+}
+```
+
+### Pattern 2: Interactive Agent
+
+Ideal for user-facing applications with real-time interaction:
+
+```json
+{
+  "name": "interactive-assistant",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "configuration": {
+    "timeout_seconds": 1800,
+    "webhooks": {
+      "task_awaiting_input": "https://myapp.com/webhooks/user-input-needed"
+    }
+  }
+}
+```
+
+### Pattern 3: Integration Agent
+
+Specialized for connecting multiple external services:
+
+```json
+{
+  "name": "integration-agent",
+  "anthropic_api_key": "sk-ant-api03-...",
+  "configuration": {
+    "mcp_servers": {
+      "github": {...},
+      "slack": {...},
+      "postgres": {...}
+    },
+    "webhooks": {
+      "task_complete": "https://myapp.com/webhooks/integration-complete",
+      "task_failed": "https://myapp.com/webhooks/integration-failed"
+    }
+  }
+}
+```
+
+## Troubleshooting
+
+### Agent Creation Failed
+
+**Error**: `403 Forbidden - AI Agents feature not enabled`
+
+**Solution**: Contact support to enable AI Agents for your account.
+
+---
+
+**Error**: `400 Bad Request - Invalid anthropic_api_key`
+
+**Solution**: Verify your Anthropic API key is valid and has sufficient credits.
+
+---
+
+**Error**: `400 Bad Request - PVC size exceeds quota`
+
+**Solution**: Request a higher storage quota or use a smaller PVC size.
+
+### Agent Not Responding
+
+**Symptoms**: Agent status is `active` but tasks are not being processed.
+
+**Solutions:**
+1. Check agent logs via the dashboard
+2. Verify Anthropic API key is valid
+3. Check MCP server configuration
+4. Restart the agent (see [Agent Management](/platform/agent-management))
+
+### Task Timeout Issues
+
+**Symptoms**: Tasks frequently timeout before completion.
+
+**Solutions:**
+1. Increase `timeout_seconds` in agent configuration
+2. Break large tasks into smaller subtasks
+3. Optimize task instructions for efficiency
+4. Check agent resource usage in dashboard
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Management" icon="sliders" href="/platform/agent-management">
+    Learn how to manage, monitor, and optimize your agents
+  </Card>
+  <Card title="Task Management API" icon="list-check" href="/api/agents/tasks">
+    Submit and manage agent tasks programmatically
+  </Card>
+  <Card title="Filesystem API" icon="folder" href="/api/agents/filesystem">
+    Access and manage agent workspace files
+  </Card>
+  <Card title="Agent Observability" icon="chart-line" href="/platform/onboarding/agent-observability">
+    Monitor agent performance and telemetry
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+1. **Start Small**: Deploy with default configuration, then scale up based on needs
+2. **Use Webhooks**: Implement webhooks for production workloads instead of polling
+3. **Monitor Resources**: Track CPU, memory, and storage usage via observability
+4. **Secure Credentials**: Store MCP server credentials in environment variables, not code
+5. **Version Configuration**: Track agent configurations in version control
+6. **Test Thoroughly**: Deploy to development environment before production
+7. **Plan Storage**: Estimate storage needs based on expected file sizes and retention
+
+## Support
+
+Need help with agent deployment?
+
+- 📧 Email: [support@shinzolabs.com](mailto:support@shinzolabs.com)
+- 📚 Documentation: [docs.shinzo.ai](https://docs.shinzo.ai)
+- 💬 Community: [Discord](https://discord.gg/shinzo)

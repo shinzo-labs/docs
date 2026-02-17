@@ -45,7 +45,9 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/dashboard"
+              "platform/dashboard",
+              "platform/agent-deployment",
+              "platform/agent-management"
             ]
           }
         ]
