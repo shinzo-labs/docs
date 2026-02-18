@@ -15,10 +15,11 @@ The Shinzo MCP Server is currently in alpha testing with select early access par
 
 The Shinzo MCP Server is an official Model Context Protocol server that provides AI agents with direct access to Shinzo Platform capabilities. Through MCP, your agents can:
 
-- **Query analytics data**: Access conversation history, token usage, and performance metrics
-- **Manage resources**: Create and configure agents, MCP servers, and API keys
-- **Monitor performance**: Retrieve real-time telemetry and observability data
-- **Automate workflows**: Trigger actions based on analytics insights
+- **Query analytics data**: Access AI session history, token usage, and cost trends
+- **Manage agents**: Create, configure, and monitor AI agents
+- **Manage MCP servers**: Register, configure, and grant agent access to MCP servers
+- **Agent messaging**: Send messages to agents and manage communication channels
+- **Agent filesystems**: Read, write, and manage files in agent workspaces
 
 ## Why Use Shinzo MCP Server?
 
@@ -26,10 +27,10 @@ The Shinzo MCP Server is an official Model Context Protocol server that provides
 
 Instead of requiring developers to manually check dashboards or write custom API integrations, the Shinzo MCP Server gives your AI agents direct access to platform capabilities. This enables:
 
-- **Self-monitoring agents**: Agents that can query their own performance metrics
+- **Self-monitoring agents**: Agents that can query their own token usage and session history
 - **Autonomous optimization**: Agents that adjust their behavior based on analytics
 - **Multi-agent coordination**: Agents that can discover and communicate with other agents
-- **Intelligent resource management**: Agents that can create and configure their own resources
+- **Intelligent resource management**: Agents that can create and configure their own MCP servers
 
 ### Built on MCP Standards
 
@@ -43,73 +44,117 @@ As an official MCP server, Shinzo integrates seamlessly with:
 
 ### Self-Monitoring Agent
 ```typescript
-// Agent queries its own conversation analytics
-const myConversations = await mcpClient.useTool("shinzo", "get-agent-analytics", {
-  agentId: "agent-abc123",
-  timeRange: "last-24h"
+// Agent queries its own token usage analytics
+const analytics = await mcpClient.callTool("get_token_analytics", {
+  start_date: "2026-02-01T00:00:00Z",
+  end_date: "2026-02-17T00:00:00Z",
+  sort: "request_timestamp",
+  limit: 50
 });
 
-// Adjust behavior based on token usage
-if (myConversations.totalTokens > 100000) {
-  // Switch to more concise responses
-}
+// Review recent AI sessions
+const sessions = await mcpClient.callTool("list_ai_sessions", {
+  limit: 10,
+  sort: "start_time",
+  sortDirection: "desc"
+});
 ```
 
 ### Multi-Agent Orchestration
 ```python
 # Discover available agents
-agents = await mcp_client.call_tool("shinzo", "list-agents")
+agents = await mcp_client.call_tool("list_agents", {
+    "status": "active",
+    "limit": 20
+})
 
-# Route request to specialized agent
-support_agent = next(a for a in agents if a["type"] == "customer-support")
-response = await mcp_client.call_tool("shinzo", "send-agent-message", {
-    "agentId": support_agent["id"],
-    "message": "Help with billing question"
+# Send a message to a specific agent
+response = await mcp_client.call_tool("send_agent_message", {
+    "agentId": agents[0]["uuid"],
+    "content": "Help with billing question",
+    "channel": "api",
+    "queue_mode": "collect"
 })
 ```
 
-### Analytics-Driven Workflow
+### MCP Server Management
 ```typescript
-// Query for high-error conversations
-const errorConversations = await mcpClient.useTool("shinzo", "search-conversations", {
-  filters: {
-    errorRate: { greaterThan: 0.1 },
-    timeRange: "last-hour"
-  }
+// Register a new MCP server for an agent
+const server = await mcpClient.callTool("create_mcp_server", {
+  name: "my-custom-server",
+  description: "Custom data retrieval server",
+  transport_type: "http",
+  url: "https://my-server.example.com/mcp"
 });
 
-// Alert team if threshold exceeded
-if (errorConversations.length > 10) {
-  await notifyTeam("High error rate detected");
-}
+// Grant an agent access to the server
+await mcpClient.callTool("grant_agent_mcp_access", {
+  serverId: server.uuid,
+  agentId: "agent-uuid-here",
+  access_mode: "all"
+});
 ```
 
 ## Available Tools
 
-The Shinzo MCP Server will provide these tools (subject to change during alpha):
+The Shinzo MCP Server provides the following tools (subject to change during alpha):
+
+### Token Analytics
+- `get_token_analytics`: Get AI token usage analytics including costs and trends
+- `list_ai_sessions`: List AI interaction sessions with optional filtering and pagination
+- `get_session_details`: Get detailed information about a specific AI session
 
 ### Agent Management
-- `list-agents`: List all agents in your workspace
-- `get-agent`: Get details about a specific agent
-- `create-agent`: Deploy a new agent
-- `update-agent`: Modify agent configuration
-- `delete-agent`: Remove an agent
+- `list_agents`: List all configured AI agents with pagination and filtering
+- `get_agent`: Get detailed information about a specific agent including filesystem summary
+- `create_agent`: Create a new AI agent with specified configuration
+- `update_agent`: Update an existing agent's configuration
+- `delete_agent`: Delete an agent and all its associated data
+- `pause_agent`: Pause an agent's execution temporarily
+- `resume_agent`: Resume a paused agent's execution
 
-### Analytics & Monitoring
-- `get-agent-analytics`: Retrieve conversation analytics for an agent
-- `search-conversations`: Search conversation history with filters
-- `get-token-usage`: Query token consumption and costs
-- `get-performance-metrics`: Retrieve latency and throughput data
+### Agent Messaging
+- `send_agent_message`: Send a message to an agent with channel selection and queue mode
+- `list_agent_messages`: List messages for an agent with optional filtering
+
+### Agent Discord Integration
+- `create_discord_link_code`: Generate a link code to pair a Discord account with an agent
+- `get_discord_status`: Check if a Discord account is linked to an agent
+- `unlink_discord`: Unlink a Discord account from an agent
+- `list_channel_bindings`: List all active channel bindings for an agent
 
 ### MCP Server Management
-- `list-mcp-servers`: List configured MCP servers
-- `get-mcp-server-stats`: Get usage statistics for MCP servers
-- `create-mcp-server`: Configure a new MCP server
+- `create_mcp_server`: Register a new MCP server (HTTP or stdio)
+- `list_mcp_servers`: List all registered MCP servers
+- `get_mcp_server`: Get detailed information about a specific MCP server
+- `update_mcp_server`: Update an MCP server's configuration
+- `delete_mcp_server`: Delete an MCP server
+- `grant_agent_mcp_access`: Grant an agent access to an MCP server's tools
+- `revoke_agent_mcp_access`: Revoke an agent's access to an MCP server
+- `list_agent_mcp_access`: List all agent access grants for an MCP server
+- `refresh_mcp_server_tools`: Refresh the list of available tools from an MCP server
+- `check_mcp_server_health`: Check the health/connectivity of an MCP server
 
-### Platform Resources
-- `list-api-keys`: List API keys in your workspace
-- `create-api-key`: Generate a new API key
-- `revoke-api-key`: Revoke an existing key
+### Agent Filesystem (Read)
+- `read_agent_file`: Read the contents of a file in an agent's filesystem
+- `list_agent_directory`: List contents of a directory in an agent's filesystem
+- `get_file_metadata`: Get metadata about a file or directory
+- `search_agent_filesystem`: Search for files or content within an agent's filesystem
+
+### Agent Filesystem (Write)
+- `create_agent_file`: Create a new file in an agent's filesystem
+- `update_agent_file`: Update the contents of an existing file
+- `delete_agent_file`: Delete a file from an agent's filesystem
+- `patch_agent_file`: Apply a partial update to a file (append, prepend, insert, replace)
+- `create_agent_directory`: Create a new directory
+- `delete_agent_directory`: Delete a directory
+- `copy_agent_path`: Copy a file or directory
+- `move_agent_path`: Move or rename a file or directory
+- `update_file_metadata`: Update metadata for a file (permissions, owner, tags)
+
+### Agent Filesystem (Archive)
+- `create_agent_archive`: Create an archive (zip, tar, tar.gz, tar.bz2) from files
+- `extract_agent_archive`: Extract an archive in an agent's filesystem
 
 ## Alpha Testing
 

@@ -25,14 +25,14 @@
           {
             "group": "Platform Overview",
             "pages": [
-              "index",
-              {
-                "group": "Concepts",
-                "pages": [
-                  "concepts/mcp",
-                  "concepts/opentelemetry"
-                ]
-              }
+              "index"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "concepts/mcp",
+              "concepts/opentelemetry"
             ]
           }
         ]
@@ -79,21 +79,21 @@
             "group": "MCP Analytics",
             "pages": [
               "quickstart",
-              {
-                "group": "TypeScript SDK",
-                "pages": [
-                  "sdk/typescript/installation",
-                  "sdk/typescript/configuration"
-                ]
-              },
-              {
-                "group": "Python SDK",
-                "pages": [
-                  "sdk/python/installation",
-                  "sdk/python/configuration"
-                ]
-              },
               "platform/dashboard"
+            ]
+          },
+          {
+            "group": "TypeScript SDK",
+            "pages": [
+              "sdk/typescript/installation",
+              "sdk/typescript/configuration"
+            ]
+          },
+          {
+            "group": "Python SDK",
+            "pages": [
+              "sdk/python/installation",
+              "sdk/python/configuration"
             ]
           }
         ]
