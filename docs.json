@@ -34,19 +34,34 @@
                 ]
               }
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Shinzo Agents",
+        "groups": [
           {
             "group": "Shinzo Agents",
             "pages": [
               "shinzo-agents"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Shinzo MCP Server",
+        "groups": [
           {
             "group": "Shinzo MCP Server",
             "pages": [
               "shinzo-mcp-server"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Agent Analytics",
+        "groups": [
           {
             "group": "Agent Analytics",
             "pages": [
@@ -54,7 +69,12 @@
               "ai-tools/anthropic-sdk",
               "platform/agent-analytics"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "MCP Analytics",
+        "groups": [
           {
             "group": "MCP Analytics",
             "pages": [
