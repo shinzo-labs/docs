@@ -23,57 +23,57 @@
         "tab": "Overview",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Platform Overview",
             "pages": [
-              "quickstart"
+              "index",
+              {
+                "group": "Concepts",
+                "pages": [
+                  "concepts/mcp",
+                  "concepts/opentelemetry"
+                ]
+              }
             ]
           },
           {
-            "group": "AI Tools",
+            "group": "Shinzo Agents",
+            "pages": [
+              "shinzo-agents"
+            ]
+          },
+          {
+            "group": "Shinzo MCP Server",
+            "pages": [
+              "shinzo-mcp-server"
+            ]
+          },
+          {
+            "group": "Agent Analytics",
             "pages": [
               "ai-tools/claude-code",
-              "ai-tools/claude-code-observability",
               "ai-tools/anthropic-sdk",
-              "ai-tools/anthropic-sdk-observability"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "pages": [
-              "concepts/mcp",
-              "concepts/opentelemetry"
-            ]
-          },
-          {
-            "group": "Platform",
-            "pages": [
-              "platform/dashboard",
-              {
-                "group": "Onboarding",
-                "pages": [
-                  "platform/onboarding/agent-observability"
-                ]
-              },
               "platform/agent-analytics"
             ]
-          }
-        ]
-      },
-      {
-        "tab": "SDK",
-        "groups": [
-          {
-            "group": "TypeScript SDK",
-            "pages": [
-              "sdk/typescript/installation",
-              "sdk/typescript/configuration"
-            ]
           },
           {
-            "group": "Python SDK",
+            "group": "MCP Analytics",
             "pages": [
-              "sdk/python/installation",
-              "sdk/python/configuration"
+              "quickstart",
+              {
+                "group": "TypeScript SDK",
+                "pages": [
+                  "sdk/typescript/installation",
+                  "sdk/typescript/configuration"
+                ]
+              },
+              {
+                "group": "Python SDK",
+                "pages": [
+                  "sdk/python/installation",
+                  "sdk/python/configuration"
+                ]
+              },
+              "platform/dashboard"
             ]
           }
         ]
