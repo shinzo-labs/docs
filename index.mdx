@@ -1,89 +1,102 @@
 ---
 title: "Welcome to the Shinzo Platform"
-description: "Product analytics and services for Model Context Protocol (MCP) server maintainers."
+description: "Easy-to-use, reliable agent infrastructure and observability for developers."
 ---
 
-# Complete Observability for MCP Servers
+# Agent Infrastructure for Developers
 
-Shinzo is the first observability solution purpose-built for MCP servers on an OpenTelemetry foundation. Gain insight into agent usage patterns, contextualize tool calls, and track performance of your servers across MCP clients.
+Shinzo provides the tools you need to deploy, manage, and observe AI agents in production. From one-click agent deployments to full conversation analytics, Shinzo makes it easy to build and run reliable AI agents at scale.
 
-<video autoPlay muted loop playsInline className="w-full aspect-video rounded-xl" src="https://shinzo.ai/videos/DashboardDemo.mp4"></video>
+<video autoPlay muted loop playsInline className="w-full aspect-video rounded-xl" src="https://shinzo.ai/videos/AIAgentAnalyticsDemo.mp4"></video>
 
-## Quick Start
-
-Instrument your MCP server and start sending data to the Shinzo Platform in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our quick start guide to instrument your first MCP server.
-</Card>
-
-## Core Platform Features
-
-Everything you need to monitor, debug, and optimize your MCP servers.
+## Get Started
 
 <CardGroup cols={2}>
   <Card
-    title="TypeScript SDK"
-    icon="code"
-    href="/sdk/typescript/installation"
+    title="Deploy an Agent"
+    icon="robot"
+    href="/shinzo-agents"
+    horizontal
   >
-    One-line instrumentation for TypeScript/JavaScript MCP servers with comprehensive telemetry.
+    Create and manage AI agents with built-in messaging, MCP server access, and persistent storage.
   </Card>
   <Card
-    title="Python SDK"
-    icon="python"
-    href="/sdk/python/installation"
-  >
-    Automatic instrumentation for Python MCP servers with FastMCP and Traditional MCP support.
-  </Card>
-  <Card
-    title="Real-time Dashboard"
+    title="Agent Analytics"
     icon="chart-line"
-    href="/platform/dashboard"
+    href="/ai-tools/claude-code"
+    horizontal
   >
-    Monitor your MCP servers with live metrics, traces, and resource utilization.
+    Add observability to Claude Code or the Anthropic SDK in minutes.
+  </Card>
+</CardGroup>
+
+## Core Platform Features
+
+Everything you need to deploy, monitor, and optimize AI agents.
+
+<CardGroup cols={2}>
+  <Card
+    title="Shinzo Agents"
+    icon="robot"
+    href="/shinzo-agents"
+  >
+    Deploy and manage AI agents with persistent filesystems, MCP server access, and multi-channel messaging.
+  </Card>
+  <Card
+    title="Agent Analytics"
+    icon="chart-line"
+    href="/platform/agent-analytics"
+  >
+    Track conversations, token usage, costs, and performance across your agents.
+  </Card>
+  <Card
+    title="Shinzo MCP Server"
+    icon="server"
+    href="/shinzo-mcp-server"
+  >
+    Give your agents direct access to platform capabilities through MCP.
+  </Card>
+  <Card
+    title="MCP Server Observability"
+    icon="puzzle-piece"
+    href="/quickstart"
+  >
+    Instrument your MCP servers with our TypeScript or Python SDK for full telemetry.
   </Card>
 </CardGroup>
 
 ## Key Benefits
 
-Why developers choose Shinzo Platform for MCP observability.
+Why developers choose Shinzo for agent infrastructure.
 
 <CardGroup cols={2}>
   <Card
-    title="MCP-Native Observability"
-    icon="bullseye"
+    title="Deploy in Minutes"
+    icon="rocket"
   >
-    Purpose-built for MCP server monitoring with understanding of tools, resources, and prompts.
+    Go from zero to a running agent with a single API call. No Kubernetes expertise required.
   </Card>
   <Card
-    title="OpenTelemetry Compatible"
-    icon="link"
+    title="Full Observability"
+    icon="eye"
   >
-    Leverage industry-standard telemetry while adding MCP-specific insights.
+    See every conversation, tool call, and token across your agents and MCP servers.
   </Card>
   <Card
-    title="Zero-Configuration Setup"
+    title="Multi-Channel Messaging"
+    icon="comments"
+  >
+    Connect agents to Discord, Slack, WhatsApp, or your own API with built-in channel bindings.
+  </Card>
+  <Card
+    title="MCP-Native"
     icon="plug"
   >
-    Plug in our TypeScript or Python SDK in minutes - no complex configuration required.
-  </Card>
-  <Card
-    title="Privacy-First Design"
-    icon="shield"
-  >
-    Built-in PII sanitization and configurable data processing to keep you compliant.
+    First-class support for Model Context Protocol — manage, proxy, and observe MCP servers.
   </Card>
 </CardGroup>
 
 ## Learn More
-
-Deep dive into the concepts powering Shinzo Platform.
 
 <CardGroup cols={2}>
   <Card
@@ -99,5 +112,19 @@ Deep dive into the concepts powering Shinzo Platform.
     href="/concepts/opentelemetry"
   >
     Understand how we leverage OpenTelemetry standards for MCP.
+  </Card>
+  <Card
+    title="API Reference"
+    icon="book"
+    href="/api/overview"
+  >
+    Explore the full Shinzo REST API for agents, analytics, and telemetry.
+  </Card>
+  <Card
+    title="Contact Support"
+    icon="envelope"
+    href="mailto:austin@shinzolabs.com"
+  >
+    Get help or request early access to advanced features.
   </Card>
 </CardGroup>
