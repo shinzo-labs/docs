@@ -1,0 +1,40 @@
+---
+title: "Delete File"
+description: "Delete a file from an agent's workspace."
+api: "DELETE /v1/agent/{agentId}/filesystem/files/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `agentId` | string | Yes | Agent UUID |
+| `path` | string | Yes | File path within the agent workspace (wildcard segment) |
+
+## Example Request
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/data/output.txt" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "File deleted successfully"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | File deleted successfully |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or file not found |

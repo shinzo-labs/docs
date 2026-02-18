@@ -1,0 +1,70 @@
+---
+title: "Send Message"
+description: "Send a message to an agent."
+api: "POST /v1/agent/{id}/messages"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Agent UUID |
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `content` | string | Yes | Message content |
+| `metadata` | object | No | Arbitrary metadata to attach to the message |
+| `channel` | string | No | Channel to send through: `api` (default), `discord`, `slack`, or `whatsapp` |
+| `queue_mode` | string | No | Queue behavior: `collect` (default) or `interrupt` |
+
+### Queue Modes
+
+| Mode | Description |
+|------|-------------|
+| `collect` | Batches the message for processing when the agent finishes its current task. This is the default behavior. |
+| `interrupt` | Cancels the agent's current task and processes your message immediately. |
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/messages \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Review the code in /workspace/src and provide feedback",
+    "metadata": {
+      "project": "frontend-app"
+    },
+    "queue_mode": "collect"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": "msg_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "role": "user",
+  "content": "Review the code in /workspace/src and provide feedback",
+  "status": "pending",
+  "channel": "api",
+  "queue_mode": "collect",
+  "created_at": "2025-01-20T10:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Message sent successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |
+| `503` | Agent unavailable (stopped or error state) |

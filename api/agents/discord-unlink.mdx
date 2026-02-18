@@ -1,0 +1,42 @@
+---
+title: "Unlink Discord"
+description: "Remove a Discord channel binding from an agent."
+api: "DELETE /v1/agent/{id}/discord/unlink"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Agent UUID |
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/discord/unlink \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Discord account unlinked successfully"
+}
+```
+
+<Note>
+After unlinking, the Discord user will no longer be able to send messages to the agent through Discord DMs. You can re-link at any time by generating a new [link code](/api/agents/discord-link).
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Discord account unlinked successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found or no Discord binding exists |

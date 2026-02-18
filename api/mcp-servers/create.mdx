@@ -1,0 +1,81 @@
+---
+title: "Create MCP Server"
+description: "Register a new MCP server for use with your agents."
+api: "POST /v1/mcp/servers"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Server name (1-100 characters) |
+| `description` | string | No | Description of the server (max 500 characters) |
+| `transport_type` | string | No | Transport type: `stdio` or `http` (default: `stdio`) |
+| `hosting_mode` | string | No | Hosting mode: `shared` or `isolated` (default: `shared`, ignored for HTTP servers) |
+| `configuration` | object | No | Additional configuration options |
+
+### Stdio Server Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `command` | string | Yes | Command to run the server |
+| `args` | array | No | Command arguments |
+| `env` | object | No | Environment variables (stored encrypted) |
+
+### HTTP Server Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `url` | string | Yes | Endpoint URL for the server |
+| `headers` | object | No | HTTP headers, such as authentication headers (stored encrypted) |
+
+<Warning>
+Sensitive values in `env` and `headers` are encrypted at rest. They are never returned in API responses after creation.
+</Warning>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github-mcp",
+    "description": "GitHub MCP Server",
+    "transport_type": "http",
+    "url": "https://mcp.github.com/sse",
+    "headers": {
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
+    }
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "github-mcp",
+  "description": "GitHub MCP Server",
+  "endpoint_url": "https://mcp.github.com/sse",
+  "transport_type": "http",
+  "hosting_mode": "remote",
+  "status": "active",
+  "health_status": "unknown",
+  "created_at": "2026-01-15T10:00:00Z",
+  "updated_at": "2026-01-15T10:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | MCP server created successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `409` | Server with that name already exists |

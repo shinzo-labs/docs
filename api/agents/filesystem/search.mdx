@@ -1,0 +1,112 @@
+---
+title: "Search Files"
+description: "Search for files by name or content within an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/operations/search"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `agentId` | string | Yes | Agent UUID |
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `pattern` | string | Yes | Search pattern (glob for filenames, regex for content) |
+| `path` | string | No | Base path to search from (defaults to workspace root) |
+| `content_search` | boolean | No | Search file contents instead of filenames |
+| `case_sensitive` | boolean | No | Enable case-sensitive matching |
+| `max_results` | number | No | Maximum results to return (1-1000, default: `100`) |
+
+## Example Request
+
+Search for files by name:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/operations/search" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pattern": "*.json",
+    "path": "/workspace/config",
+    "max_results": 50
+  }'
+```
+
+Search file contents:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/operations/search" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pattern": "TODO",
+    "content_search": true,
+    "case_sensitive": false
+  }'
+```
+
+## Response
+
+```json
+{
+  "results": [
+    {
+      "path": "/workspace/config/settings.json",
+      "type": "file",
+      "size": 256
+    },
+    {
+      "path": "/workspace/config/env.json",
+      "type": "file",
+      "size": 128
+    }
+  ],
+  "total": 2
+}
+```
+
+For content searches, results include match details:
+
+```json
+{
+  "results": [
+    {
+      "path": "/workspace/src/index.js",
+      "type": "file",
+      "size": 1024,
+      "matches": [
+        "// TODO: implement error handling"
+      ]
+    }
+  ],
+  "total": 1
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `results` | array | List of matching files |
+| `results[].path` | string | File path |
+| `results[].type` | string | Entry type (`file` or `directory`) |
+| `results[].size` | number | File size in bytes |
+| `results[].matches` | array | Matching content lines (content search only) |
+| `total` | number | Total number of results |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Search completed successfully |
+| `400` | Invalid request body or pattern |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent not found |

@@ -1,0 +1,59 @@
+---
+title: "List Agent Access"
+description: "List all agents that have access to an MCP server."
+api: "GET /v1/mcp/servers/{id}/access"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | MCP server UUID |
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890/access \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+[
+  {
+    "id": "grant-uuid-1",
+    "agent": {
+      "uuid": "agt-uuid-1",
+      "name": "code-review-agent",
+      "status": "active"
+    },
+    "access_mode": "all",
+    "allowed_tools": null,
+    "enabled": true
+  },
+  {
+    "id": "grant-uuid-2",
+    "agent": {
+      "uuid": "agt-uuid-2",
+      "name": "data-agent",
+      "status": "paused"
+    },
+    "access_mode": "selected",
+    "allowed_tools": ["create_issue", "list_issues"],
+    "enabled": true
+  }
+]
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |

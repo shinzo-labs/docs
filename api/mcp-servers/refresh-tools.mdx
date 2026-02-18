@@ -1,0 +1,73 @@
+---
+title: "Refresh Tools"
+description: "Refresh the list of available tools from an MCP server."
+api: "POST /v1/mcp/servers/{id}/tools/refresh"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | MCP server UUID |
+
+## Description
+
+Queries the MCP server's `tools/list` endpoint and updates the cached tool list. This is useful when the server has added or removed tools since it was first registered.
+
+No request body is required.
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890/tools/refresh \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "tools": [
+    {
+      "name": "create_issue",
+      "description": "Create a new issue in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "owner": { "type": "string" },
+          "repo": { "type": "string" },
+          "title": { "type": "string" },
+          "body": { "type": "string" }
+        },
+        "required": ["owner", "repo", "title"]
+      }
+    },
+    {
+      "name": "list_issues",
+      "description": "List issues in a GitHub repository",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "owner": { "type": "string" },
+          "repo": { "type": "string" },
+          "state": { "type": "string" }
+        },
+        "required": ["owner", "repo"]
+      }
+    }
+  ]
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Tools refreshed successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
+| `502` | Failed to connect to the MCP server |

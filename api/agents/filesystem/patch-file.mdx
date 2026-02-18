@@ -1,0 +1,80 @@
+---
+title: "Patch File"
+description: "Apply a partial update to a file in an agent's workspace."
+api: "PATCH /v1/agent/{agentId}/filesystem/files/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `agentId` | string | Yes | Agent UUID |
+| `path` | string | Yes | File path within the agent workspace (wildcard segment) |
+
+## Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `operation` | string | Yes | Patch operation: `append`, `prepend`, or `replace` |
+| `content` | string | Yes | Content to apply |
+| `encoding` | string | No | Content encoding (`utf-8` or `base64`, default: `utf-8`) |
+| `position` | number | No | Byte offset for `replace` operations |
+
+## Example Request
+
+Append content to the end of a file:
+
+```bash
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/logs/app.log" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "append",
+    "content": "\n2025-01-20 12:30:00 INFO Task completed"
+  }'
+```
+
+Replace content at a specific byte offset:
+
+```bash
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/data/config.txt" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "replace",
+    "content": "new_value",
+    "position": 128
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/logs/app.log",
+  "size": 2048,
+  "updated_at": "2025-01-20T12:30:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the patched file |
+| `size` | number | New file size in bytes |
+| `updated_at` | string | Update timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | File patched successfully |
+| `400` | Invalid request body or operation |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or file not found |

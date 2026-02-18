@@ -1,0 +1,298 @@
+---
+title: "MCP Server Management"
+description: "Register, configure, and manage MCP servers for your AI agents."
+---
+
+## Overview
+
+MCP (Model Context Protocol) servers extend your agents' capabilities by connecting them to external tools and services. You can register MCP servers that communicate via **stdio** (local process) or **HTTP** (remote endpoint), then grant specific agents access to use their tools.
+
+The Shinzo Platform handles server lifecycle management, credential encryption, health monitoring, and tool discovery for you.
+
+## Registering MCP Servers
+
+Register a new MCP server with `POST /v1/mcp/servers`.
+
+### Stdio Server
+
+Stdio servers run as local processes. You provide the command to execute, arguments, and environment variables:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github-mcp",
+    "description": "GitHub integration for repository management",
+    "transport_type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxxxxxx"
+    },
+    "hosting_mode": "shared"
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | Yes | Unique server name (1-100 characters) |
+| `description` | string | No | Description of the server (max 500 characters) |
+| `transport_type` | enum | No | `"stdio"` (default) or `"http"` |
+| `command` | string | Yes (stdio) | Command to run |
+| `args` | array | No | Command arguments |
+| `env` | object | No | Environment variables (encrypted at rest) |
+| `hosting_mode` | enum | No | `"shared"` (default) or `"isolated"` |
+
+### HTTP Server
+
+HTTP servers connect to remote endpoints. You provide the URL and any authentication headers:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "custom-api-server",
+    "description": "Custom internal API tools",
+    "transport_type": "http",
+    "url": "https://mcp.your-company.com/sse",
+    "headers": {
+      "Authorization": "Bearer your-api-key"
+    }
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `url` | string | Yes (http) | Endpoint URL for the MCP server |
+| `headers` | object | No | HTTP headers (encrypted at rest) |
+
+<Info>
+HTTP servers also support OAuth-based authentication. When configured, the platform handles token refresh and credential management automatically.
+</Info>
+
+### Hosting Modes
+
+| Mode | Description |
+|------|-------------|
+| `shared` | The server process is shared across agents that have access. More resource-efficient. |
+| `isolated` | Each agent gets its own dedicated server process. Use when agents need independent state. |
+
+<Warning>
+Environment variables and HTTP headers are encrypted at rest, but you should still follow the principle of least privilege. Only provide the credentials each server actually needs.
+</Warning>
+
+## Listing Servers
+
+Retrieve your registered MCP servers with `GET /v1/mcp/servers`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers?page=1&limit=20&status=active" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | number | `1` | Page number |
+| `limit` | number | `20` | Results per page (max 100) |
+| `status` | enum | — | Filter by status: `active`, `inactive`, `error`, `deploying` |
+
+## Getting Server Details
+
+Retrieve a specific server's configuration and access grants with `GET /v1/mcp/servers/:id`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the server's configuration and a list of agents that have been granted access.
+
+## Updating Servers
+
+Update a server's configuration with `PUT /v1/mcp/servers/:id`:
+
+```bash
+curl -X PUT "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Updated description",
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_new_token"
+    },
+    "status": "active"
+  }'
+```
+
+You can update the name, description, command, args, env, url, headers, configuration, or status.
+
+## Deleting Servers
+
+Remove a registered MCP server with `DELETE /v1/mcp/servers/:id`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+<Warning>
+Deletion fails if any agents still have active access grants for this server. Revoke all agent access before deleting.
+</Warning>
+
+## Health Checks
+
+Check the connectivity and responsiveness of a server with `GET /v1/mcp/servers/:id/health`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/health" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the server's status and response latency, helping you diagnose connectivity issues.
+
+## Tool Refresh
+
+Query a server's `tools/list` endpoint to update the set of available tools with `POST /v1/mcp/servers/:id/tools/refresh`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/tools/refresh" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Run this after updating a server's configuration or deploying a new version of the underlying MCP server to ensure the platform has an up-to-date list of available tools.
+
+## Access Management
+
+Control which agents can use an MCP server by managing access grants.
+
+### Grant Access
+
+Grant an agent access to a server with `POST /v1/mcp/servers/:id/access`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "all"
+  }'
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `agent_uuid` | string | Yes | — | UUID of the agent to grant access to |
+| `access_mode` | enum | No | `"all"` | `"all"` grants access to every tool; `"selected"` restricts to specific tools |
+| `allowed_tools` | array | If `selected` | — | List of tool names the agent is allowed to use |
+
+To restrict an agent to specific tools:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "selected",
+    "allowed_tools": ["create_issue", "list_issues", "get_issue"]
+  }'
+```
+
+<Tip>
+Use `selected` access mode with `allowed_tools` in production to follow the principle of least privilege. Only grant agents access to the specific tools they need.
+</Tip>
+
+### List Access Grants
+
+See which agents have access to a server with `GET /v1/mcp/servers/:id/access`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Revoke Access
+
+Remove an agent's access with `DELETE /v1/mcp/servers/:id/access/:agentId`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access/AGENT_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## Example: GitHub Integration
+
+This example walks through registering a GitHub MCP server and granting an agent access to it.
+
+**Step 1:** Register the GitHub MCP server:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github",
+    "description": "GitHub repository and issue management",
+    "transport_type": "stdio",
+    "command": "npx",
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxxxxxx"
+    }
+  }'
+```
+
+**Step 2:** Grant your agent access with selected tools:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/GITHUB_SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "selected",
+    "allowed_tools": [
+      "create_issue",
+      "list_issues",
+      "create_pull_request",
+      "get_file_contents"
+    ]
+  }'
+```
+
+**Step 3:** Verify connectivity:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/GITHUB_SERVER_ID/health" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Your agent can now use the GitHub tools in its conversations.
+
+## Best Practices
+
+- **Encrypt credentials properly.** Always pass secrets through `env` (for stdio) or `headers` (for HTTP). Never hardcode credentials in command arguments.
+- **Use `selected` access mode in production.** Restrict agents to only the tools they need rather than granting blanket `all` access.
+- **Run health checks after configuration changes.** Verify server connectivity whenever you update credentials, URLs, or commands.
+- **Refresh tools after server updates.** When the underlying MCP server is updated with new tools, call the tool refresh endpoint to update the platform's tool registry.
+- **Use isolated hosting for stateful servers.** If your MCP server maintains per-session state, use `isolated` hosting mode to prevent agents from interfering with each other.
+- **Revoke access before deleting servers.** Clean up all agent access grants before removing a server to avoid errors.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
+    Configure agents and connect them to MCP servers.
+  </Card>
+  <Card title="Channel Integrations" icon="hashtag" href="/agents/channels">
+    Connect your agents to Discord and other platforms.
+  </Card>
+  <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
+    Manage files in agent workspaces.
+  </Card>
+  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
+    Send messages and manage conversations.
+  </Card>
+</CardGroup>

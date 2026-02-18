@@ -1,0 +1,47 @@
+---
+title: "Delete Directory"
+description: "Delete a directory from an agent's workspace."
+api: "DELETE /v1/agent/{agentId}/filesystem/directories/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `agentId` | string | Yes | Agent UUID |
+| `path` | string | Yes | Directory path within the agent workspace (wildcard segment) |
+
+## Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `recursive` | boolean | No | Delete the directory and all its contents recursively |
+
+## Example Request
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/directories/workspace/data/exports?recursive=true" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Directory deleted successfully"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Directory deleted successfully |
+| `400` | Directory is not empty and `recursive` is not set to `true` |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or directory not found |

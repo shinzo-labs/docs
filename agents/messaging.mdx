@@ -1,0 +1,178 @@
+---
+title: "Agent Messaging"
+description: "Send messages to agents and manage conversations across multiple channels."
+---
+
+## Overview
+
+The Shinzo agent messaging system lets you send messages to agents and retrieve conversation history across multiple channels. Agents support communication through the API, Discord, Slack, and WhatsApp. Messages are automatically routed back through the channel they originated from.
+
+## Sending Messages
+
+Send a message to an agent with `POST /v1/agent/:id/messages`:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Summarize the latest project updates.",
+    "channel": "api",
+    "queue_mode": "collect"
+  }'
+```
+
+### Request Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `content` | string | Yes | — | The message text to send to the agent |
+| `metadata` | object | No | — | Arbitrary key-value metadata to attach to the message |
+| `channel` | enum | No | `"api"` | Channel to send through: `api`, `discord`, `slack`, or `whatsapp` |
+| `queue_mode` | enum | No | `"collect"` | How to handle messages when the agent is busy: `collect` or `interrupt` |
+
+### Response Format
+
+A successful request returns the created message object:
+
+```json
+{
+  "id": "msg_abc123",
+  "role": "user",
+  "content": "Summarize the latest project updates.",
+  "status": "pending",
+  "channel": "api",
+  "queue_mode": "collect",
+  "created_at": "2026-02-18T10:30:00Z"
+}
+```
+
+## Listing Messages
+
+Retrieve conversation history with `GET /v1/agent/:id/messages`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages?limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | `50` | Number of messages to return (1-100) |
+| `before` | string | — | Return messages before this message UUID (cursor) |
+| `after` | string | — | Return messages after this message UUID (cursor) |
+| `status` | enum | — | Filter by status: `pending`, `delivered`, or `read` |
+| `channel` | enum | — | Filter by channel: `api`, `discord`, `slack`, or `whatsapp` |
+
+### Response Format
+
+```json
+{
+  "messages": [
+    {
+      "id": "msg_abc123",
+      "role": "user",
+      "content": "Summarize the latest project updates.",
+      "status": "delivered",
+      "channel": "api",
+      "queue_mode": "collect",
+      "reply_to_id": null,
+      "created_at": "2026-02-18T10:30:00Z",
+      "delivered_at": "2026-02-18T10:30:01Z",
+      "read_at": null
+    },
+    {
+      "id": "msg_def456",
+      "role": "assistant",
+      "content": "Here is a summary of the latest project updates...",
+      "status": "delivered",
+      "channel": "api",
+      "queue_mode": null,
+      "reply_to_id": "msg_abc123",
+      "created_at": "2026-02-18T10:30:05Z",
+      "delivered_at": "2026-02-18T10:30:05Z",
+      "read_at": null
+    }
+  ],
+  "has_more": false
+}
+```
+
+### Cursor-Based Pagination
+
+Use the `before` and `after` parameters with message UUIDs to paginate through results. To fetch the next page, pass the last message's `id` as the `after` parameter:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages?after=msg_def456&limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Continue paginating until `has_more` is `false`.
+
+## Message States
+
+Messages transition through three states:
+
+| State | Description |
+|-------|-------------|
+| `pending` | Message has been received and is queued for processing |
+| `delivered` | Message has been delivered to the agent or sent back to the user |
+| `read` | Message has been read/acknowledged |
+
+## Queue Modes
+
+Queue modes control how the agent handles incoming messages when it is already processing a task.
+
+### Collect Mode
+
+```json
+{ "queue_mode": "collect" }
+```
+
+Messages are batched in the agent's queue while it processes the current task. Once the agent finishes, it picks up all queued messages together. This is the default behavior and is ideal for most use cases.
+
+<Tip>
+Use `collect` mode when message order matters or when you want to batch related requests. The agent processes all collected messages as a group once it becomes available.
+</Tip>
+
+### Interrupt Mode
+
+```json
+{ "queue_mode": "interrupt" }
+```
+
+The agent's current task is cancelled immediately, and the new message is processed right away. Use this for high-priority messages that cannot wait.
+
+<Warning>
+Interrupt mode cancels the agent's in-progress work. Any partial results from the interrupted task may be lost. Use this only when the new message genuinely takes priority.
+</Warning>
+
+## Channel Routing
+
+When a message arrives through a specific channel (for example, Discord), the agent's response is automatically routed back through that same channel. You do not need to specify the return channel -- the platform handles this for you.
+
+This means:
+- A message sent via the API receives its response via the API
+- A message sent via Discord receives its response as a Discord message
+- The same agent can handle conversations across multiple channels simultaneously
+
+## Best Practices
+
+- **Use `collect` mode by default.** Reserve `interrupt` for genuinely urgent messages that cannot wait for the current task to finish.
+- **Attach metadata for traceability.** Include request IDs, user identifiers, or other context in the `metadata` field to correlate messages with your application logic.
+- **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
+- **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
+- **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Channel Integrations" icon="hashtag" href="/agents/channels">
+    Connect your agents to Discord and other messaging platforms.
+  </Card>
+  <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
+    Configure agent behavior, memory, and runtime settings.
+  </Card>
+</CardGroup>

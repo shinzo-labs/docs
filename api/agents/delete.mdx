@@ -1,52 +1,55 @@
 ---
 title: "Delete Agent"
-description: "Delete an existing agent and its resources."
-api: "POST /agent/delete/:id"
+description: "Permanently delete an agent and all associated data."
+api: "POST /v1/agent/delete/{id}"
 ---
-
-# Delete Agent
-
-Permanently delete an agent and all its associated resources including persistent storage.
-
-## Endpoint
-
-```
-POST /agent/delete/:id
-```
 
 ## Authentication
 
-Requires JWT token or Platform API key.
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
 ## Path Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | string | Agent UUID |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Agent UUID |
 
 ## Request Body
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `force` | boolean | false | Force delete even if agent has running tasks |
+| `force` | boolean | `false` | Force deletion even if the agent is currently active |
 
 ## Example Request
 
 ```bash
-curl -X POST https://api.app.shinzo.ai/agent/delete/agt_abc123def456 \
-  -H "Authorization: Bearer <jwt_token>" \
+curl -X POST https://api.app.shinzo.ai/v1/agent/delete/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-## Response
+## Example Response
 
 ```json
 {
-  "message": "Agent deleted successfully",
-  "uuid": "agt_abc123def456",
-  "deleted_at": "2025-01-20T16:00:00Z"
+  "message": "Agent deleted successfully"
 }
+```
+
+<Warning>
+This action is permanent and cannot be undone. All agent data -- including files, message history, MCP server access grants, and configuration -- will be permanently deleted.
+</Warning>
+
+## Force Delete
+
+If the agent is currently active, you can force deletion by setting `force` to `true`:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/delete/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"force": true}'
 ```
 
 ## Status Codes
@@ -54,25 +57,6 @@ curl -X POST https://api.app.shinzo.ai/agent/delete/agt_abc123def456 \
 | Code | Description |
 |------|-------------|
 | `200` | Agent deleted successfully |
-| `401` | Invalid authentication |
-| `403` | AI Agents feature not enabled |
+| `401` | Unauthorized - invalid or missing authentication |
+| `403` | AI Agents feature not enabled for your account |
 | `404` | Agent not found |
-| `409` | Agent has running tasks (use `force: true` to override) |
-
-<Warning>
-This action is permanent and cannot be undone. All agent data including files, task history, and configuration will be deleted.
-</Warning>
-
-## Force Delete
-
-If the agent has running tasks, you must either:
-
-1. Cancel the running tasks first
-2. Use `force: true` in the request body to delete anyway
-
-```bash
-curl -X POST https://api.app.shinzo.ai/agent/delete/agt_abc123def456 \
-  -H "Authorization: Bearer <jwt_token>" \
-  -H "Content-Type: application/json" \
-  -d '{"force": true}'
-```

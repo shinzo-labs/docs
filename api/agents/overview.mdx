@@ -3,28 +3,27 @@ title: "AI Agents Overview"
 description: "Deploy and manage autonomous AI agents on the Shinzo Platform."
 ---
 
-# AI Agents
-
 The Shinzo Platform allows you to deploy and manage autonomous AI agents that can execute complex tasks. Agents run in isolated Kubernetes environments with persistent storage and can interact with external services via MCP servers.
 
 ## Features
 
-- **Kubernetes-Based**: Each agent runs in an isolated container with dedicated resources
-- **Persistent Storage**: Agents have their own persistent volume for files and state
-- **Task Management**: Submit tasks, monitor progress, and receive results via polling or webhooks
+- **Isolated Environments**: Each agent runs in its own container with dedicated resources and persistent storage
+- **Messaging**: Send messages to agents and receive responses via the API or connected channels
+- **Channel Integrations**: Connect agents to Discord (with Slack and WhatsApp coming soon)
 - **Filesystem API**: Read, write, and manage files in the agent's workspace
 - **MCP Support**: Connect agents to MCP servers for external service integration
+- **Webhooks**: Receive notifications when messages complete, fail, or when errors occur
 
 ## Authentication
 
-Agent endpoints accept either:
+All agent endpoints accept either:
 
 - **JWT Token**: `Authorization: Bearer <jwt_token>`
-- **Platform API Key**: `x-shinzo-api-key: <api_key>` or `Authorization: Bearer <api_key>`
+- **Platform API Key**: `Authorization: Bearer <api_key>`
 
 ## Feature Flag
 
-AI Agents is a feature that must be enabled for your account. If you receive a `403 Forbidden` error, contact support to enable this feature.
+AI Agents must be enabled for your account. If you receive a `403 Forbidden` error, contact support to enable this feature.
 
 ## Endpoints
 
@@ -32,50 +31,54 @@ AI Agents is a feature that must be enabled for your account. If you receive a `
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/agent/create` | POST | Deploy a new AI agent |
-| `/agent/list` | GET | List all agents |
-| `/agent/:id` | GET | Get agent details |
-| `/agent/update/:id` | POST | Update agent configuration |
-| `/agent/delete/:id` | POST | Delete an agent |
-| `/agent/:id/pause` | POST | Pause an agent |
-| `/agent/:id/resume` | POST | Resume a paused agent |
+| [`/v1/agent/create`](/api/agents/create) | POST | Deploy a new AI agent |
+| [`/v1/agent/list`](/api/agents/list) | GET | List all your agents |
+| [`/v1/agent/{id}`](/api/agents/get) | GET | Get agent details |
+| [`/v1/agent/update/{id}`](/api/agents/update) | POST | Update agent configuration |
+| [`/v1/agent/delete/{id}`](/api/agents/delete) | POST | Delete an agent |
+| [`/v1/agent/{id}/pause`](/api/agents/pause) | POST | Pause an agent |
+| [`/v1/agent/{id}/resume`](/api/agents/resume) | POST | Resume a paused agent |
 
-### Task Management
+### Messaging
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/agent/request/:id` | POST | Submit a task to an agent |
-| `/agent/:id/task/:taskId` | GET | Get task status and results |
-| `/agent/:id/task/:taskId/message` | POST | Send a message to a running task |
-| `/agent/:id/task/:taskId/cancel` | POST | Cancel a running task |
+| [`/v1/agent/{id}/messages`](/api/agents/send-message) | POST | Send a message to an agent |
+| [`/v1/agent/{id}/messages`](/api/agents/list-messages) | GET | List messages for an agent |
+
+### Channels
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| [`/v1/agent/{id}/channels`](/api/agents/list-channels) | GET | List channel bindings |
+| [`/v1/agent/{id}/discord/link`](/api/agents/discord-link) | POST | Generate a Discord link code |
+| [`/v1/agent/{id}/discord/status`](/api/agents/discord-status) | GET | Check Discord link status |
+| [`/v1/agent/{id}/discord/unlink`](/api/agents/discord-unlink) | DELETE | Unlink Discord from agent |
 
 ### Filesystem
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/agent/:agentId/filesystem/files/:path*` | GET | Read file contents |
-| `/agent/:agentId/filesystem/files/:path*` | POST | Create new file |
-| `/agent/:agentId/filesystem/files/:path*` | PUT | Update file contents |
-| `/agent/:agentId/filesystem/files/:path*` | DELETE | Delete file |
-| `/agent/:agentId/filesystem/directories/:path*` | GET | List directory |
-| `/agent/:agentId/filesystem/directories/:path*` | POST | Create directory |
+| `/v1/agent/{id}/filesystem/files/{path}` | GET | Read file contents |
+| `/v1/agent/{id}/filesystem/files/{path}` | POST | Create a new file |
+| `/v1/agent/{id}/filesystem/files/{path}` | PUT | Update file contents |
+| `/v1/agent/{id}/filesystem/files/{path}` | DELETE | Delete a file |
+| `/v1/agent/{id}/filesystem/directories/{path}` | GET | List directory contents |
+| `/v1/agent/{id}/filesystem/directories/{path}` | POST | Create a directory |
+| `/v1/agent/{id}/filesystem/directories/{path}` | DELETE | Delete a directory |
+| `/v1/agent/{id}/filesystem/metadata/{path}` | GET | Get file metadata |
+| `/v1/agent/{id}/filesystem/metadata/{path}` | PATCH | Update file metadata |
+| `/v1/agent/{id}/filesystem/operations/copy` | POST | Copy files or directories |
+| `/v1/agent/{id}/filesystem/operations/move` | POST | Move or rename files |
+| `/v1/agent/{id}/filesystem/operations/search` | POST | Search files by name or content |
+| `/v1/agent/{id}/filesystem/archives` | POST | Create an archive |
+| `/v1/agent/{id}/filesystem/archives/extract` | POST | Extract an archive |
 
 ## Agent States
 
 | State | Description |
 |-------|-------------|
-| `active` | Agent is running and ready to accept tasks |
-| `paused` | Agent is paused and won't accept new tasks |
+| `active` | Agent is running and accepting messages |
+| `paused` | Agent is paused and will not process new messages |
 | `stopped` | Agent has been stopped |
 | `error` | Agent encountered an error |
-
-## Task States
-
-| State | Description |
-|-------|-------------|
-| `queued` | Task is waiting to be processed |
-| `running` | Task is currently being executed |
-| `awaiting_input` | Task needs user input to continue |
-| `completed` | Task finished successfully |
-| `failed` | Task encountered an error |
-| `cancelled` | Task was cancelled by user |

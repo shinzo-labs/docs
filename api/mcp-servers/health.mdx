@@ -1,0 +1,54 @@
+---
+title: "Health Check"
+description: "Check the health and connectivity of an MCP server."
+api: "GET /v1/mcp/servers/{id}/health"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | MCP server UUID |
+
+## Description
+
+Pings the MCP server and measures response latency. No request body is required.
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890/health \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "status": "healthy",
+  "latency_ms": 142,
+  "last_checked": "2026-01-15T14:30:00Z"
+}
+```
+
+### Unhealthy Response
+
+```json
+{
+  "status": "unhealthy",
+  "latency_ms": null,
+  "last_checked": "2026-01-15T14:30:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Health check completed (check `status` field for result) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
