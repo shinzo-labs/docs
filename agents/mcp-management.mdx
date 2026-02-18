@@ -1,21 +1,19 @@
 ---
 title: "MCP Server Management"
-description: "Register, configure, and manage MCP servers for your AI agents."
+description: "Register, configure, and manage remote MCP servers for your AI agents."
 ---
 
 ## Overview
 
-MCP (Model Context Protocol) servers extend your agents' capabilities by connecting them to external tools and services. You can register MCP servers that communicate via **stdio** (local process) or **HTTP** (remote endpoint), then grant specific agents access to use their tools.
+MCP (Model Context Protocol) servers extend your agents' capabilities by connecting them to external tools and services. You register remote MCP servers by providing their endpoint URL and authentication headers, then grant specific agents access to use their tools.
 
-The Shinzo Platform handles server lifecycle management, credential encryption, health monitoring, and tool discovery for you.
+<Info>
+Only remote-hosted (HTTP) MCP servers are supported at the moment. The platform connects to your server's endpoint URL and handles credential encryption, health monitoring, and tool discovery for you.
+</Info>
 
 ## Registering MCP Servers
 
-Register a new MCP server with `POST /v1/mcp/servers`.
-
-### Stdio Server
-
-Stdio servers run as local processes. You provide the command to execute, arguments, and environment variables:
+Register a new MCP server with `POST /v1/mcp/servers`. Provide the server's endpoint URL and any authentication headers:
 
 ```bash
 curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
@@ -24,63 +22,29 @@ curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
   -d '{
     "name": "github-mcp",
     "description": "GitHub integration for repository management",
-    "transport_type": "stdio",
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-github"],
-    "env": {
-      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxxxxxx"
-    },
-    "hosting_mode": "shared"
-  }'
-```
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `name` | string | Yes | Unique server name (1-100 characters) |
-| `description` | string | No | Description of the server (max 500 characters) |
-| `transport_type` | enum | No | `"stdio"` (default) or `"http"` |
-| `command` | string | Yes (stdio) | Command to run |
-| `args` | array | No | Command arguments |
-| `env` | object | No | Environment variables (encrypted at rest) |
-| `hosting_mode` | enum | No | `"shared"` (default) or `"isolated"` |
-
-### HTTP Server
-
-HTTP servers connect to remote endpoints. You provide the URL and any authentication headers:
-
-```bash
-curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "custom-api-server",
-    "description": "Custom internal API tools",
     "transport_type": "http",
-    "url": "https://mcp.your-company.com/sse",
+    "url": "https://mcp.github.com/sse",
     "headers": {
-      "Authorization": "Bearer your-api-key"
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
     }
   }'
 ```
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `url` | string | Yes (http) | Endpoint URL for the MCP server |
-| `headers` | object | No | HTTP headers (encrypted at rest) |
+| `name` | string | ✅ | Unique server name (1-100 characters) |
+| `description` | string | ❌ | Description of the server (max 500 characters) |
+| `transport_type` | string | ❌ | Transport type (use `"http"`) |
+| `url` | string | ✅ | Endpoint URL for the MCP server |
+| `headers` | object | ❌ | HTTP headers, such as authentication headers (encrypted at rest) |
+| `configuration` | object | ❌ | Additional configuration options |
 
 <Info>
 HTTP servers also support OAuth-based authentication. When configured, the platform handles token refresh and credential management automatically.
 </Info>
 
-### Hosting Modes
-
-| Mode | Description |
-|------|-------------|
-| `shared` | The server process is shared across agents that have access. More resource-efficient. |
-| `isolated` | Each agent gets its own dedicated server process. Use when agents need independent state. |
-
 <Warning>
-Environment variables and HTTP headers are encrypted at rest, but you should still follow the principle of least privilege. Only provide the credentials each server actually needs.
+HTTP headers containing sensitive values are encrypted at rest and are never returned in API responses after creation.
 </Warning>
 
 ## Listing Servers
@@ -119,14 +83,14 @@ curl -X PUT "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
   -H "Content-Type: application/json" \
   -d '{
     "description": "Updated description",
-    "env": {
-      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_new_token"
+    "headers": {
+      "Authorization": "Bearer new-api-key"
     },
     "status": "active"
   }'
 ```
 
-You can update the name, description, command, args, env, url, headers, configuration, or status.
+You can update the name, description, URL, headers, configuration, or status.
 
 ## Deleting Servers
 
@@ -183,8 +147,8 @@ curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `agent_uuid` | string | Yes | — | UUID of the agent to grant access to |
-| `access_mode` | enum | No | `"all"` | `"all"` grants access to every tool; `"selected"` restricts to specific tools |
+| `agent_uuid` | string | ✅ | — | UUID of the agent to grant access to |
+| `access_mode` | enum | ❌ | `"all"` | `"all"` grants access to every tool; `"selected"` restricts to specific tools |
 | `allowed_tools` | array | If `selected` | — | List of tool names the agent is allowed to use |
 
 To restrict an agent to specific tools:
@@ -235,11 +199,10 @@ curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
   -d '{
     "name": "github",
     "description": "GitHub repository and issue management",
-    "transport_type": "stdio",
-    "command": "npx",
-    "args": ["-y", "@modelcontextprotocol/server-github"],
-    "env": {
-      "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxxxxxx"
+    "transport_type": "http",
+    "url": "https://mcp.github.com/sse",
+    "headers": {
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
     }
   }'
 ```
@@ -273,11 +236,10 @@ Your agent can now use the GitHub tools in its conversations.
 
 ## Best Practices
 
-- **Encrypt credentials properly.** Always pass secrets through `env` (for stdio) or `headers` (for HTTP). Never hardcode credentials in command arguments.
+- **Encrypt credentials properly.** Always pass secrets through `headers`. Never hardcode credentials in URLs.
 - **Use `selected` access mode in production.** Restrict agents to only the tools they need rather than granting blanket `all` access.
-- **Run health checks after configuration changes.** Verify server connectivity whenever you update credentials, URLs, or commands.
+- **Run health checks after configuration changes.** Verify server connectivity whenever you update credentials or URLs.
 - **Refresh tools after server updates.** When the underlying MCP server is updated with new tools, call the tool refresh endpoint to update the platform's tool registry.
-- **Use isolated hosting for stateful servers.** If your MCP server maintains per-session state, use `isolated` hosting mode to prevent agents from interfering with each other.
 - **Revoke access before deleting servers.** Clean up all agent access grants before removing a server to avoid errors.
 
 ## Next Steps
@@ -286,13 +248,10 @@ Your agent can now use the GitHub tools in its conversations.
   <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
     Configure agents and connect them to MCP servers.
   </Card>
-  <Card title="Channel Integrations" icon="hashtag" href="/agents/channels">
-    Connect your agents to Discord and other platforms.
+  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
+    Send messages and manage conversations.
   </Card>
   <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
     Manage files in agent workspaces.
-  </Card>
-  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
-    Send messages and manage conversations.
   </Card>
 </CardGroup>

@@ -8,19 +8,10 @@ api: "POST /v1/mcp/servers/{id}/access"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | MCP server UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `agent_uuid` | string | Yes | UUID of the agent to grant access to |
-| `access_mode` | string | No | Access mode: `all` or `selected` (default: `all`) |
-| `allowed_tools` | array | Conditional | List of tool names to allow. Required when `access_mode` is `selected` |
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+<ParamField body="agent_uuid" type="string" required>UUID of the agent to grant access to</ParamField>
+<ParamField body="access_mode" type="string" default="all">Access mode: `all` or `selected`</ParamField>
+<ParamField body="allowed_tools" type="array">List of tool names to allow. Required when `access_mode` is `selected`</ParamField>
 
 ## Example Request
 

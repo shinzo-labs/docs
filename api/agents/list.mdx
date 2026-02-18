@@ -8,15 +8,11 @@ api: "GET /v1/agent/list"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Query Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | number | `1` | Page number (min: 1) |
-| `limit` | number | `20` | Results per page (1-100) |
-| `status` | string | - | Filter by status: `active`, `paused`, `stopped`, or `error` |
-| `sort` | string | `created_at` | Sort field: `created_at`, `updated_at`, or `name` |
-| `order` | string | `desc` | Sort order: `asc` or `desc` |
+<ParamField query="page" type="number" default="1">Page number (min: 1)</ParamField>
+<ParamField query="limit" type="number" default="20">Results per page (1-100)</ParamField>
+<ParamField query="status" type="string">Filter by status: `active`, `paused`, `stopped`, or `error`</ParamField>
+<ParamField query="sort" type="string" default="created_at">Sort field: `created_at`, `updated_at`, or `name`</ParamField>
+<ParamField query="order" type="string" default="desc">Sort order: `asc` or `desc`</ParamField>
 
 ## Example Request
 

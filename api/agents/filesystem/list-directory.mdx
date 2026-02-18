@@ -8,18 +8,10 @@ api: "GET /v1/agent/{agentId}/filesystem/directories/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | Directory path within the agent workspace (wildcard segment) |
-
-## Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `recursive` | boolean | No | List directory contents recursively |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>Directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField query="recursive" type="boolean">List directory contents recursively</ParamField>
+<ParamField query="includeHidden" type="boolean">Include hidden files in the listing</ParamField>
 
 ## Example Request
 

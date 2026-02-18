@@ -8,21 +8,13 @@ api: "POST /v1/agent/{agentId}/filesystem/operations/search"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `pattern` | string | Yes | Search pattern (glob for filenames, regex for content) |
-| `path` | string | No | Base path to search from (defaults to workspace root) |
-| `content_search` | boolean | No | Search file contents instead of filenames |
-| `case_sensitive` | boolean | No | Enable case-sensitive matching |
-| `max_results` | number | No | Maximum results to return (1-1000, default: `100`) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="query" type="string" required>Search pattern (glob for filenames, regex for content)</ParamField>
+<ParamField body="type" type="string">Search type: `filename`, `content`, or `both`</ParamField>
+<ParamField body="path" type="string">Base path to search from (defaults to workspace root)</ParamField>
+<ParamField body="filePattern" type="string">Glob pattern for file matching</ParamField>
+<ParamField body="caseSensitive" type="boolean">Enable case-sensitive matching</ParamField>
+<ParamField body="maxResults" type="number">Maximum results to return</ParamField>
 
 ## Example Request
 

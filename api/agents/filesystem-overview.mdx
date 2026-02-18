@@ -1,0 +1,54 @@
+---
+title: "Agent Filesystem Overview"
+description: "Programmatic access to agent workspace files and directories."
+---
+
+# Agent Filesystem
+
+Every agent has a persistent workspace. The filesystem API gives you full programmatic access to read, write, search, and organize files within any agent's workspace.
+
+All filesystem endpoints follow the pattern: `/v1/agent/{agentId}/filesystem/...`
+
+## Endpoints
+
+### File Operations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/agent/{id}/filesystem/files/{path}`](/api/agents/filesystem/read-file) | Read a file |
+| `POST` | [`/v1/agent/{id}/filesystem/files/{path}`](/api/agents/filesystem/create-file) | Create a file |
+| `PUT` | [`/v1/agent/{id}/filesystem/files/{path}`](/api/agents/filesystem/update-file) | Update a file |
+| `DELETE` | [`/v1/agent/{id}/filesystem/files/{path}`](/api/agents/filesystem/delete-file) | Delete a file |
+| `PATCH` | [`/v1/agent/{id}/filesystem/files/{path}`](/api/agents/filesystem/patch-file) | Patch a file (append, prepend, insert, replace) |
+
+### Directory Operations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/agent/{id}/filesystem/directories/{path}`](/api/agents/filesystem/list-directory) | List directory contents |
+| `POST` | [`/v1/agent/{id}/filesystem/directories/{path}`](/api/agents/filesystem/create-directory) | Create a directory |
+| `DELETE` | [`/v1/agent/{id}/filesystem/directories/{path}`](/api/agents/filesystem/delete-directory) | Delete a directory |
+
+### Bulk Operations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/{id}/filesystem/copy`](/api/agents/filesystem/copy) | Copy files or directories |
+| `POST` | [`/v1/agent/{id}/filesystem/move`](/api/agents/filesystem/move) | Move or rename files |
+| `POST` | [`/v1/agent/{id}/filesystem/search`](/api/agents/filesystem/search) | Search by filename or content |
+
+### Metadata
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/agent/{id}/filesystem/metadata/{path}`](/api/agents/filesystem/get-metadata) | Get file metadata |
+| `PATCH` | [`/v1/agent/{id}/filesystem/metadata/{path}`](/api/agents/filesystem/update-metadata) | Update file metadata |
+
+### Archives
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/{id}/filesystem/archive`](/api/agents/filesystem/create-archive) | Create an archive |
+| `POST` | [`/v1/agent/{id}/filesystem/extract`](/api/agents/filesystem/extract-archive) | Extract an archive |
+
+For a conceptual guide, see [Filesystem Management](/agents/filesystem).

@@ -8,33 +8,15 @@ api: "POST /v1/mcp/servers"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Server name (1-100 characters) |
-| `description` | string | No | Description of the server (max 500 characters) |
-| `transport_type` | string | No | Transport type: `stdio` or `http` (default: `stdio`) |
-| `hosting_mode` | string | No | Hosting mode: `shared` or `isolated` (default: `shared`, ignored for HTTP servers) |
-| `configuration` | object | No | Additional configuration options |
-
-### Stdio Server Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `command` | string | Yes | Command to run the server |
-| `args` | array | No | Command arguments |
-| `env` | object | No | Environment variables (stored encrypted) |
-
-### HTTP Server Fields
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `url` | string | Yes | Endpoint URL for the server |
-| `headers` | object | No | HTTP headers, such as authentication headers (stored encrypted) |
+<ParamField body="name" type="string" required>Server name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">Description of the server (max 500 characters)</ParamField>
+<ParamField body="transport_type" type="string">Transport type (use `"http"`)</ParamField>
+<ParamField body="url" type="string" required>Endpoint URL for the MCP server</ParamField>
+<ParamField body="headers" type="object">HTTP headers, such as authentication headers (stored encrypted)</ParamField>
+<ParamField body="configuration" type="object">Additional configuration options</ParamField>
 
 <Warning>
-Sensitive values in `env` and `headers` are encrypted at rest. They are never returned in API responses after creation.
+Sensitive values in `headers` are encrypted at rest. They are never returned in API responses after creation.
 </Warning>
 
 ## Example Request

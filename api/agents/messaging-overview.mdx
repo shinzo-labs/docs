@@ -1,0 +1,27 @@
+---
+title: "Agent Messaging Overview"
+description: "Send messages to agents and retrieve conversation history."
+---
+
+# Agent Messaging
+
+The messaging API lets you send messages to agents and retrieve conversation history with cursor-based pagination.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/{id}/messages`](/api/agents/send-message) | Send a message to an agent |
+| `GET` | [`/v1/agent/{id}/messages`](/api/agents/list-messages) | List messages with pagination |
+
+## Key Concepts
+
+- **Queue modes**: Control how the agent handles messages when busy. `collect` batches messages (default); `interrupt` cancels the current task.
+- **Channel routing**: Messages are automatically routed back through the channel they originated from (`api` or `discord`).
+- **Cursor pagination**: Use `before` and `after` parameters with message UUIDs to paginate through history.
+
+<Info>
+**Discord** is the only external channel integration currently supported. Support for Slack, Telegram, and WhatsApp is coming soon.
+</Info>
+
+For a conceptual guide on messaging patterns, see [Agent Messaging & Channels](/agents/messaging).

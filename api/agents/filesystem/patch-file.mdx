@@ -8,21 +8,12 @@ api: "PATCH /v1/agent/{agentId}/filesystem/files/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | File path within the agent workspace (wildcard segment) |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `operation` | string | Yes | Patch operation: `append`, `prepend`, or `replace` |
-| `content` | string | Yes | Content to apply |
-| `encoding` | string | No | Content encoding (`utf-8` or `base64`, default: `utf-8`) |
-| `position` | number | No | Byte offset for `replace` operations |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="operation" type="string" required>Patch operation: `append`, `prepend`, or `replace`</ParamField>
+<ParamField body="content" type="string" required>Content to apply</ParamField>
+<ParamField body="position" type="number">Byte offset for `replace` operations</ParamField>
+<ParamField body="length" type="number">Length for `replace` operations</ParamField>
 
 ## Example Request
 

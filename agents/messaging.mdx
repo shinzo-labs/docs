@@ -1,11 +1,15 @@
 ---
-title: "Agent Messaging"
-description: "Send messages to agents and manage conversations across multiple channels."
+title: "Agent Messaging & Channels"
+description: "Send messages to agents, manage conversations, and connect channels like Discord."
 ---
 
 ## Overview
 
-The Shinzo agent messaging system lets you send messages to agents and retrieve conversation history across multiple channels. Agents support communication through the API, Discord, Slack, and WhatsApp. Messages are automatically routed back through the channel they originated from.
+The Shinzo agent messaging system lets you send messages to agents and retrieve conversation history. Agents support communication through the **API** and **Discord** channels. Messages are automatically routed back through the channel they originated from.
+
+<Info>
+**Discord** is the only external channel integration currently supported. Support for additional channels including Slack, Telegram, and WhatsApp is coming soon.
+</Info>
 
 ## Sending Messages
 
@@ -26,10 +30,10 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages \
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `content` | string | Yes | — | The message text to send to the agent |
-| `metadata` | object | No | — | Arbitrary key-value metadata to attach to the message |
-| `channel` | enum | No | `"api"` | Channel to send through: `api`, `discord`, `slack`, or `whatsapp` |
-| `queue_mode` | enum | No | `"collect"` | How to handle messages when the agent is busy: `collect` or `interrupt` |
+| `content` | string | ✅ | — | The message text to send to the agent |
+| `metadata` | object | ❌ | — | Arbitrary key-value metadata to attach to the message |
+| `channel` | enum | ❌ | `"api"` | Channel to send through: `api` or `discord` |
+| `queue_mode` | enum | ❌ | `"collect"` | How to handle messages when the agent is busy: `collect` or `interrupt` |
 
 ### Response Format
 
@@ -64,7 +68,7 @@ curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages?limit=20" \
 | `before` | string | — | Return messages before this message UUID (cursor) |
 | `after` | string | — | Return messages after this message UUID (cursor) |
 | `status` | enum | — | Filter by status: `pending`, `delivered`, or `read` |
-| `channel` | enum | — | Filter by channel: `api`, `discord`, `slack`, or `whatsapp` |
+| `channel` | enum | — | Filter by channel: `api` or `discord` |
 
 ### Response Format
 
@@ -158,6 +162,131 @@ This means:
 - A message sent via Discord receives its response as a Discord message
 - The same agent can handle conversations across multiple channels simultaneously
 
+<Info>
+An agent can maintain active conversations across multiple channels simultaneously. Each channel operates independently with its own message history.
+</Info>
+
+## Discord Integration
+
+Discord is the first fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+
+### Link Code Workflow
+
+Connecting an agent to Discord follows a simple three-step process:
+
+**Step 1: Generate a link code**
+
+Request a 6-character link code from the API with `POST /v1/agent/:id/discord/link`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/link" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the code and its expiration time:
+
+```json
+{
+  "code": "A1B2C3",
+  "expires_at": "2026-02-18T10:40:00Z"
+}
+```
+
+<Warning>
+Link codes expire after 10 minutes. If the code expires before it is used, generate a new one.
+</Warning>
+
+**Step 2: Link via Discord**
+
+Send the following command as a direct message to the **Shinzo bot** on Discord:
+
+```
+/link A1B2C3
+```
+
+The bot confirms the link and your agent is now connected to your Discord account.
+
+**Step 3: Start chatting**
+
+Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message.
+
+### Check Link Status
+
+Verify whether a Discord account is linked to your agent with `GET /v1/agent/:id/discord/status`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/status" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response when linked:
+
+```json
+{
+  "linked": true,
+  "discord_user_id": "123456789012345678",
+  "discord_username": "your-username",
+  "queue_mode": "collect",
+  "created_at": "2026-02-18T10:35:00Z"
+}
+```
+
+Response when not linked:
+
+```json
+{
+  "linked": false
+}
+```
+
+### Unlink Discord
+
+Disconnect a Discord account from your agent with `DELETE /v1/agent/:id/discord/unlink`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/unlink" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This deactivates the channel binding. The agent stops receiving messages from Discord, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
+
+### Listing Channel Bindings
+
+View all active channel bindings for an agent with `GET /v1/agent/:id/channels`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/channels" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This returns all connected channels, including API (always present) and any linked external channels:
+
+```json
+{
+  "bindings": [
+    {
+      "channel": "api",
+      "status": "active",
+      "created_at": "2026-02-18T09:00:00Z"
+    },
+    {
+      "channel": "discord",
+      "status": "active",
+      "discord_user_id": "123456789012345678",
+      "discord_username": "your-username",
+      "created_at": "2026-02-18T10:35:00Z"
+    }
+  ]
+}
+```
+
+## Use Cases for Discord Integration
+
+- **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
+- **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
+- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
+- **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
+
 ## Best Practices
 
 - **Use `collect` mode by default.** Reserve `interrupt` for genuinely urgent messages that cannot wait for the current task to finish.
@@ -165,14 +294,17 @@ This means:
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
+- **Generate link codes close to when they will be used.** Codes expire after 10 minutes, so avoid generating them far in advance.
+- **Check link status before generating new codes.** If a Discord account is already linked, you do not need a new code.
+- **Unlink before re-linking.** If you need to change the linked Discord account, unlink the current one first.
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Channel Integrations" icon="hashtag" href="/agents/channels">
-    Connect your agents to Discord and other messaging platforms.
-  </Card>
   <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
     Configure agent behavior, memory, and runtime settings.
+  </Card>
+  <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
+    Manage files in agent workspaces programmatically.
   </Card>
 </CardGroup>

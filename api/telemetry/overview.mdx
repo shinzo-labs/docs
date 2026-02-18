@@ -1,0 +1,25 @@
+---
+title: "Telemetry Overview"
+description: "Send and retrieve OpenTelemetry data from your MCP servers."
+---
+
+# Telemetry
+
+Telemetry endpoints let you ingest OpenTelemetry traces and metrics from your MCP servers, and retrieve telemetry data for analysis.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/telemetry/ingest_http`](/api/telemetry/ingest-traces) | Ingest OpenTelemetry trace data |
+| `POST` | [`/telemetry/ingest_http/v1/metrics`](/api/telemetry/ingest-metrics) | Ingest OpenTelemetry metrics |
+| `GET` | [`/telemetry/fetch_*`](/api/telemetry/fetch) | Fetch telemetry data |
+
+## SDKs
+
+While you can use the API directly for telemetry ingestion, we recommend using our official SDKs:
+
+- [TypeScript SDK](/sdk/typescript/installation) — `@shinzolabs/otel-mcp-server`
+- [Python SDK](/sdk/python/installation) — `shinzo`
+
+The SDKs handle authentication, batching, retries, and error handling automatically.

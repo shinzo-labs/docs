@@ -8,27 +8,13 @@ api: "PUT /v1/mcp/servers/{id}"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | MCP server UUID |
-
-## Request Body
-
-All fields are optional. Only include the fields you want to update.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | Server name (1-100 characters) |
-| `description` | string | Description (max 500 characters) |
-| `command` | string | Command to run (stdio servers) |
-| `args` | array | Command arguments (stdio servers) |
-| `env` | object | Environment variables (stdio servers, stored encrypted) |
-| `url` | string | Endpoint URL (HTTP servers) |
-| `headers` | object | HTTP headers (HTTP servers, stored encrypted) |
-| `status` | string | Server status: `active` or `inactive` |
-| `configuration` | object | Additional configuration options |
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+<ParamField body="name" type="string">Server name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">Description (max 500 characters)</ParamField>
+<ParamField body="url" type="string">Endpoint URL</ParamField>
+<ParamField body="headers" type="object">HTTP headers (stored encrypted)</ParamField>
+<ParamField body="status" type="string">Server status: `active` or `inactive`</ParamField>
+<ParamField body="configuration" type="object">Additional configuration options</ParamField>
 
 ## Example Request
 

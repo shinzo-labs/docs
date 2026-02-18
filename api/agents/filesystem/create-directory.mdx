@@ -8,19 +8,9 @@ api: "POST /v1/agent/{agentId}/filesystem/directories/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | Directory path within the agent workspace (wildcard segment) |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `permissions` | string | No | Directory permissions in octal format (e.g., `755`) |
-| `recursive` | boolean | No | Create parent directories if they don't exist (default: `true`) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>Directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="recursive" type="boolean">Create parent directories if they don't exist</ParamField>
 
 ## Example Request
 

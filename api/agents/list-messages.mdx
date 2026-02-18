@@ -8,21 +8,12 @@ api: "GET /v1/agent/{id}/messages"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Agent UUID |
-
-## Query Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | number | `50` | Results per page (1-100) |
-| `before` | string | - | UUID cursor -- return messages before this message ID |
-| `after` | string | - | UUID cursor -- return messages after this message ID |
-| `status` | string | - | Filter by status: `pending`, `delivered`, or `read` |
-| `channel` | string | - | Filter by channel: `api`, `discord`, `slack`, or `whatsapp` |
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField query="limit" type="number" default="50">Results per page (1-100)</ParamField>
+<ParamField query="before" type="string">UUID cursor -- return messages before this message ID</ParamField>
+<ParamField query="after" type="string">UUID cursor -- return messages after this message ID</ParamField>
+<ParamField query="status" type="string">Filter by status: `pending`, `delivered`, or `read`</ParamField>
+<ParamField query="channel" type="string">Filter by channel: `api` or `discord`</ParamField>
 
 ## Example Request
 

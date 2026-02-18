@@ -8,12 +8,8 @@ api: "DELETE /v1/mcp/servers/{id}/access/{agentId}"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | MCP server UUID |
-| `agentId` | string | Yes | Agent UUID |
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
 
 ## Example Request
 

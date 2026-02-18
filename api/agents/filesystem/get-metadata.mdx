@@ -8,12 +8,8 @@ api: "GET /v1/agent/{agentId}/filesystem/metadata/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | File or directory path within the agent workspace (wildcard segment) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File or directory path within the agent workspace (wildcard segment)</ParamField>
 
 ## Example Request
 

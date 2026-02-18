@@ -8,20 +8,10 @@ api: "PUT /v1/agent/{agentId}/filesystem/files/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | File path within the agent workspace (wildcard segment) |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `content` | string | Yes | New file content |
-| `encoding` | string | No | Content encoding (`utf-8` or `base64`, default: `utf-8`) |
-| `permissions` | string | No | File permissions in octal format (e.g., `644`) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="content" type="string" required>New file content</ParamField>
+<ParamField body="encoding" type="string" default="utf-8">Content encoding (`utf-8` or `base64`)</ParamField>
 
 ## Example Request
 

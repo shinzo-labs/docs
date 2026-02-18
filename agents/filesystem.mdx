@@ -49,9 +49,9 @@ curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/works
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `content` | string | Yes | — | File content |
-| `encoding` | enum | No | `"utf-8"` | `"utf-8"` or `"base64"` |
-| `overwrite` | boolean | No | `false` | Whether to overwrite an existing file at the same path |
+| `content` | string | ✅ | — | File content |
+| `encoding` | enum | ❌ | `"utf-8"` | `"utf-8"` or `"base64"` |
+| `overwrite` | boolean | ❌ | `false` | Whether to overwrite an existing file at the same path |
 
 ### Update a File
 
@@ -119,8 +119,8 @@ curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/work
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `operation` | enum | Yes | `"append"`, `"prepend"`, `"insert"`, or `"replace"` |
-| `content` | string | Yes | Content to apply |
+| `operation` | enum | ✅ | `"append"`, `"prepend"`, `"insert"`, or `"replace"` |
+| `content` | string | ✅ | Content to apply |
 | `position` | number | For `insert`/`replace` | Byte offset for the operation |
 | `length` | number | For `replace` | Number of bytes to replace |
 
@@ -202,9 +202,9 @@ curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/move" \
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `source` | string | Yes | Source path |
-| `destination` | string | Yes | Destination path |
-| `overwrite` | boolean | No | Whether to overwrite if the destination already exists |
+| `source` | string | ✅ | Source path |
+| `destination` | string | ✅ | Destination path |
+| `overwrite` | boolean | ❌ | Whether to overwrite if the destination already exists |
 
 ## Search
 
@@ -226,12 +226,12 @@ curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/search" \
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `query` | string | Yes | — | Search term |
-| `type` | enum | No | `"both"` | `"filename"`, `"content"`, or `"both"` |
-| `path` | string | No | — | Base directory to search from |
-| `filePattern` | string | No | — | Glob pattern to filter files (e.g., `*.json`) |
-| `caseSensitive` | boolean | No | `false` | Whether the search is case-sensitive |
-| `maxResults` | number | No | — | Maximum number of results to return |
+| `query` | string | ✅ | — | Search term |
+| `type` | enum | ❌ | `"both"` | `"filename"`, `"content"`, or `"both"` |
+| `path` | string | ❌ | — | Base directory to search from |
+| `filePattern` | string | ❌ | — | Glob pattern to filter files (e.g., `*.json`) |
+| `caseSensitive` | boolean | ❌ | `false` | Whether the search is case-sensitive |
+| `maxResults` | number | ❌ | — | Maximum number of results to return |
 
 ## Archives
 

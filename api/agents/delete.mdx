@@ -8,17 +8,8 @@ api: "POST /v1/agent/delete/{id}"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `force` | boolean | `false` | Force deletion even if the agent is currently active |
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField body="force" type="boolean" default="false">Force deletion even if the agent is currently active</ParamField>
 
 ## Example Request
 

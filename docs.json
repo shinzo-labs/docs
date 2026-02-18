@@ -9,12 +9,17 @@
   },
   "favicon": "/favicon.ico",
   "api": {
-    "baseUrl": "https://api.app.shinzo.ai",
-    "auth": {
-      "method": "bearer"
+    "mdx": {
+      "server": "https://api.app.shinzo.ai",
+      "auth": {
+        "method": "bearer"
+      }
     },
     "playground": {
-      "mode": "show"
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": ["curl"]
     }
   },
   "navigation": {
@@ -47,8 +52,7 @@
               "agents/configuration",
               "agents/messaging",
               "agents/filesystem",
-              "agents/mcp-management",
-              "agents/channels"
+              "agents/mcp-management"
             ]
           }
         ]
@@ -142,6 +146,7 @@
           {
             "group": "Agent Messaging",
             "pages": [
+              "api/agents/messaging-overview",
               "api/agents/send-message",
               "api/agents/list-messages"
             ]
@@ -149,6 +154,7 @@
           {
             "group": "Agent Channels",
             "pages": [
+              "api/agents/channels-overview",
               "api/agents/list-channels",
               "api/agents/discord-link",
               "api/agents/discord-status",
@@ -158,6 +164,7 @@
           {
             "group": "Agent Filesystem",
             "pages": [
+              "api/agents/filesystem-overview",
               "api/agents/filesystem/read-file",
               "api/agents/filesystem/create-file",
               "api/agents/filesystem/update-file",
@@ -178,6 +185,7 @@
           {
             "group": "MCP Servers",
             "pages": [
+              "api/mcp-servers/overview",
               "api/mcp-servers/create",
               "api/mcp-servers/list",
               "api/mcp-servers/get",
@@ -203,6 +211,7 @@
           {
             "group": "Tokens",
             "pages": [
+              "api/tokens/overview",
               "api/tokens/ingest",
               "api/tokens/platform-keys"
             ]
@@ -221,6 +230,7 @@
           {
             "group": "Telemetry",
             "pages": [
+              "api/telemetry/overview",
               "api/telemetry/ingest-traces",
               "api/telemetry/ingest-metrics",
               "api/telemetry/fetch"

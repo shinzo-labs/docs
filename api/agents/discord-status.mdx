@@ -8,11 +8,7 @@ api: "GET /v1/agent/{id}/discord/status"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Agent UUID |
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
 
 ## Example Request
 

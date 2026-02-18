@@ -1,0 +1,41 @@
+---
+title: "MCP Servers Overview"
+description: "Register, configure, and manage remote MCP servers for your agents."
+---
+
+# MCP Servers
+
+MCP server endpoints let you register remote MCP servers, manage their configuration, and control which agents can access their tools.
+
+<Info>
+Only remote-hosted (HTTP) MCP servers are supported at the moment.
+</Info>
+
+## Endpoints
+
+### Server Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/mcp/servers`](/api/mcp-servers/create) | Register a new MCP server |
+| `GET` | [`/v1/mcp/servers`](/api/mcp-servers/list) | List all MCP servers |
+| `GET` | [`/v1/mcp/servers/{id}`](/api/mcp-servers/get) | Get server details |
+| `PUT` | [`/v1/mcp/servers/{id}`](/api/mcp-servers/update) | Update server configuration |
+| `DELETE` | [`/v1/mcp/servers/{id}`](/api/mcp-servers/delete) | Delete a server |
+
+### Health & Tools
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/mcp/servers/{id}/tools/refresh`](/api/mcp-servers/refresh-tools) | Refresh available tools |
+| `GET` | [`/v1/mcp/servers/{id}/health`](/api/mcp-servers/health) | Check server health |
+
+### Access Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/mcp/servers/{id}/access`](/api/mcp-servers/grant-access) | Grant agent access |
+| `GET` | [`/v1/mcp/servers/{id}/access`](/api/mcp-servers/list-access) | List access grants |
+| `DELETE` | [`/v1/mcp/servers/{id}/access/{agentId}`](/api/mcp-servers/revoke-access) | Revoke agent access |
+
+For a conceptual guide, see [MCP Server Management](/agents/mcp-management).

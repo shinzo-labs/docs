@@ -41,11 +41,11 @@ The request body follows Anthropic's Messages API format. See [Anthropic's docum
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `model` | string | Yes | Model to use (e.g., `claude-sonnet-4-20250514`) |
-| `messages` | array | Yes | Array of message objects |
-| `max_tokens` | integer | Yes | Maximum tokens to generate |
-| `metadata` | object | No | Metadata including `user_id` for session tracking |
-| `stream` | boolean | No | Enable streaming responses |
+| `model` | string | ✅ | Model to use (e.g., `claude-sonnet-4-20250514`) |
+| `messages` | array | ✅ | Array of message objects |
+| `max_tokens` | integer | ✅ | Maximum tokens to generate |
+| `metadata` | object | ❌ | Metadata including `user_id` for session tracking |
+| `stream` | boolean | ❌ | Enable streaming responses |
 
 ## Example Request
 

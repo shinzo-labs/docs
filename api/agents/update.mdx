@@ -8,25 +8,14 @@ api: "POST /v1/agent/update/{id}"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Agent UUID |
-
-## Request Body
-
-All fields are optional. Only include the fields you want to update.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | string | New agent name (1-100 characters) |
-| `description` | string | New description (max 500 characters) |
-| `pvc_size` | string | New persistent volume size |
-| `system_prompt` | string | New system prompt |
-| `system_prompt_type` | string | How to apply the system prompt: `replace` or `append` |
-| `configuration` | object | Configuration updates (same structure as [Create Agent](/api/agents/create)) |
-| `files` | object | File operations to perform on the agent workspace |
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField body="name" type="string">New agent name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">New description (max 500 characters)</ParamField>
+<ParamField body="pvc_size" type="string">New persistent volume size</ParamField>
+<ParamField body="system_prompt" type="string">New system prompt</ParamField>
+<ParamField body="system_prompt_type" type="string">How to apply the system prompt: `replace` or `append`</ParamField>
+<ParamField body="configuration" type="object">Configuration updates (same structure as [Create Agent](/api/agents/create))</ParamField>
+<ParamField body="files" type="object">File operations to perform on the agent workspace</ParamField>
 
 ### File Operations
 

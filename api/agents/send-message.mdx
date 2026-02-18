@@ -8,20 +8,11 @@ api: "POST /v1/agent/{id}/messages"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `id` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `content` | string | Yes | Message content |
-| `metadata` | object | No | Arbitrary metadata to attach to the message |
-| `channel` | string | No | Channel to send through: `api` (default), `discord`, `slack`, or `whatsapp` |
-| `queue_mode` | string | No | Queue behavior: `collect` (default) or `interrupt` |
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField body="content" type="string" required>Message content</ParamField>
+<ParamField body="metadata" type="object">Arbitrary metadata to attach to the message</ParamField>
+<ParamField body="channel" type="string" default="api">Channel to send through: `api` or `discord`</ParamField>
+<ParamField body="queue_mode" type="string" default="collect">Queue behavior: `collect` or `interrupt`</ParamField>
 
 ### Queue Modes
 

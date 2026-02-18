@@ -8,13 +8,9 @@ api: "GET /v1/mcp/servers"
 
 Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Query Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `page` | number | `1` | Page number (min: 1) |
-| `limit` | number | `20` | Results per page (1-100) |
-| `status` | string | - | Filter by status: `active`, `inactive`, `error`, or `deploying` |
+<ParamField query="page" type="number" default="1">Page number (min: 1)</ParamField>
+<ParamField query="limit" type="number" default="20">Results per page (1-100)</ParamField>
+<ParamField query="status" type="string">Filter by status: `active`, `inactive`, `error`, or `deploying`</ParamField>
 
 ## Example Request
 
@@ -44,11 +40,11 @@ curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers?limit=10&status=active" \
     },
     {
       "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "name": "filesystem-mcp",
-      "description": "Local filesystem access",
-      "endpoint_url": null,
-      "transport_type": "stdio",
-      "hosting_mode": "shared",
+      "name": "github-mcp",
+      "description": "GitHub repository management",
+      "endpoint_url": "https://mcp.github.com/sse",
+      "transport_type": "http",
+      "hosting_mode": "remote",
       "status": "active",
       "health_status": "healthy",
       "last_health_check": "2026-01-15T09:00:00Z",

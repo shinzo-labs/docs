@@ -8,18 +8,9 @@ api: "DELETE /v1/agent/{agentId}/filesystem/directories/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | Directory path within the agent workspace (wildcard segment) |
-
-## Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `recursive` | boolean | No | Delete the directory and all its contents recursively |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>Directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="recursive" type="boolean">Delete the directory and all its contents recursively</ParamField>
 
 ## Example Request
 

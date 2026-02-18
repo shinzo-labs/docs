@@ -8,18 +8,12 @@ api: "PATCH /v1/agent/{agentId}/filesystem/metadata/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | File or directory path within the agent workspace (wildcard segment) |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `permissions` | string | No | New file permissions in octal format (e.g., `755`) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File or directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="permissions" type="string">New file permissions in octal format (e.g., `755`)</ParamField>
+<ParamField body="owner" type="string">New owner</ParamField>
+<ParamField body="group" type="string">New group</ParamField>
+<ParamField body="tags" type="array">Tags to apply to the file</ParamField>
 
 ## Example Request
 

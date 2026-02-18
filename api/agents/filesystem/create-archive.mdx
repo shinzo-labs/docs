@@ -8,20 +8,11 @@ api: "POST /v1/agent/{agentId}/filesystem/archives"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `paths` | array | Yes | List of file or directory paths to include in the archive |
-| `output_path` | string | Yes | Destination path for the archive file |
-| `format` | string | No | Archive format (`tar.gz` or `zip`) |
-| `compression_level` | number | No | Compression level (0-9, where 9 is maximum compression) |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="paths" type="array" required>List of file or directory paths to include in the archive</ParamField>
+<ParamField body="outputPath" type="string" required>Destination path for the archive file</ParamField>
+<ParamField body="format" type="string">Archive format: `zip`, `tar`, `tar.gz`, or `tar.bz2`</ParamField>
+<ParamField body="compressionLevel" type="number">Compression level (0-9, where 9 is maximum compression)</ParamField>
 
 ## Example Request
 

@@ -1,0 +1,29 @@
+---
+title: "Agent Channels Overview"
+description: "Manage channel integrations for agent messaging."
+---
+
+# Agent Channels
+
+Channel endpoints let you manage external integrations like Discord for your agents. The API channel is always available by default.
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/agent/{id}/channels`](/api/agents/list-channels) | List all channel bindings |
+| `POST` | [`/v1/agent/{id}/discord/link`](/api/agents/discord-link) | Generate a Discord link code |
+| `GET` | [`/v1/agent/{id}/discord/status`](/api/agents/discord-status) | Check Discord link status |
+| `DELETE` | [`/v1/agent/{id}/discord/unlink`](/api/agents/discord-unlink) | Unlink Discord account |
+
+## Discord Linking Workflow
+
+1. **Generate a link code** via `POST /v1/agent/{id}/discord/link` (expires in 10 minutes)
+2. **Send `/link CODE`** as a DM to the Shinzo bot on Discord
+3. **Start chatting** — messages are routed to your agent automatically
+
+<Info>
+**Discord** is the only external channel currently supported. Additional channels are coming soon.
+</Info>
+
+For a full guide on channel integrations, see [Agent Messaging & Channels](/agents/messaging).

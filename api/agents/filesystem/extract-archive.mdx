@@ -8,19 +8,10 @@ api: "POST /v1/agent/{agentId}/filesystem/archives/extract"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `archive_path` | string | Yes | Path to the archive file in the workspace |
-| `destination` | string | Yes | Directory to extract the archive contents into |
-| `overwrite` | boolean | No | Overwrite existing files during extraction |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="archivePath" type="string" required>Path to the archive file in the workspace</ParamField>
+<ParamField body="outputPath" type="string" required>Directory to extract the archive contents into</ParamField>
+<ParamField body="overwrite" type="boolean">Overwrite existing files during extraction</ParamField>
 
 ## Example Request
 

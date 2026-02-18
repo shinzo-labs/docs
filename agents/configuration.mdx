@@ -39,14 +39,14 @@ This creates an agent with default settings: 1 GiB of persistent storage, a 1-ho
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Agent name, 1-100 characters |
-| `description` | string | No | — | Purpose description, max 500 characters |
-| `pvc_size` | string | No | `"1Gi"` | Persistent volume size for agent workspace |
-| `anthropic_api_key` | string | No | — | Anthropic API key. If omitted, your stored account key is used |
-| `system_prompt` | string | No | — | Custom system prompt for the agent |
-| `system_prompt_type` | enum | No | `"append"` | `"replace"` overwrites the default prompt; `"append"` adds to it |
-| `configuration` | object | Yes | — | Agent configuration object (see below) |
-| `initial_files` | array | No | — | Files to create in the agent workspace on startup |
+| `name` | string | ✅ | — | Agent name, 1-100 characters |
+| `description` | string | ❌ | — | Purpose description, max 500 characters |
+| `pvc_size` | string | ❌ | `"1Gi"` | Persistent volume size for agent workspace |
+| `anthropic_api_key` | string | ❌ | — | Anthropic API key. If omitted, your stored account key is used |
+| `system_prompt` | string | ❌ | — | Custom system prompt for the agent |
+| `system_prompt_type` | enum | ❌ | `"append"` | `"replace"` overwrites the default prompt; `"append"` adds to it |
+| `configuration` | object | ✅ | — | Agent configuration object (see below) |
+| `initial_files` | array | ❌ | — | Files to create in the agent workspace on startup |
 
 ### Configuration Object
 
@@ -55,7 +55,7 @@ The `configuration` object controls runtime behavior, tooling, memory, and notif
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `timeout_seconds` | number | `3600` | Maximum time in seconds for a single task |
-| `model` | string | — | Model name to use for the agent |
+| `model` | string | — | Model name to use for the agent. Supported models: `claude-3-7-sonnet-latest`, `claude-haiku-4-5`, `claude-opus-4-0`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-opus-4-6`, `claude-sonnet-4-0`, `claude-sonnet-4-5`, `claude-sonnet-4-6` |
 | `mcp_servers` | object | — | MCP server configurations keyed by server name |
 | `memory_config` | object | — | Memory type, size, and persistence settings |
 | `webhooks` | object | — | URLs for event notifications |
@@ -94,9 +94,9 @@ You can pre-populate the agent workspace with files at creation time. Each file 
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | File path in the agent workspace |
-| `content` | string | Yes | File content |
-| `encoding` | enum | No | `"utf-8"` (default) or `"base64"` for binary content |
+| `path` | string | ✅ | File path in the agent workspace |
+| `content` | string | ✅ | File content |
+| `encoding` | enum | ❌ | `"utf-8"` (default) or `"base64"` for binary content |
 
 ## Example Configurations
 
@@ -259,8 +259,5 @@ Deleting an agent permanently removes its workspace, message history, and all as
   </Card>
   <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
     Manage files in agent workspaces programmatically.
-  </Card>
-  <Card title="Channel Integrations" icon="hashtag" href="/agents/channels">
-    Connect agents to Discord and other messaging platforms.
   </Card>
 </CardGroup>

@@ -8,19 +8,10 @@ api: "GET /v1/agent/{agentId}/filesystem/files/{path}"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-| `path` | string | Yes | File path within the agent workspace (wildcard segment) |
-
-## Query Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `encoding` | string | No | Response encoding (`utf-8` or `base64`) |
-| `download` | boolean | No | Return the file as a binary download |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField query="encoding" type="string">Response encoding (`utf-8` or `base64`)</ParamField>
+<ParamField query="download" type="boolean">Return the file as a binary download</ParamField>
 
 ## Example Request
 

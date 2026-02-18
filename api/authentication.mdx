@@ -137,13 +137,13 @@ Tokens and API keys are only displayed once at creation. Store them securely as 
 
 | Endpoint Category | Auth Required | Auth Types Accepted |
 |-------------------|---------------|---------------------|
-| Health (`/health`) | No | None |
+| Health (`/health`) | ❌ | None |
 | Auth (`/auth/*`) | Varies | JWT for protected endpoints |
-| Telemetry Ingest (`/telemetry/ingest_http/*`) | Yes | Ingest Token |
-| Telemetry Fetch (`/telemetry/fetch_*`) | Yes | JWT |
-| Agents (`/agent/*`) | Yes | JWT or Platform API Key |
-| Spotlight (`/spotlight/*`) | Yes | JWT or Platform API Key |
-| User (`/user/*`) | Yes | JWT |
+| Telemetry Ingest (`/telemetry/ingest_http/*`) | ✅ | Ingest Token |
+| Telemetry Fetch (`/telemetry/fetch_*`) | ✅ | JWT |
+| Agents (`/agent/*`) | ✅ | JWT or Platform API Key |
+| Spotlight (`/spotlight/*`) | ✅ | JWT or Platform API Key |
+| User (`/user/*`) | ✅ | JWT |
 
 ## Security Best Practices
 

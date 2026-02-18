@@ -1,0 +1,24 @@
+---
+title: "Tokens Overview"
+description: "Manage ingest tokens and platform API keys for authentication."
+---
+
+# Tokens
+
+Token endpoints let you generate and manage the credentials used to authenticate with the Shinzo Platform.
+
+## Token Types
+
+| Token Type | Purpose | Auth Scope |
+|------------|---------|------------|
+| **Ingest Token** | Telemetry data ingestion from MCP servers | Write-only access to telemetry endpoints |
+| **Platform API Key** | Programmatic access to agents, Spotlight, and management APIs | Full API access |
+
+## Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| [Ingest Tokens](/api/tokens/ingest) | Generate, list, and revoke ingest tokens |
+| [Platform API Keys](/api/tokens/platform-keys) | Create, list, and revoke platform API keys |
+
+For details on authentication methods, see [Authentication](/api/authentication).

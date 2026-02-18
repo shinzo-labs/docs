@@ -8,20 +8,10 @@ api: "POST /v1/agent/{agentId}/filesystem/operations/move"
 
 Requires JWT token or Platform API key.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `agentId` | string | Yes | Agent UUID |
-
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `operations` | array | Yes | List of move operations to perform |
-| `operations[].source` | string | Yes | Source path in the workspace |
-| `operations[].destination` | string | Yes | Destination path in the workspace |
-| `operations[].overwrite` | boolean | No | Overwrite if the destination already exists |
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="source" type="string" required>Source path in the workspace</ParamField>
+<ParamField body="destination" type="string" required>Destination path in the workspace</ParamField>
+<ParamField body="overwrite" type="boolean">Overwrite if the destination already exists</ParamField>
 
 ## Example Request
 
