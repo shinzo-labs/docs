@@ -242,17 +242,24 @@ Once connected, you'll have access to tools across 6 categories:
 Once connected, you can ask Claude to create and manage agents in plain English:
 
 ```
-You: "Create a new Shinzo agent called 'research-assistant' with the description
-'Helps with research tasks' and the system prompt 'You are a helpful research
-assistant. Always cite your sources.'"
+You: Create a new Shinzo agent called "research-assistant" with the description
+"Helps with research tasks" and the system prompt "You are a helpful research
+assistant. Always cite your sources."
 
-Claude: I'll create that agent for you now.
-[calls create_agent tool]
+Claude: I'll create that agent for you using the Shinzo MCP server.
 
-✅ Agent "research-assistant" created successfully!
-- Agent ID: abc123de-f456-7890-abcd-ef1234567890
-- Status: active
-- You can now send it messages or connect it to MCP servers.
+[create_agent result]
+{
+  "uuid": "abc123de-f456-7890-abcd-ef1234567890",
+  "name": "research-assistant",
+  "status": "active",
+  "created_at": "2026-02-18T10:30:00Z"
+}
+
+The agent "research-assistant" has been created and is now active. Its ID is
+abc123de-f456-7890-abcd-ef1234567890. You can send it messages using
+send_agent_message, or connect it to additional MCP servers using
+grant_agent_mcp_access.
 ```
 
 ### Via the TypeScript SDK (programmatic)
@@ -270,6 +277,7 @@ const newAgent = await client.callTool({
   }
 });
 
+// Extract agent UUID from tool response
 const agentId = JSON.parse(newAgent.content[0].text).uuid;
 
 // Send the agent its first message
@@ -301,6 +309,7 @@ result = await session.call_tool("create_agent", {
     "configuration": {}
 })
 
+# Extract agent UUID from tool response
 agent_id = json.loads(result.content[0].text)["uuid"]
 
 # Send the agent its first message
