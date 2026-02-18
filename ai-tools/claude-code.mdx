@@ -9,10 +9,7 @@ Claude Code is Anthropic's official CLI tool for interacting with Claude directl
 
 ## How It Works
 
-Shinzo provides two levels of integration with Claude Code:
-
-1. **Analytics Proxying**: Route requests through Shinzo to capture basic usage data (tokens, latency, costs)
-2. **Full Observability**: Enable telemetry collection for complete conversation traces, tool usage, and performance metrics
+Shinzo acts as a proxy between Claude Code and the Anthropic API. All requests are forwarded through Shinzo, which records analytics data before passing the request to Anthropic with your stored provider key.
 
 ```mermaid
 sequenceDiagram
@@ -20,20 +17,20 @@ sequenceDiagram
     participant S as Shinzo Platform
     participant A as Anthropic API
 
-    CC->>S: Request + Shinzo API Key + Telemetry
+    CC->>S: Request + Shinzo API Key
     S->>S: Authenticate & retrieve stored Anthropic key
     S->>A: Forward request + Anthropic API Key
     A->>S: Response
-    S->>S: Record analytics & telemetry
+    S->>S: Record analytics (tokens, latency, costs)
     S->>CC: Return response
 ```
 
 **What's captured**:
 - Conversation flow (prompts, responses, context)
 - Tool calls and results
-- Token usage and costs
-- Performance metrics (latency, throughput)
-- Error traces and debugging information
+- Token usage and costs (including cache usage)
+- Performance metrics (latency)
+- Error traces
 
 ## Prerequisites
 
@@ -50,16 +47,11 @@ Before you begin, ensure you have:
 **For best results:**
 - Use API key-based Anthropic authentication from the [Anthropic Console](https://console.anthropic.com/settings/keys)
 - Contact [austin@shinzolabs.com](mailto:austin@shinzolabs.com) for early access to enhanced agent features
-
-**Coming Soon**:
-- Full support for subscription-based Claude Code accounts
-- Enhanced conversation analytics
-- Agent performance benchmarking
 </Warning>
 
 ## Setup Guide
 
-Follow these steps to configure Claude Code with Shinzo analytics and observability:
+Follow these steps to configure Claude Code with Shinzo:
 
 <Steps>
 <Step title="Add your Anthropic API key to Shinzo">
@@ -88,30 +80,47 @@ Follow these steps to configure Claude Code with Shinzo analytics and observabil
   </Warning>
 </Step>
 
-<Step title="Configure Claude Code">
-  Claude Code can be configured to use Shinzo through its settings file. Update your Claude Code configuration:
+<Step title="Configure Claude Code environment variables">
+  Set the following environment variables to route Claude Code through Shinzo:
 
-  **Location**:
-  - macOS/Linux: `~/.config/claude-code/config.json`
-  - Windows: `%APPDATA%\claude-code\config.json`
+  <Tabs>
+  <Tab title="macOS / Linux">
+  Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
 
-  Add or update the following configuration:
-
-  ```json
-  {
-    "api": {
-      "key": "sk_shinzo_live_your_key_here",
-      "baseURL": "https://api.app.shinzo.ai/spotlight/anthropic"
-    },
-    "telemetry": {
-      "enabled": true,
-      "endpoint": "https://api.app.shinzo.ai/telemetry/v1/traces",
-      "headers": {
-        "Authorization": "Bearer sk_shinzo_live_your_key_here"
-      }
-    }
-  }
+  ```bash
+  export ANTHROPIC_BASE_URL="https://api.app.shinzo.ai/spotlight/anthropic"
+  export ANTHROPIC_CUSTOM_HEADERS="x-shinzo-api-key: sk_shinzo_live_your_key_here"
   ```
+
+  Then reload your shell:
+
+  ```bash
+  source ~/.zshrc  # or source ~/.bashrc
+  ```
+  </Tab>
+
+  <Tab title="Windows (PowerShell)">
+  Run the following commands to set persistent environment variables:
+
+  ```powershell
+  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.app.shinzo.ai/spotlight/anthropic', 'User')
+  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_CUSTOM_HEADERS', 'x-shinzo-api-key: sk_shinzo_live_your_key_here', 'User')
+  ```
+
+  Restart your terminal for changes to take effect.
+  </Tab>
+
+  <Tab title="Windows (Command Prompt)">
+  Run the following commands:
+
+  ```cmd
+  setx ANTHROPIC_BASE_URL "https://api.app.shinzo.ai/spotlight/anthropic"
+  setx ANTHROPIC_CUSTOM_HEADERS "x-shinzo-api-key: sk_shinzo_live_your_key_here"
+  ```
+
+  Restart your terminal for changes to take effect.
+  </Tab>
+  </Tabs>
 
   <Warning>
   Replace `sk_shinzo_live_your_key_here` with your actual Shinzo API key from Step 2.
@@ -119,11 +128,8 @@ Follow these steps to configure Claude Code with Shinzo analytics and observabil
 
   <Info>
   **Configuration Breakdown**:
-  - `api.key`: Your Shinzo API key (authenticates with Shinzo)
-  - `api.baseURL`: Shinzo's Anthropic proxy endpoint
-  - `telemetry.enabled`: Enables telemetry collection
-  - `telemetry.endpoint`: Where to send telemetry data
-  - `telemetry.headers`: Authentication for telemetry endpoint
+  - `ANTHROPIC_BASE_URL`: Redirects Claude Code to Shinzo's Anthropic proxy endpoint
+  - `ANTHROPIC_CUSTOM_HEADERS`: Passes your Shinzo API key for authentication
   </Info>
 </Step>
 
@@ -152,52 +158,9 @@ Follow these steps to configure Claude Code with Shinzo analytics and observabil
 </Step>
 </Steps>
 
-## Alternative: Environment Variables Setup
-
-If you prefer to use environment variables instead of the config file:
-
-<Tabs>
-<Tab title="macOS / Linux">
-Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
-
-```bash
-export ANTHROPIC_API_KEY="sk_shinzo_live_your_key_here"
-export ANTHROPIC_BASE_URL="https://api.app.shinzo.ai/spotlight/anthropic"
-```
-
-Then reload your shell:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-</Tab>
-
-<Tab title="Windows (PowerShell)">
-Run the following commands to set persistent environment variables:
-
-```powershell
-[System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk_shinzo_live_your_key_here', 'User')
-[System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.app.shinzo.ai/spotlight/anthropic', 'User')
-```
-
-Restart your terminal for changes to take effect.
-</Tab>
-
-<Tab title="Windows (Command Prompt)">
-Run the following commands:
-
-```cmd
-setx ANTHROPIC_API_KEY "sk_shinzo_live_your_key_here"
-setx ANTHROPIC_BASE_URL "https://api.app.shinzo.ai/spotlight/anthropic"
-```
-
-Restart your terminal for changes to take effect.
-</Tab>
-</Tabs>
-
 ## What Data is Collected?
 
-When you use Claude Code with Shinzo observability, the following data is automatically captured:
+When you use Claude Code through Shinzo, the following data is automatically captured by the proxy:
 
 ### Conversation Data
 - **User prompts**: The questions or commands you send to Claude
@@ -210,27 +173,20 @@ When you use Claude Code with Shinzo observability, the following data is automa
 - **Tool calls**: Which tools Claude invokes (file operations, bash commands, etc.)
 - **Tool parameters**: Arguments passed to each tool
 - **Tool results**: Output returned from tool executions
-- **Execution time**: How long each tool call takes
-
-### MCP Server Usage
-- **MCP servers used**: Which MCP servers Claude connects to
-- **MCP tool calls**: Specific MCP tools invoked
-- **MCP resource access**: Files and resources accessed via MCP
-- **Performance**: Latency and success rates for MCP operations
 
 ### Performance Metrics
-- **Response time**: Time from prompt to complete response
+- **Response time**: Latency from request to response
 - **Token counts**: Input and output tokens per message
+- **Cache usage**: Cache creation and cache read tokens
 - **Costs**: Estimated cost per conversation based on model pricing
-- **Cache hits**: How often Claude uses cached responses
 
 <Info>
-All telemetry data is sent securely over HTTPS and encrypted at rest in Shinzo's infrastructure.
+All data is sent securely over HTTPS and encrypted at rest in Shinzo's infrastructure.
 </Info>
 
 ## Viewing Your Data
 
-Once configured, you can view your Claude Code data in several places:
+Once configured, you can view your Claude Code data in the Shinzo dashboard:
 
 ### Agent Analytics Dashboard
 
@@ -250,78 +206,25 @@ Navigate to **Analytics > Agent Analytics** in the Shinzo dashboard to see:
 Click on any conversation to see:
 
 - **Full conversation transcript**: All messages in the conversation
-- **Trace timeline**: Visual timeline of all operations (API calls, tool invocations, MCP server usage)
-- **Token breakdown**: Detailed token usage per message
-- **Performance metrics**: Latency for each operation
-
-### Search and Filter
-
-Use powerful search and filtering to find specific conversations:
-
-- **By date range**: Find conversations from specific time periods
-- **By tool usage**: Filter conversations that used specific tools
-- **By token count**: Find high or low token conversations
-- **By model**: Filter by model version (e.g., claude-sonnet-4-5)
-
-## Configuration Options
-
-### Telemetry Sampling
-
-To reduce telemetry overhead, you can configure sampling in your Claude Code config:
-
-```json
-{
-  "telemetry": {
-    "enabled": true,
-    "endpoint": "https://api.app.shinzo.ai/telemetry/v1/traces",
-    "sampling": {
-      "rate": 1.0
-    }
-  }
-}
-```
-
-**Sampling rates**:
-- `1.0`: Capture 100% of conversations (default, recommended)
-- `0.5`: Capture 50% of conversations
-- `0.1`: Capture 10% of conversations
-
-<Warning>
-Lower sampling rates reduce telemetry volume but may miss important conversations or patterns.
-</Warning>
-
-### Custom Attributes
-
-You can add custom attributes to your telemetry for better organization:
-
-```json
-{
-  "telemetry": {
-    "enabled": true,
-    "endpoint": "https://api.app.shinzo.ai/telemetry/v1/traces",
-    "attributes": {
-      "environment": "production",
-      "team": "engineering",
-      "user": "alice"
-    }
-  }
-}
-```
-
-These attributes will appear in the Shinzo dashboard and can be used for filtering.
+- **Token breakdown**: Detailed token usage per message including cache hits
+- **Performance metrics**: Latency for each interaction
 
 ## Troubleshooting
 
 <AccordionGroup>
 <Accordion title="Conversations not appearing in dashboard">
-1. **Verify configuration**:
-   - Check that `telemetry.enabled` is set to `true`
-   - Verify `telemetry.endpoint` is `https://api.app.shinzo.ai/telemetry/v1/traces`
-   - Confirm `api.baseURL` is `https://api.app.shinzo.ai/spotlight/anthropic`
+1. **Verify environment variables**:
+   - Check that `ANTHROPIC_BASE_URL` is set to `https://api.app.shinzo.ai/spotlight/anthropic`
+   - Verify `ANTHROPIC_CUSTOM_HEADERS` contains your Shinzo API key
+
+   ```bash
+   echo $ANTHROPIC_BASE_URL
+   echo $ANTHROPIC_CUSTOM_HEADERS
+   ```
 
 2. **Check API key**:
    - Ensure your Shinzo API key is valid and not revoked
-   - Verify the key is present in both `api.key` and `telemetry.headers.Authorization`
+   - Verify your Anthropic provider key is stored in **Settings > API Keys > Provider Keys**
 
 3. **Test connectivity**:
    ```bash
@@ -337,84 +240,33 @@ These attributes will appear in the Shinzo dashboard and can be used for filteri
 </Accordion>
 
 <Accordion title="Claude Code performance issues">
-If Claude Code feels slower after enabling observability:
+If Claude Code feels slower after enabling Shinzo:
 
 1. **Check network latency**: Run `ping api.app.shinzo.ai` to verify connectivity
-2. **Reduce sampling**: Lower the sampling rate to reduce telemetry overhead
-3. **Check firewall**: Ensure your firewall allows HTTPS to `api.app.shinzo.ai`
+2. **Check firewall**: Ensure your firewall allows HTTPS to `api.app.shinzo.ai`
 
-Telemetry collection adds minimal overhead (~10-50ms per request), so significant slowdowns usually indicate network issues.
+The proxy adds minimal overhead (~10-50ms per request), so significant slowdowns usually indicate network issues.
 </Accordion>
 
-<Accordion title="Missing tool usage data">
-If you see conversations but not tool usage:
+<Accordion title="Disabling Shinzo observability">
+To stop routing through Shinzo, unset the environment variables:
 
-1. Verify you're using a recent version of Claude Code (v0.2.0 or later)
-2. Check that tool calls are actually being made in your conversations
-3. Ensure `telemetry.enabled` is `true` in your config
-
-Tool telemetry is collected automatically when Claude invokes tools.
-</Accordion>
-
-<Accordion title="Configuration file location">
-If you can't find the Claude Code configuration file:
-
-**Create it manually**:
-
-<Tabs>
-<Tab title="macOS / Linux">
 ```bash
-mkdir -p ~/.config/claude-code
-touch ~/.config/claude-code/config.json
+unset ANTHROPIC_BASE_URL
+unset ANTHROPIC_CUSTOM_HEADERS
 ```
 
-Then edit the file with your preferred editor.
-</Tab>
-
-<Tab title="Windows">
-```powershell
-New-Item -Path "$env:APPDATA\claude-code" -ItemType Directory -Force
-New-Item -Path "$env:APPDATA\claude-code\config.json" -ItemType File
-```
-
-Then edit the file with Notepad or your preferred editor.
-</Tab>
-</Tabs>
+Or remove them from your shell configuration file and reload your shell.
 </Accordion>
 </AccordionGroup>
 
 ## Privacy & Security
 
-### Data Security
-
-- **Encryption in transit**: All telemetry is sent over HTTPS
+- **Encryption in transit**: All requests are sent over HTTPS
 - **Encryption at rest**: Data is encrypted in Shinzo's database
-- **Access control**: Only you can access your telemetry data
-- **No training**: We never use your data to train AI models
-
-### Data Retention
-
-Configure data retention in **Settings > Data Retention**:
-
-- **Default**: 90 days
-- **Minimum**: 7 days
-- **Maximum**: 365 days (Pro/Enterprise plans)
-
-After the retention period, data is permanently deleted.
-
-### Disabling Telemetry
-
-To disable telemetry, set `telemetry.enabled` to `false` in your config:
-
-```json
-{
-  "telemetry": {
-    "enabled": false
-  }
-}
-```
-
-You'll still route through Shinzo for API access, but no observability data will be collected.
+- **Access control**: Only you can access your data
+- **No training**: Your data is never used to train AI models
+- **Provider key security**: Your Anthropic API key is encrypted and never exposed to client-side code
 
 ## Next Steps
 
@@ -423,7 +275,7 @@ You'll still route through Shinzo for API access, but no observability data will
     Explore your agent conversation data and metrics
   </Card>
   <Card title="Anthropic SDK" icon="code" href="/ai-tools/anthropic-sdk">
-    Set up analytics and observability for custom agents built with the Anthropic SDK
+    Set up analytics for custom agents built with the Anthropic SDK
   </Card>
   <Card title="MCP Analytics" icon="puzzle-piece" href="/quickstart">
     Add observability to your MCP servers
