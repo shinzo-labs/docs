@@ -1,0 +1,55 @@
+---
+title: "Create Platform API Key"
+description: "Create a new platform API key for programmatic access."
+api: "POST /auth/platform_keys"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Request Body
+
+<ParamField body="name" type="string" required>A descriptive name for the API key</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/platform_keys \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "CI/CD Pipeline Key"}'
+```
+
+## Response
+
+```json
+{
+  "uuid": "key_abc123def456",
+  "key": "sk_shinzo_abc123def456ghi789...",
+  "name": "CI/CD Pipeline Key",
+  "created_at": "2025-01-15T10:00:00Z",
+  "status": "active"
+}
+```
+
+<Warning>
+The API key value is only displayed once at creation. Store it securely as it cannot be retrieved later.
+</Warning>
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique identifier for the key |
+| `key` | string | The API key value (shown only once) |
+| `name` | string | Descriptive name |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+| `status` | string | Key status (`active`) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Key created successfully |
+| `401` | Invalid or missing JWT token |

@@ -1,0 +1,37 @@
+---
+title: "Google OAuth - Get Authorization URL"
+description: "Get the Google OAuth authorization URL to initiate sign-in."
+api: "GET /auth/oauth/google"
+---
+
+## Authentication
+
+No authentication required.
+
+## Query Parameters
+
+<ParamField query="returnTo" type="string">
+  URL to redirect after successful authentication.
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/auth/oauth/google?returnTo=https://app.shinzo.ai/dashboard"
+```
+
+## Response
+
+```json
+{
+  "url": "https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=...&scope=..."
+}
+```
+
+Redirect the user to the returned URL to initiate Google OAuth.
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Authorization URL returned |

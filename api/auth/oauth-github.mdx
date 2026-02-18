@@ -1,0 +1,37 @@
+---
+title: "GitHub OAuth - Get Authorization URL"
+description: "Get the GitHub OAuth authorization URL to initiate sign-in."
+api: "GET /auth/oauth/github"
+---
+
+## Authentication
+
+No authentication required.
+
+## Query Parameters
+
+<ParamField query="returnTo" type="string">
+  URL to redirect after successful authentication.
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/auth/oauth/github?returnTo=https://app.shinzo.ai/dashboard"
+```
+
+## Response
+
+```json
+{
+  "url": "https://github.com/login/oauth/authorize?client_id=...&redirect_uri=...&scope=..."
+}
+```
+
+Redirect the user to the returned URL to initiate GitHub OAuth.
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Authorization URL returned |

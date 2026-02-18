@@ -27,52 +27,15 @@ AI Agents must be enabled for your account. If you receive a `403 Forbidden` err
 
 ## Endpoints
 
-### Agent Lifecycle
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| [`/v1/agent/create`](/api/agents/create) | POST | Deploy a new AI agent |
-| [`/v1/agent/list`](/api/agents/list) | GET | List all your agents |
-| [`/v1/agent/{id}`](/api/agents/get) | GET | Get agent details |
-| [`/v1/agent/update/{id}`](/api/agents/update) | POST | Update agent configuration |
-| [`/v1/agent/delete/{id}`](/api/agents/delete) | POST | Delete an agent |
-| [`/v1/agent/{id}/pause`](/api/agents/pause) | POST | Pause an agent |
-| [`/v1/agent/{id}/resume`](/api/agents/resume) | POST | Resume a paused agent |
-
-### Messaging
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| [`/v1/agent/{id}/messages`](/api/agents/send-message) | POST | Send a message to an agent |
-| [`/v1/agent/{id}/messages`](/api/agents/list-messages) | GET | List messages for an agent |
-
-### Channels
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| [`/v1/agent/{id}/channels`](/api/agents/list-channels) | GET | List channel bindings |
-| [`/v1/agent/{id}/discord/link`](/api/agents/discord-link) | POST | Generate a Discord link code |
-| [`/v1/agent/{id}/discord/status`](/api/agents/discord-status) | GET | Check Discord link status |
-| [`/v1/agent/{id}/discord/unlink`](/api/agents/discord-unlink) | DELETE | Unlink Discord from agent |
-
-### Filesystem
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/v1/agent/{id}/filesystem/files/{path}` | GET | Read file contents |
-| `/v1/agent/{id}/filesystem/files/{path}` | POST | Create a new file |
-| `/v1/agent/{id}/filesystem/files/{path}` | PUT | Update file contents |
-| `/v1/agent/{id}/filesystem/files/{path}` | DELETE | Delete a file |
-| `/v1/agent/{id}/filesystem/directories/{path}` | GET | List directory contents |
-| `/v1/agent/{id}/filesystem/directories/{path}` | POST | Create a directory |
-| `/v1/agent/{id}/filesystem/directories/{path}` | DELETE | Delete a directory |
-| `/v1/agent/{id}/filesystem/metadata/{path}` | GET | Get file metadata |
-| `/v1/agent/{id}/filesystem/metadata/{path}` | PATCH | Update file metadata |
-| `/v1/agent/{id}/filesystem/operations/copy` | POST | Copy files or directories |
-| `/v1/agent/{id}/filesystem/operations/move` | POST | Move or rename files |
-| `/v1/agent/{id}/filesystem/operations/search` | POST | Search files by name or content |
-| `/v1/agent/{id}/filesystem/archives` | POST | Create an archive |
-| `/v1/agent/{id}/filesystem/archives/extract` | POST | Extract an archive |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/create`](/api/agents/create) | Deploy a new AI agent |
+| `GET` | [`/v1/agent/list`](/api/agents/list) | List all your agents |
+| `GET` | [`/v1/agent/{id}`](/api/agents/get) | Get agent details |
+| `POST` | [`/v1/agent/update/{id}`](/api/agents/update) | Update agent configuration |
+| `POST` | [`/v1/agent/delete/{id}`](/api/agents/delete) | Delete an agent |
+| `POST` | [`/v1/agent/{id}/pause`](/api/agents/pause) | Pause an agent |
+| `POST` | [`/v1/agent/{id}/resume`](/api/agents/resume) | Resume a paused agent |
 
 ## Agent States
 

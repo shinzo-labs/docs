@@ -32,10 +32,19 @@ Authentication endpoints handle user account management, session tokens, and OAu
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | [`/auth/oauth/google`](/api/auth/oauth) | Get Google OAuth authorization URL |
-| `POST` | [`/auth/oauth/google/callback`](/api/auth/oauth) | Handle Google OAuth callback |
-| `GET` | [`/auth/oauth/github`](/api/auth/oauth) | Get GitHub OAuth authorization URL |
-| `POST` | [`/auth/oauth/github/callback`](/api/auth/oauth) | Handle GitHub OAuth callback |
+| `GET` | [`/auth/oauth/google`](/api/auth/oauth-google) | Get Google OAuth authorization URL |
+| `POST` | [`/auth/oauth/google/callback`](/api/auth/oauth-google-callback) | Handle Google OAuth callback |
+| `GET` | [`/auth/oauth/github`](/api/auth/oauth-github) | Get GitHub OAuth authorization URL |
+| `POST` | [`/auth/oauth/github/callback`](/api/auth/oauth-github-callback) | Handle GitHub OAuth callback |
+
+## OAuth Flow
+
+OAuth authentication follows a two-step process:
+
+1. **Get Authorization URL** — Call the provider's authorization endpoint to receive a redirect URL
+2. **Handle Callback** — After the user authorizes with the provider, send the authorization code to the callback endpoint to receive a JWT token
+
+OAuth users don't need to verify their email separately. If a user with the same email already exists (registered via email/password), the accounts are linked.
 
 ## Token Lifecycle
 
@@ -45,4 +54,4 @@ Authentication endpoints handle user account management, session tokens, and OAu
 4. **Include the token** in subsequent API requests via the `Authorization: Bearer <token>` header
 5. **Tokens expire** after 24 hours — log in again to obtain a new one
 
-For API key-based authentication (no expiry), see [Platform API Keys](/api/tokens/platform-keys).
+For API key-based authentication (no expiry), see [Platform API Keys](/api/tokens/overview).

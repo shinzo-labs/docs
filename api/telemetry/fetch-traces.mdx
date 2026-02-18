@@ -1,0 +1,62 @@
+---
+title: "Fetch Traces"
+description: "Get traces with optional filtering."
+api: "GET /telemetry/fetch_traces"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+## Query Parameters
+
+<ParamField query="start_date" type="string">Filter by start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">Filter by end date (ISO 8601)</ParamField>
+<ParamField query="resource_id" type="string">Filter by resource ID</ParamField>
+<ParamField query="service_name" type="string">Filter by service name</ParamField>
+<ParamField query="limit" type="number">Max results to return</ParamField>
+<ParamField query="offset" type="number">Pagination offset</ParamField>
+<ParamField query="sort" type="string">Sort field</ParamField>
+<ParamField query="sort_direction" type="string">Sort direction (`asc`, `desc`)</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_traces?service_name=my-mcp-server&limit=50" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "traces": [
+    {
+      "trace_id": "5b8aa5a2d2c872e8321cf37308d69df2",
+      "service_name": "my-mcp-server",
+      "root_span_name": "mcp.tool.execute",
+      "duration_ms": 125,
+      "status": "ok",
+      "span_count": 3,
+      "timestamp": "2025-01-20T14:30:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 150,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `400` | Invalid query parameters |
+| `401` | Invalid or missing token |

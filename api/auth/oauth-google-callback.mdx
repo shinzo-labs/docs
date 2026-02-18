@@ -1,0 +1,71 @@
+---
+title: "Google OAuth - Handle Callback"
+description: "Complete Google OAuth authentication with the authorization code."
+api: "POST /auth/oauth/google/callback"
+---
+
+## Authentication
+
+No authentication required.
+
+## Body Parameters
+
+<ParamField body="code" type="string" required>
+  Authorization code from Google.
+</ParamField>
+
+<ParamField body="state" type="string">
+  State parameter for CSRF protection.
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/auth/oauth/google/callback" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "4/0AX4XfWh...",
+    "state": "random-state-string"
+  }'
+```
+
+## Response
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "uuid": "usr_abc123",
+    "email": "user@gmail.com"
+  },
+  "isNewUser": false
+}
+```
+
+## Response Fields
+
+<ParamField body="token" type="string">
+  JWT token for authenticated requests.
+</ParamField>
+
+<ParamField body="user" type="object">
+  User profile information.
+</ParamField>
+
+<ParamField body="isNewUser" type="boolean">
+  Whether this is a new account created via OAuth.
+</ParamField>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Authentication successful |
+| `400` | Invalid request (missing code, invalid state) |
+| `401` | OAuth authentication failed |
+
+## Notes
+
+- OAuth users don't need to verify their email separately
+- If a user with the same email already exists (registered via email/password), the accounts are linked
+- The `isNewUser` field indicates whether a new account was created or an existing one was used

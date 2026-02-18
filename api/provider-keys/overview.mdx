@@ -29,10 +29,10 @@ Currently supported providers:
 
 ## Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/auth/provider_keys/test` | POST | Test a provider key without storing |
-| `/auth/provider_keys` | POST | Save an encrypted provider key |
-| `/auth/provider_keys` | GET | List all provider keys |
-| `/auth/provider_keys/:keyUuid` | PUT | Update a provider key |
-| `/auth/provider_keys/:keyUuid` | DELETE | Delete a provider key |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/auth/provider_keys/test`](/api/provider-keys/test) | Test a provider key without storing |
+| `POST` | [`/auth/provider_keys`](/api/provider-keys/save) | Save an encrypted provider key |
+| `GET` | [`/auth/provider_keys`](/api/provider-keys/list) | List all provider keys |
+| `PUT` | [`/auth/provider_keys/{keyUuid}`](/api/provider-keys/update) | Update a provider key |
+| `DELETE` | [`/auth/provider_keys/{keyUuid}`](/api/provider-keys/delete) | Delete a provider key |

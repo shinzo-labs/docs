@@ -1,0 +1,38 @@
+---
+title: "Revoke Ingest Token"
+description: "Revoke an existing ingest token to prevent further use."
+api: "POST /auth/revoke_ingest_token/{tokenUuid}"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+<ParamField path="tokenUuid" type="string" required>The UUID of the token to revoke</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/revoke_ingest_token/itk_abc123def456 \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Token revoked successfully",
+  "uuid": "itk_abc123def456",
+  "revoked_at": "2025-01-20T16:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Token revoked successfully |
+| `401` | Invalid or missing JWT token |
+| `404` | Token not found |

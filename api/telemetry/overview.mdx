@@ -9,17 +9,27 @@ Telemetry endpoints let you ingest OpenTelemetry traces and metrics from your MC
 
 ## Endpoints
 
+### Ingestion
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | [`/telemetry/ingest_http`](/api/telemetry/ingest-traces) | Ingest OpenTelemetry trace data |
-| `POST` | [`/telemetry/ingest_http/v1/metrics`](/api/telemetry/ingest-metrics) | Ingest OpenTelemetry metrics |
-| `GET` | [`/telemetry/fetch_*`](/api/telemetry/fetch) | Fetch telemetry data |
+| `POST` | [`/telemetry/ingest_http/traces`](/api/telemetry/ingest-traces) | Ingest OpenTelemetry trace data |
+| `POST` | [`/telemetry/ingest_http/metrics`](/api/telemetry/ingest-metrics) | Ingest OpenTelemetry metrics |
+
+### Retrieval
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/telemetry/fetch_resources`](/api/telemetry/fetch-resources) | Get all telemetry resources (services) |
+| `GET` | [`/telemetry/fetch_traces`](/api/telemetry/fetch-traces) | Get traces with optional filtering |
+| `GET` | [`/telemetry/fetch_spans`](/api/telemetry/fetch-spans) | Get individual spans with optional filtering |
+| `GET` | [`/telemetry/fetch_metrics`](/api/telemetry/fetch-metrics) | Get metrics data with optional filtering |
 
 ## SDKs
 
 While you can use the API directly for telemetry ingestion, we recommend using our official SDKs:
 
-- [TypeScript SDK](/sdk/typescript/installation) — `@shinzolabs/otel-mcp-server`
+- [TypeScript SDK](/sdk/typescript/installation) — `@shinzolabs/instrumentation-mcp`
 - [Python SDK](/sdk/python/installation) — `shinzo`
 
 The SDKs handle authentication, batching, retries, and error handling automatically.

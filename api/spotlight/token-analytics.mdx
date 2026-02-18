@@ -1,0 +1,55 @@
+---
+title: "Token Usage Analytics"
+description: "Get aggregated token usage metrics."
+api: "GET /spotlight/analytics/tokens"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Query Parameters
+
+<ParamField query="start_date" type="string">Start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">End date (ISO 8601)</ParamField>
+<ParamField query="session_id" type="string">Filter by session</ParamField>
+<ParamField query="model" type="string">Filter by model</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/tokens?start_date=2025-01-01" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "total_input_tokens": 125000,
+  "total_output_tokens": 87500,
+  "total_cache_read_tokens": 15000,
+  "total_cache_creation_tokens": 8000,
+  "total_requests": 450,
+  "by_model": {
+    "claude-sonnet-4-20250514": {
+      "input_tokens": 100000,
+      "output_tokens": 70000,
+      "requests": 380
+    },
+    "claude-opus-4-20250514": {
+      "input_tokens": 25000,
+      "output_tokens": 17500,
+      "requests": 70
+    }
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `400` | Bad request - invalid query parameters |

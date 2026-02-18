@@ -128,7 +128,10 @@
               "api/auth/resend-verification",
               "api/auth/fetch-user",
               "api/auth/fetch-quota",
-              "api/auth/oauth"
+              "api/auth/oauth-google",
+              "api/auth/oauth-google-callback",
+              "api/auth/oauth-github",
+              "api/auth/oauth-github-callback"
             ]
           },
           {
@@ -205,16 +208,25 @@
               "api/spotlight/overview",
               "api/spotlight/messages",
               "api/spotlight/count-tokens",
-              "api/spotlight/sessions",
-              "api/spotlight/sharing"
+              "api/spotlight/token-analytics",
+              "api/spotlight/list-sessions",
+              "api/spotlight/get-session",
+              "api/spotlight/create-share",
+              "api/spotlight/get-share-status",
+              "api/spotlight/remove-share",
+              "api/spotlight/view-shared"
             ]
           },
           {
             "group": "Tokens",
             "pages": [
               "api/tokens/overview",
-              "api/tokens/ingest",
-              "api/tokens/platform-keys"
+              "api/tokens/generate-ingest-token",
+              "api/tokens/list-ingest-tokens",
+              "api/tokens/revoke-ingest-token",
+              "api/tokens/create-platform-key",
+              "api/tokens/list-platform-keys",
+              "api/tokens/delete-platform-key"
             ]
           },
           {
@@ -234,7 +246,10 @@
               "api/telemetry/overview",
               "api/telemetry/ingest-traces",
               "api/telemetry/ingest-metrics",
-              "api/telemetry/fetch"
+              "api/telemetry/fetch-resources",
+              "api/telemetry/fetch-traces",
+              "api/telemetry/fetch-spans",
+              "api/telemetry/fetch-metrics"
             ]
           }
         ]

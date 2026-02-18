@@ -1,0 +1,67 @@
+---
+title: "Fetch Metrics"
+description: "Get metrics data with optional filtering."
+api: "GET /telemetry/fetch_metrics"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+## Query Parameters
+
+<ParamField query="start_date" type="string">Filter by start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">Filter by end date (ISO 8601)</ParamField>
+<ParamField query="resource_id" type="string">Filter by resource ID</ParamField>
+<ParamField query="service_name" type="string">Filter by service name</ParamField>
+<ParamField query="metric_name" type="string">Filter by metric name</ParamField>
+<ParamField query="limit" type="number">Max results to return</ParamField>
+<ParamField query="offset" type="number">Pagination offset</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_metrics?service_name=my-mcp-server" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "metrics": [
+    {
+      "metric_name": "mcp.tool.invocations",
+      "service_name": "my-mcp-server",
+      "description": "Number of tool invocations",
+      "unit": "1",
+      "data_points": [
+        {
+          "timestamp": "2025-01-20T14:00:00Z",
+          "value": 42,
+          "attributes": {
+            "mcp.tool.name": "search_files"
+          }
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "total": 10,
+    "limit": 50,
+    "offset": 0
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `400` | Invalid query parameters |
+| `401` | Invalid or missing token |

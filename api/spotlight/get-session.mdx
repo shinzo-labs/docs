@@ -1,0 +1,56 @@
+---
+title: "Get Session Details"
+description: "Get detailed information about a specific session including all interactions."
+api: "GET /spotlight/analytics/sessions/{sessionUuid}"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+<ParamField path="sessionUuid" type="string" required>The session UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123 \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "session": {
+    "session_id": "my-app-session-123",
+    "session_uuid": "sess_abc123",
+    "start_time": "2025-01-15T10:00:00Z",
+    "end_time": "2025-01-15T11:30:00Z",
+    "total_requests": 15,
+    "total_input_tokens": 12450,
+    "total_output_tokens": 8320
+  },
+  "interactions": [
+    {
+      "interaction_uuid": "int_xyz789",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "model": "claude-sonnet-4-20250514",
+      "provider": "anthropic",
+      "input_tokens": 120,
+      "output_tokens": 85,
+      "latency_ms": 1250,
+      "status": "success"
+    }
+  ]
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `404` | Session not found |
