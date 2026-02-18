@@ -22,6 +22,10 @@ Before connecting, you'll need:
 1. A **Shinzo account** — [sign up at app.shinzo.ai](https://app.shinzo.ai)
 2. A **Shinzo API key** — generate one from [Settings → API Keys](https://app.shinzo.ai/spotlight/api-keys) in the platform
 
+<Note>
+Your API key starts with `sk-`. When configuring clients, the full Authorization header value should look like: `Bearer sk-abc123def456...` (include the word "Bearer" followed by a space and your key).
+</Note>
+
 ---
 
 ## Connect Your MCP Client
@@ -76,9 +80,9 @@ Claude Desktop uses `mcp-remote` as a bridge to HTTP MCP servers. Add the follow
 
 ---
 
-### Cursor, Windsurf, and Other MCP Clients
+### Generic MCP Client Configuration
 
-For any MCP client that supports HTTP transport (Streamable HTTP or SSE), use these connection details:
+For any MCP client that supports HTTP transport (Streamable HTTP or SSE) — including Cursor, Windsurf, VS Code Copilot, and others — use these connection details:
 
 | Field | Value |
 |-------|-------|
@@ -107,6 +111,16 @@ For any MCP client that supports HTTP transport (Streamable HTTP or SSE), use th
 ### Custom Agents (TypeScript / Python)
 
 You can connect your own agents to the Shinzo MCP server using the official MCP SDKs.
+
+<CodeGroup>
+```bash Install (TypeScript)
+npm install @modelcontextprotocol/sdk
+```
+
+```bash Install (Python)
+pip install mcp
+```
+</CodeGroup>
 
 <CodeGroup>
 ```typescript TypeScript
@@ -151,7 +165,16 @@ async with streamablehttp_client(
 
 ## Available Tools
 
-Once connected, you'll have access to the following tools:
+Once connected, you'll have access to tools across 6 categories:
+
+| Category | Tools | What you can do |
+|----------|-------|-----------------|
+| **Agent Management** | 7 tools | Create, configure, pause, and delete agents |
+| **Agent Messaging** | 2 tools | Send messages and retrieve message history |
+| **Agent Filesystem** | 5 tools | Read, write, and search files in agent workspaces |
+| **MCP Server Management** | 5 tools | Register servers and manage agent access |
+| **Token Analytics** | 3 tools | Query usage, costs, and session history |
+| **Discord Integration** | 3 tools | Link/unlink Discord accounts to agents |
 
 ### Agent Management
 | Tool | Description |
@@ -229,7 +252,7 @@ Or programmatically:
   <Accordion title="Connection refused or 401 Unauthorized">
     - Verify your API key is correct and active — check [Settings → API Keys](https://app.shinzo.ai/spotlight/api-keys)
     - Make sure you're passing the full key (starts with `sk-...`), not just the key prefix
-    - Check that the `Authorization` header is formatted as `Bearer YOUR_KEY` (with a space)
+    - Check that the `Authorization` header is formatted as `Bearer YOUR_KEY` (with a space between "Bearer" and the key)
   </Accordion>
   <Accordion title="Tools not showing up in Claude Code">
     - Run `claude mcp list` to verify the server was added
