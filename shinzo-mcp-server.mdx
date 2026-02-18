@@ -37,10 +37,14 @@ Choose the setup method that works best for your MCP client.
 The fastest way to add Shinzo to Claude Code is with a single CLI command:
 
 ```bash
-claude mcp add shinzo --transport http "https://api.app.shinzo.ai/v1/mcp" --header "Authorization: Bearer YOUR_SHINZO_API_KEY"
+claude mcp add --transport http shinzo "https://api.app.shinzo.ai/v1/mcp" --header "Authorization: Bearer YOUR_SHINZO_API_KEY"
 ```
 
 Replace `YOUR_SHINZO_API_KEY` with your actual API key.
+
+<Note>
+**Important**: The `--transport` flag must come **before** the server name (`shinzo`) in the command. Placing it after will cause a parsing error.
+</Note>
 
 After running this command, restart Claude Code. You can verify the connection with `/mcp` inside Claude Code — you should see `shinzo` listed as an available server.
 
@@ -90,7 +94,7 @@ For any MCP client that supports HTTP transport (Streamable HTTP or SSE) — inc
 | **Transport** | HTTP (Streamable HTTP) |
 | **Authorization** | `Bearer YOUR_SHINZO_API_KEY` |
 
-**Generic `mcpServers` config block:**
+**Example `mcpServers` config block (Cursor / Windsurf format):**
 
 ```json
 {
@@ -105,6 +109,10 @@ For any MCP client that supports HTTP transport (Streamable HTTP or SSE) — inc
   }
 }
 ```
+
+<Note>
+Config field names vary by client. Cursor and Windsurf use `"type": "http"`. Other clients (e.g. VS Code Copilot extensions) may use `"transportType"` or similar. Consult your client's documentation if the above doesn't work — the URL and Authorization header values are always the same.
+</Note>
 
 ---
 
