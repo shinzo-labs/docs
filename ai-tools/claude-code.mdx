@@ -1,54 +1,15 @@
 ---
 title: "Claude Code"
-description: "Configure Shinzo analytics for Claude Code to track AI usage, performance, and costs."
+description: "Configure Shinzo analytics and observability for Claude Code to track AI usage, conversations, tool calls, performance, and costs."
 ---
 
 # Claude Code
 
-Claude Code is Anthropic's official CLI tool for interacting with Claude directly from your terminal. By routing Claude Code through Shinzo, you gain visibility into your AI usage patterns, token consumption, response times, and costs.
+Claude Code is Anthropic's official CLI tool for interacting with Claude directly from your terminal. By routing Claude Code through Shinzo, you gain comprehensive visibility into your AI usage patterns, token consumption, response times, costs, and full conversation traces with tool usage.
 
 ## How It Works
 
-Shinzo acts as a transparent proxy between Claude Code and the Anthropic API. When you configure Claude Code to use Shinzo:
-
-1. Your requests are sent to Shinzo instead of directly to Anthropic
-2. Shinzo authenticates your request using your Shinzo API key
-3. The request is forwarded to Anthropic with your Anthropic credentials
-4. Analytics are recorded (tokens, latency, errors, etc.)
-5. The response is returned to Claude Code
-
-## Understanding API Keys
-
-Shinzo uses two types of API keys that serve different purposes:
-
-### Shinzo API Key (Platform Key)
-
-The **Shinzo API Key** authenticates you with the Shinzo platform. This key:
-
-- Identifies your account and project
-- Enables analytics tracking for your requests
-- Format: `sk_shinzo_live_xxxxx` or `sk_shinzo_test_xxxxx`
-
-You create and manage Shinzo API keys in the [Shinzo Platform](https://app.shinzo.ai) under **Settings > API Keys**.
-
-### Provider API Key (Anthropic Key)
-
-The **Provider API Key** is your actual Anthropic API key that authenticates requests with Claude. This key:
-
-- Grants access to Claude models
-- Is billed by Anthropic for token usage
-- Format: `sk-ant-api03-xxxxx` (standard API key) or `sk-ant-oat01-xxxxx` (OAuth token)
-
-## Configuration Modes
-
-Shinzo supports two methods for configuring Claude Code. Both methods require updating the API endpoint to Shinzo's proxy URL.
-
-<Tabs>
-<Tab title="Shinzo as API Key (Recommended)">
-
-### Mode 1: Shinzo as the API Key
-
-This is the recommended approach. Your Anthropic API key is stored securely in Shinzo, and you use your Shinzo API key in place of your Anthropic key.
+Shinzo acts as a proxy between Claude Code and the Anthropic API. All requests are forwarded through Shinzo, which records analytics data before passing the request to Anthropic with your stored provider key.
 
 ```mermaid
 sequenceDiagram
@@ -60,21 +21,37 @@ sequenceDiagram
     S->>S: Authenticate & retrieve stored Anthropic key
     S->>A: Forward request + Anthropic API Key
     A->>S: Response
-    S->>S: Record analytics
+    S->>S: Record analytics (tokens, latency, costs)
     S->>CC: Return response
 ```
 
-**How it works:**
-- Store your Anthropic API key securely in Shinzo (encrypted at rest)
-- Set your Shinzo API key as the `ANTHROPIC_API_KEY` environment variable
-- Update `ANTHROPIC_BASE_URL` to point to Shinzo's endpoint
-- Shinzo retrieves your stored Anthropic key server-side for each request
+**What's captured**:
+- Conversation flow (prompts, responses, context)
+- Tool calls and results
+- Token usage and costs (including cache usage)
+- Performance metrics (latency)
+- Error traces
 
-**Benefits:**
-- Your Anthropic key is stored securely and never transmitted from your machine
-- Easy key rotation - update in Shinzo without reconfiguring Claude Code
-- Works with any tool that supports `ANTHROPIC_API_KEY`
-- Compatible with all Anthropic SDKs
+## Prerequisites
+
+Before you begin, ensure you have:
+
+1. **A Shinzo account** - Sign up at [app.shinzo.ai](https://app.shinzo.ai)
+2. **Claude Code installed** - Get it from [GitHub](https://github.com/anthropics/claude-code)
+3. **Your Anthropic API key** stored in Shinzo - Add it in **Settings > API Keys > Provider Keys**
+4. **A Shinzo API key** - Create one in **Settings > API Keys > Shinzo Keys**
+
+<Warning>
+**Subscription-Based Support**: Due to current platform architecture, Claude Code observability has limitations with subscription-based Anthropic accounts (Claude Pro/Team with OAuth tokens).
+
+**For best results:**
+- Use API key-based Anthropic authentication from the [Anthropic Console](https://console.anthropic.com/settings/keys)
+- Contact [austin@shinzolabs.com](mailto:austin@shinzolabs.com) for early access to enhanced agent features
+</Warning>
+
+## Setup Guide
+
+Follow these steps to configure Claude Code with Shinzo:
 
 <Steps>
 <Step title="Add your Anthropic API key to Shinzo">
@@ -83,8 +60,9 @@ sequenceDiagram
   3. Click the **Provider Keys** tab
   4. Click **Add Provider Key**
   5. Select **Anthropic** as the provider
-  6. Paste your Anthropic API key and add a label
-  7. Click **Save**
+  6. Paste your Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys)
+  7. Add a descriptive label (e.g., "Claude Code Production")
+  8. Click **Save**
 
   <Check>
   Your key will be validated and encrypted before storage.
@@ -94,142 +72,22 @@ sequenceDiagram
 <Step title="Create a Shinzo API key">
   1. In the **API Keys** page, click the **Shinzo Keys** tab
   2. Click **Create Key**
-  3. Give your key a descriptive name (e.g., "Claude Code - Work Laptop")
+  3. Give your key a descriptive name (e.g., "Claude Code Desktop")
   4. Copy the generated key (you won't see it again)
 
   <Warning>
-  Store your Shinzo API key securely. You can create multiple keys for different machines or projects.
+  Store this key securely - you'll need it in the next step.
   </Warning>
 </Step>
 
-<Step title="Configure Claude Code">
-  Set the following environment variables based on your operating system:
+<Step title="Configure Claude Code environment variables">
+  Set the following environment variables to route Claude Code through Shinzo:
 
   <Tabs>
   <Tab title="macOS / Linux">
   Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
 
   ```bash
-  export ANTHROPIC_API_KEY="sk_shinzo_live_your_key_here"
-  export ANTHROPIC_BASE_URL="https://api.app.shinzo.ai/spotlight/anthropic"
-  ```
-
-  Then reload your shell:
-
-  ```bash
-  source ~/.zshrc  # or source ~/.bashrc
-  ```
-  </Tab>
-
-  <Tab title="Windows (PowerShell)">
-  Run the following commands to set persistent environment variables:
-
-  ```powershell
-  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk_shinzo_live_your_key_here', 'User')
-  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.app.shinzo.ai/spotlight/anthropic', 'User')
-  ```
-
-  Restart your terminal for changes to take effect.
-  </Tab>
-
-  <Tab title="Windows (Command Prompt)">
-  Run the following commands:
-
-  ```cmd
-  setx ANTHROPIC_API_KEY "sk_shinzo_live_your_key_here"
-  setx ANTHROPIC_BASE_URL "https://api.app.shinzo.ai/spotlight/anthropic"
-  ```
-
-  Restart your terminal for changes to take effect.
-  </Tab>
-  </Tabs>
-</Step>
-
-<Step title="Verify the configuration">
-  Run Claude Code:
-
-  ```bash
-  claude
-  ```
-
-  <Note>
-  **First-time login flow:**
-
-  When you first run Claude Code with Shinzo configured, you may see several login screens. Follow these steps:
-
-  1. When prompted to choose a login method, select **"Anthropic Console account · API usage billing"** (not a subscription-based option)
-  2. If you see "Detected a custom API key in your environment... Do you want to use this API key?", select **"No (Recommended)"**
-  3. You may need to restart `claude` after completing login for Shinzo observability to take effect
-  </Note>
-
-  Make a test request and then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
-
-  <Check>
-  If your request appears in the dashboard, you're all set.
-  </Check>
-</Step>
-</Steps>
-
-</Tab>
-
-<Tab title="Shinzo as Custom Header">
-
-### Mode 2: Shinzo as Custom Header
-
-In this mode, you keep your existing Anthropic API key and add Shinzo authentication via a custom header. Your Anthropic key is passed through to Anthropic on every request.
-
-```mermaid
-sequenceDiagram
-    participant CC as Claude Code
-    participant S as Shinzo Platform
-    participant A as Anthropic API
-
-    CC->>S: Request + Anthropic Key + x-shinzo-api-key header
-    S->>S: Authenticate via Shinzo header
-    S->>A: Forward request + Anthropic API Key (passthrough)
-    A->>S: Response
-    S->>S: Record analytics
-    S->>CC: Return response
-```
-
-**How it works:**
-- Keep your existing `ANTHROPIC_API_KEY` environment variable (your Anthropic key)
-- Add `x-shinzo-api-key` custom header with your Shinzo API key
-- Update `ANTHROPIC_BASE_URL` to point to Shinzo's endpoint
-- Your Anthropic key is passed through to Anthropic on each request
-
-**Benefits:**
-- No need to store your Anthropic key on the Shinzo platform
-- Quick setup if you already have Claude Code configured
-- Useful for environments where you cannot store keys externally
-
-**Trade-offs:**
-- Your Anthropic key is transmitted on every request (via Shinzo's secure proxy)
-- Key rotation requires updating your local environment
-
-<Steps>
-<Step title="Create a Shinzo API key">
-  1. Go to [app.shinzo.ai](https://app.shinzo.ai)
-  2. Navigate to **Settings > API Keys**
-  3. Click the **Shinzo Keys** tab
-  4. Click **Create Key**
-  5. Give your key a descriptive name
-  6. Copy the generated key
-
-  <Note>
-  In this mode, you do not need to add a Provider Key to Shinzo. Your Anthropic key stays in your local environment.
-  </Note>
-</Step>
-
-<Step title="Configure Claude Code">
-  Set the following environment variables based on your operating system. Keep your existing `ANTHROPIC_API_KEY` and add the Shinzo configuration:
-
-  <Tabs>
-  <Tab title="macOS / Linux">
-  Add to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):
-
-  ```bash
-  export ANTHROPIC_API_KEY="sk-ant-api03-your-anthropic-key-here"
   export ANTHROPIC_BASE_URL="https://api.app.shinzo.ai/spotlight/anthropic"
   export ANTHROPIC_CUSTOM_HEADERS="x-shinzo-api-key: sk_shinzo_live_your_key_here"
   ```
@@ -245,7 +103,6 @@ sequenceDiagram
   Run the following commands to set persistent environment variables:
 
   ```powershell
-  [System.Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk-ant-api03-your-anthropic-key-here', 'User')
   [System.Environment]::SetEnvironmentVariable('ANTHROPIC_BASE_URL', 'https://api.app.shinzo.ai/spotlight/anthropic', 'User')
   [System.Environment]::SetEnvironmentVariable('ANTHROPIC_CUSTOM_HEADERS', 'x-shinzo-api-key: sk_shinzo_live_your_key_here', 'User')
   ```
@@ -257,7 +114,6 @@ sequenceDiagram
   Run the following commands:
 
   ```cmd
-  setx ANTHROPIC_API_KEY "sk-ant-api03-your-anthropic-key-here"
   setx ANTHROPIC_BASE_URL "https://api.app.shinzo.ai/spotlight/anthropic"
   setx ANTHROPIC_CUSTOM_HEADERS "x-shinzo-api-key: sk_shinzo_live_your_key_here"
   ```
@@ -265,13 +121,23 @@ sequenceDiagram
   Restart your terminal for changes to take effect.
   </Tab>
   </Tabs>
+
+  <Warning>
+  Replace `sk_shinzo_live_your_key_here` with your actual Shinzo API key from Step 2.
+  </Warning>
+
+  <Info>
+  **Configuration Breakdown**:
+  - `ANTHROPIC_BASE_URL`: Redirects Claude Code to Shinzo's Anthropic proxy endpoint
+  - `ANTHROPIC_CUSTOM_HEADERS`: Passes your Shinzo API key for authentication
+  </Info>
 </Step>
 
 <Step title="Verify the configuration">
-  Run Claude Code:
+  Test your configuration by running a simple Claude Code command:
 
   ```bash
-  claude
+  claude "What is the capital of France?"
   ```
 
   <Note>
@@ -284,139 +150,137 @@ sequenceDiagram
   3. You may need to restart `claude` after completing login for Shinzo observability to take effect
   </Note>
 
-  Make a test request and then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your request logged.
+  Then check the [Shinzo Dashboard](https://app.shinzo.ai) to see your conversation appear.
 
   <Check>
-  If your request appears in the dashboard, you're all set.
+  If you see your conversation in the dashboard with full trace details, you're all set!
   </Check>
 </Step>
 </Steps>
 
-</Tab>
-</Tabs>
+## What Data is Collected?
 
-## Comparison of Modes
+When you use Claude Code through Shinzo, the following data is automatically captured by the proxy:
 
-| Feature | Shinzo as API Key | Shinzo as Custom Header |
-|---------|-------------------|-------------------------|
-| Anthropic key location | Stored encrypted in Shinzo | Kept in local environment |
-| Anthropic key transmission | Never leaves Shinzo servers | Passed through on every request |
-| Store provider key in Shinzo? | Yes (required) | No |
-| Environment variables needed | 2 (`API_KEY`, `BASE_URL`) | 3 (`API_KEY`, `BASE_URL`, `CUSTOM_HEADERS`) |
-| Key rotation | Update in Shinzo dashboard | Update local environment |
-| Recommended for | Most users | Users who cannot store keys externally |
+### Conversation Data
+- **User prompts**: The questions or commands you send to Claude
+- **Agent responses**: Claude's text responses
+- **Conversation context**: Full conversation history and context
+- **Model configuration**: Model version, temperature, max tokens, etc.
+- **Timestamps**: When each message was sent and received
 
-## What Gets Tracked
+### Tool Usage
+- **Tool calls**: Which tools Claude invokes (file operations, bash commands, etc.)
+- **Tool parameters**: Arguments passed to each tool
+- **Tool results**: Output returned from tool executions
 
-When Claude Code routes through Shinzo, the following data is collected:
+### Performance Metrics
+- **Response time**: Latency from request to response
+- **Token counts**: Input and output tokens per message
+- **Cache usage**: Cache creation and cache read tokens
+- **Costs**: Estimated cost per conversation based on model pricing
 
-| Data | Collected | Notes |
-|------|-----------|-------|
-| Request timestamp | Yes | When the request was made |
-| Response latency | Yes | Time to first token, total time |
-| Input tokens | Yes | Tokens in your prompt |
-| Output tokens | Yes | Tokens in Claude's response |
-| Model used | Yes | e.g., claude-sonnet-4-20250514 |
-| Success/failure | Yes | HTTP status codes, error types |
-| Request content | Yes | Your prompts are stored for session analysis |
-| Response content | Yes | Claude's responses are stored for session analysis |
+<Info>
+All data is sent securely over HTTPS and encrypted at rest in Shinzo's infrastructure.
+</Info>
 
-## Managing API Keys
+## Viewing Your Data
 
-### Rotating Keys
+Once configured, you can view your Claude Code data in the Shinzo dashboard:
 
-**If using "Shinzo as API Key" mode:**
-1. Generate a new key in the [Anthropic Console](https://console.anthropic.com)
-2. Update the key in Shinzo under **Settings > API Keys > Provider Keys**
-3. Revoke the old key in Anthropic
-4. No changes to your Claude Code configuration required
+### Agent Analytics Dashboard
 
-**If using "Shinzo as Custom Header" mode:**
-1. Generate a new key in the [Anthropic Console](https://console.anthropic.com)
-2. Update your local `ANTHROPIC_API_KEY` environment variable
-3. Revoke the old key in Anthropic
+Navigate to **Analytics > Agent Analytics** in the Shinzo dashboard to see:
 
-### Multiple Shinzo Keys
+- **Conversation traces**: Full conversation flows with timing data
+- **Tool usage patterns**: Which tools are used most frequently
+- **Token consumption**: Token usage over time with cost breakdown
+- **Performance trends**: Response times and throughput metrics
 
-You can create multiple Shinzo API keys for different purposes:
+<Card title="Agent Analytics Dashboard" icon="chart-line" href="/platform/agent-analytics">
+  Learn more about the agent analytics dashboard
+</Card>
 
-- **Per-machine keys**: Create separate keys for work and personal computers
-- **Per-project keys**: Track usage by project or team
-- **Test vs. production**: Use `test` type keys for development
+### Individual Conversation View
 
-### Revoking Keys
+Click on any conversation to see:
 
-To revoke a compromised Shinzo key:
-
-1. Go to **Settings > API Keys** in Shinzo
-2. Find the key and click **Revoke**
-3. Create a new key and update your configuration
-
-## Important: API Key Requirements
-
-<Warning>
-**Subscription-based access is not supported.** Shinzo requires your own Anthropic API key to proxy requests. OAuth tokens from Claude subscriptions (e.g., Claude Pro/Team subscriptions) cannot be used with Shinzo at this time.
-
-If you attempt to use subscription-based authentication, you will receive a `403 Forbidden` error with the message:
-> "Shinzo Platform is currently only compatible with API key-based access. Please add your Anthropic API key in the settings page to continue."
-</Warning>
-
-To use Shinzo with Claude Code, you must:
-
-1. Have an Anthropic API key from the [Anthropic Console](https://console.anthropic.com/settings/keys)
-2. Store your API key in Shinzo (for "Shinzo as API Key" mode) or keep it in your environment (for "Custom Header" mode)
+- **Full conversation transcript**: All messages in the conversation
+- **Token breakdown**: Detailed token usage per message including cache hits
+- **Performance metrics**: Latency for each interaction
 
 ## Troubleshooting
 
 <AccordionGroup>
-<Accordion title="Requests not appearing in dashboard">
-1. Verify your environment variables are set correctly:
+<Accordion title="Conversations not appearing in dashboard">
+1. **Verify environment variables**:
+   - Check that `ANTHROPIC_BASE_URL` is set to `https://api.app.shinzo.ai/spotlight/anthropic`
+   - Verify `ANTHROPIC_CUSTOM_HEADERS` contains your Shinzo API key
+
    ```bash
    echo $ANTHROPIC_BASE_URL
-   echo $ANTHROPIC_API_KEY
-   echo $ANTHROPIC_CUSTOM_HEADERS  # if using custom header mode
+   echo $ANTHROPIC_CUSTOM_HEADERS
    ```
-2. Ensure `ANTHROPIC_BASE_URL` is set to `https://api.app.shinzo.ai/spotlight/anthropic`
-3. Ensure the Shinzo API key is valid and not revoked
-4. If using "Shinzo as API Key" mode, check that you have a provider key configured in Shinzo
-5. Try a new terminal session to reload environment variables
-</Accordion>
 
-<Accordion title="Authentication errors">
-- **401 Unauthorized**: Your Shinzo API key is invalid or revoked
-- **403 Forbidden - Subscription not supported**: You are using a Claude subscription OAuth token instead of an API key. Shinzo requires your own Anthropic API key. Get one from the [Anthropic Console](https://console.anthropic.com/settings/keys).
-- **403 Forbidden - Invalid key**: Your Anthropic key may be invalid or expired
-- If using "Shinzo as API Key" mode, verify your provider key is configured in Shinzo
-- If using "Custom Header" mode, verify your `ANTHROPIC_API_KEY` is correct
-</Accordion>
+2. **Check API key**:
+   - Ensure your Shinzo API key is valid and not revoked
+   - Verify your Anthropic provider key is stored in **Settings > API Keys > Provider Keys**
 
-<Accordion title="Connection timeouts">
-1. Verify you can reach `api.app.shinzo.ai`:
+3. **Test connectivity**:
    ```bash
    curl -I https://api.app.shinzo.ai/health
    ```
-2. Check your network/firewall settings
-3. If using a corporate proxy, ensure it allows HTTPS connections to Shinzo
+   Should return `200 OK`.
 </Accordion>
 
-<Accordion title="Switching back to direct Anthropic access">
-To bypass Shinzo temporarily:
+<Accordion title="Authentication errors">
+- **401 Unauthorized**: Your Shinzo API key is invalid or revoked. Check **Settings > API Keys** in the Shinzo dashboard.
+- **403 Forbidden - Subscription not supported**: You're using a Claude subscription OAuth token. Shinzo requires an API key from the [Anthropic Console](https://console.anthropic.com/settings/keys).
+- **403 Forbidden - Invalid provider key**: Your Anthropic API key stored in Shinzo may be invalid. Update it in **Settings > API Keys > Provider Keys**.
+</Accordion>
+
+<Accordion title="Claude Code performance issues">
+If Claude Code feels slower after enabling Shinzo:
+
+1. **Check network latency**: Run `ping api.app.shinzo.ai` to verify connectivity
+2. **Check firewall**: Ensure your firewall allows HTTPS to `api.app.shinzo.ai`
+
+The proxy adds minimal overhead (~10-50ms per request), so significant slowdowns usually indicate network issues.
+</Accordion>
+
+<Accordion title="Disabling Shinzo observability">
+To stop routing through Shinzo, unset the environment variables:
 
 ```bash
 unset ANTHROPIC_BASE_URL
 unset ANTHROPIC_CUSTOM_HEADERS
-export ANTHROPIC_API_KEY="sk-ant-api03-your-anthropic-key"
 ```
+
+Or remove them from your shell configuration file and reload your shell.
 </Accordion>
 </AccordionGroup>
+
+## Privacy & Security
+
+- **Encryption in transit**: All requests are sent over HTTPS
+- **Encryption at rest**: Data is encrypted in Shinzo's database
+- **Access control**: Only you can access your data
+- **No training**: Your data is never used to train AI models
+- **Provider key security**: Your Anthropic API key is encrypted and never exposed to client-side code
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="View Dashboard" icon="chart-line" href="/platform/dashboard">
-    Explore your Claude Code usage analytics in the Shinzo dashboard.
+  <Card title="Agent Analytics Dashboard" icon="chart-line" href="/platform/agent-analytics">
+    Explore your agent conversation data and metrics
   </Card>
-  <Card title="MCP Server Instrumentation" icon="server" href="/quickstart">
-    Add observability to your MCP servers for complete AI visibility.
+  <Card title="Anthropic SDK" icon="code" href="/ai-tools/anthropic-sdk">
+    Set up analytics for custom agents built with the Anthropic SDK
+  </Card>
+  <Card title="MCP Analytics" icon="puzzle-piece" href="/quickstart">
+    Add observability to your MCP servers
+  </Card>
+  <Card title="Contact Support" icon="envelope" href="mailto:austin@shinzolabs.com">
+    Get help or request early access to advanced features
   </Card>
 </CardGroup>

@@ -23,16 +23,9 @@
         "tab": "Overview",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Platform Overview",
             "pages": [
-              "quickstart"
-            ]
-          },
-          {
-            "group": "AI Tools",
-            "pages": [
-              "ai-tools/claude-code",
-              "ai-tools/anthropic-sdk"
+              "index"
             ]
           },
           {
@@ -41,18 +34,54 @@
               "concepts/mcp",
               "concepts/opentelemetry"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Shinzo Agents",
+        "groups": [
           {
-            "group": "Platform",
+            "group": "Shinzo Agents",
             "pages": [
-              "platform/dashboard"
+              "shinzo-agents"
             ]
           }
         ]
       },
       {
-        "tab": "SDK",
+        "tab": "Shinzo MCP Server",
         "groups": [
+          {
+            "group": "Shinzo MCP Server",
+            "pages": [
+              "shinzo-mcp-server"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Agent Analytics",
+        "groups": [
+          {
+            "group": "Agent Analytics",
+            "pages": [
+              "ai-tools/claude-code",
+              "ai-tools/anthropic-sdk",
+              "platform/agent-analytics"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "MCP Analytics",
+        "groups": [
+          {
+            "group": "MCP Analytics",
+            "pages": [
+              "quickstart",
+              "platform/dashboard"
+            ]
+          },
           {
             "group": "TypeScript SDK",
             "pages": [
