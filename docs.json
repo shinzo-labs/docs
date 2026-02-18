@@ -23,16 +23,9 @@
         "tab": "Overview",
         "groups": [
           {
-            "group": "Getting Started",
+            "group": "Platform Overview",
             "pages": [
-              "quickstart"
-            ]
-          },
-          {
-            "group": "AI Tools",
-            "pages": [
-              "ai-tools/claude-code",
-              "ai-tools/anthropic-sdk"
+              "index"
             ]
           },
           {
@@ -41,20 +34,59 @@
               "concepts/mcp",
               "concepts/opentelemetry"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Shinzo Agents",
+        "groups": [
           {
-            "group": "Platform",
+            "group": "Shinzo Agents",
             "pages": [
-              "platform/dashboard",
-              "platform/agent-deployment",
-              "platform/agent-management"
+              "shinzo-agents",
+              "agents/configuration",
+              "agents/messaging",
+              "agents/filesystem",
+              "agents/mcp-management",
+              "agents/channels"
             ]
           }
         ]
       },
       {
-        "tab": "SDK",
+        "tab": "Shinzo MCP Server",
         "groups": [
+          {
+            "group": "Shinzo MCP Server",
+            "pages": [
+              "shinzo-mcp-server"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Agent Analytics",
+        "groups": [
+          {
+            "group": "Agent Analytics",
+            "pages": [
+              "ai-tools/claude-code",
+              "ai-tools/anthropic-sdk",
+              "platform/agent-analytics"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "MCP Analytics",
+        "groups": [
+          {
+            "group": "MCP Analytics",
+            "pages": [
+              "quickstart",
+              "platform/dashboard"
+            ]
+          },
           {
             "group": "TypeScript SDK",
             "pages": [
@@ -103,9 +135,59 @@
               "api/agents/get",
               "api/agents/update",
               "api/agents/delete",
-              "api/agents/pause-resume",
-              "api/agents/tasks",
-              "api/agents/filesystem"
+              "api/agents/pause",
+              "api/agents/resume"
+            ]
+          },
+          {
+            "group": "Agent Messaging",
+            "pages": [
+              "api/agents/send-message",
+              "api/agents/list-messages"
+            ]
+          },
+          {
+            "group": "Agent Channels",
+            "pages": [
+              "api/agents/list-channels",
+              "api/agents/discord-link",
+              "api/agents/discord-status",
+              "api/agents/discord-unlink"
+            ]
+          },
+          {
+            "group": "Agent Filesystem",
+            "pages": [
+              "api/agents/filesystem/read-file",
+              "api/agents/filesystem/create-file",
+              "api/agents/filesystem/update-file",
+              "api/agents/filesystem/delete-file",
+              "api/agents/filesystem/patch-file",
+              "api/agents/filesystem/list-directory",
+              "api/agents/filesystem/create-directory",
+              "api/agents/filesystem/delete-directory",
+              "api/agents/filesystem/copy",
+              "api/agents/filesystem/move",
+              "api/agents/filesystem/search",
+              "api/agents/filesystem/get-metadata",
+              "api/agents/filesystem/update-metadata",
+              "api/agents/filesystem/create-archive",
+              "api/agents/filesystem/extract-archive"
+            ]
+          },
+          {
+            "group": "MCP Servers",
+            "pages": [
+              "api/mcp-servers/create",
+              "api/mcp-servers/list",
+              "api/mcp-servers/get",
+              "api/mcp-servers/update",
+              "api/mcp-servers/delete",
+              "api/mcp-servers/refresh-tools",
+              "api/mcp-servers/health",
+              "api/mcp-servers/grant-access",
+              "api/mcp-servers/list-access",
+              "api/mcp-servers/revoke-access"
             ]
           },
           {
