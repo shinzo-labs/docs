@@ -229,20 +229,87 @@ Once connected, you'll have access to tools across 6 categories:
 
 ## Example: Create Your First Agent
 
-Once connected to Claude Code, you can ask Claude to create and manage agents conversationally:
+### Via Claude Code (conversational)
+
+Once connected, you can ask Claude to create and manage agents in plain English:
 
 ```
-"Create a new Shinzo agent called 'research-assistant' with a description 
-'Helps with research tasks' and a system prompt 'You are a helpful research 
+You: "Create a new Shinzo agent called 'research-assistant' with the description
+'Helps with research tasks' and the system prompt 'You are a helpful research
 assistant. Always cite your sources.'"
+
+Claude: I'll create that agent for you now.
+[calls create_agent tool]
+
+✅ Agent "research-assistant" created successfully!
+- Agent ID: abc123de-f456-7890-abcd-ef1234567890
+- Status: active
+- You can now send it messages or connect it to MCP servers.
 ```
 
-Or programmatically:
+### Via the TypeScript SDK (programmatic)
 
-```bash
-# In Claude Code, Claude will call the create_agent tool:
-# Result: Agent "research-assistant" created with ID abc123
+<CodeGroup>
+```typescript TypeScript
+// Create an agent and send it a message
+const newAgent = await client.callTool({
+  name: "create_agent",
+  arguments: {
+    name: "research-assistant",
+    description: "Helps with research tasks",
+    system_prompt: "You are a helpful research assistant. Always cite your sources.",
+    configuration: {}
+  }
+});
+
+const agentId = JSON.parse(newAgent.content[0].text).uuid;
+
+// Send the agent its first message
+await client.callTool({
+  name: "send_agent_message",
+  arguments: {
+    agentId,
+    content: "Summarize the latest developments in large language models.",
+    channel: "api",
+    queue_mode: "collect"
+  }
+});
+
+// Retrieve the response
+const messages = await client.callTool({
+  name: "list_agent_messages",
+  arguments: { agentId, limit: 10 }
+});
 ```
+
+```python Python
+import json
+
+# Create an agent
+result = await session.call_tool("create_agent", {
+    "name": "research-assistant",
+    "description": "Helps with research tasks",
+    "system_prompt": "You are a helpful research assistant. Always cite your sources.",
+    "configuration": {}
+})
+
+agent_id = json.loads(result.content[0].text)["uuid"]
+
+# Send the agent its first message
+await session.call_tool("send_agent_message", {
+    "agentId": agent_id,
+    "content": "Summarize the latest developments in large language models.",
+    "channel": "api",
+    "queue_mode": "collect"
+})
+
+# Retrieve the response
+messages = await session.call_tool("list_agent_messages", {
+    "agentId": agent_id,
+    "limit": 10
+})
+```
+</CodeGroup>
 
 ---
 
