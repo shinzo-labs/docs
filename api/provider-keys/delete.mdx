@@ -8,21 +8,11 @@ api: "DELETE /auth/provider_keys/:keyUuid"
 
 Permanently delete an AI provider API key from your account.
 
-## Endpoint
-
-```
-DELETE /auth/provider_keys/:keyUuid
-```
-
 ## Authentication
 
 Requires JWT token authentication.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `keyUuid` | string | ✅ | The UUID of the key to delete |
+<ParamField path="keyUuid" type="string" required>The UUID of the key to delete</ParamField>
 
 ## Example Request
 

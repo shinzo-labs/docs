@@ -1,0 +1,48 @@
+---
+title: "Authentication Overview"
+description: "User registration, login, email verification, and OAuth flows."
+---
+
+# Authentication
+
+Authentication endpoints handle user account management, session tokens, and OAuth flows. Most endpoints in this group do not require authentication, as they are used to establish credentials.
+
+## Authentication Methods
+
+| Method | Description |
+|--------|-------------|
+| **Email/Password** | Register with email and password, verify email, then log in to receive a JWT token |
+| **Google OAuth** | Sign in using a Google account |
+| **GitHub OAuth** | Sign in using a GitHub account |
+
+## Endpoints
+
+### Account Management
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/auth/create_user`](/api/auth/register) | Register a new user account |
+| `POST` | [`/auth/login`](/api/auth/login) | Log in and receive a JWT token |
+| `POST` | [`/auth/verify_user`](/api/auth/verify) | Verify email address |
+| `POST` | [`/auth/resend_verification`](/api/auth/resend-verification) | Resend verification email |
+| `GET` | [`/auth/fetch_user`](/api/auth/fetch-user) | Get current user profile |
+| `GET` | [`/auth/fetch_user_quota`](/api/auth/fetch-quota) | Get usage quota and limits |
+
+### OAuth
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/auth/oauth/google`](/api/auth/oauth) | Get Google OAuth authorization URL |
+| `POST` | [`/auth/oauth/google/callback`](/api/auth/oauth) | Handle Google OAuth callback |
+| `GET` | [`/auth/oauth/github`](/api/auth/oauth) | Get GitHub OAuth authorization URL |
+| `POST` | [`/auth/oauth/github/callback`](/api/auth/oauth) | Handle GitHub OAuth callback |
+
+## Token Lifecycle
+
+1. **Register** an account or sign in via OAuth
+2. **Verify** your email (email/password only)
+3. **Log in** to receive a JWT token
+4. **Include the token** in subsequent API requests via the `Authorization: Bearer <token>` header
+5. **Tokens expire** after 24 hours — log in again to obtain a new one
+
+For API key-based authentication (no expiry), see [Platform API Keys](/api/tokens/platform-keys).

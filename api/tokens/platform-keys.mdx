@@ -11,21 +11,13 @@ Platform API keys provide programmatic access to the Shinzo Platform APIs, inclu
 
 Create a new platform API key.
 
-### Endpoint
-
-```
-POST /auth/platform_keys
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
 ### Request Body
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | ✅ | A descriptive name for the API key |
+<ParamField body="name" type="string" required>A descriptive name for the API key</ParamField>
 
 ### Example Request
 
@@ -67,12 +59,6 @@ The API key value is only displayed once at creation. Store it securely as it ca
 ## List Platform API Keys
 
 Retrieve all platform API keys associated with your account.
-
-### Endpoint
-
-```
-GET /auth/platform_keys
-```
 
 ### Authentication
 
@@ -120,21 +106,13 @@ Full key values are not returned when listing. Only the prefix and metadata are 
 
 Delete an existing platform API key. Deleted keys can no longer be used for authentication.
 
-### Endpoint
-
-```
-DELETE /auth/platform_keys/:keyUuid
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `keyUuid` | string | ✅ | The UUID of the key to delete |
+<ParamField path="keyUuid" type="string" required>The UUID of the key to delete</ParamField>
 
 ### Example Request
 

@@ -11,12 +11,6 @@ Ingest tokens are used to authenticate telemetry data sent from your MCP servers
 
 Create a new ingest token for telemetry data ingestion.
 
-### Endpoint
-
-```
-POST /auth/generate_ingest_token
-```
-
 ### Authentication
 
 Requires JWT token authentication.
@@ -57,12 +51,6 @@ The token value is only displayed once at creation. Store it securely as it cann
 ## List Ingest Tokens
 
 Retrieve all ingest tokens associated with your account.
-
-### Endpoint
-
-```
-GET /auth/fetch_ingest_tokens
-```
 
 ### Authentication
 
@@ -106,21 +94,13 @@ Token values are not returned when listing tokens. Only metadata is shown.
 
 Revoke an existing ingest token. Revoked tokens can no longer be used for telemetry ingestion.
 
-### Endpoint
-
-```
-POST /auth/revoke_ingest_token/:tokenUuid
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
 ### Path Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `tokenUuid` | string | ✅ | The UUID of the token to revoke |
+<ParamField path="tokenUuid" type="string" required>The UUID of the token to revoke</ParamField>
 
 ### Example Request
 

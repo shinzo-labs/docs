@@ -8,32 +8,15 @@ api: "PUT /auth/provider_keys/:keyUuid"
 
 Update an existing AI provider API key's credentials, base URL, label, or status.
 
-## Endpoint
-
-```
-PUT /auth/provider_keys/:keyUuid
-```
-
 ## Authentication
 
 Requires JWT token authentication.
 
-## Path Parameters
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `keyUuid` | string | ✅ | The UUID of the key to update |
-
-## Request Body
-
-All fields are optional. Only include fields you want to update.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `provider_api_key` | string | New API key value |
-| `provider_base_url` | string | New custom base URL |
-| `label` | string | New label |
-| `status` | string | New status (`active`, `inactive`, `revoked`) |
+<ParamField path="keyUuid" type="string" required>The UUID of the key to update</ParamField>
+<ParamField body="provider_api_key" type="string">New API key value</ParamField>
+<ParamField body="provider_base_url" type="string">New custom base URL</ParamField>
+<ParamField body="label" type="string">New label</ParamField>
+<ParamField body="status" type="string">New status (`active`, `inactive`, `revoked`)</ParamField>
 
 ## Example Request
 

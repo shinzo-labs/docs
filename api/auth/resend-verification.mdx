@@ -8,21 +8,11 @@ api: "POST /auth/resend_verification"
 
 Request a new verification email for users who didn't receive the original or whose verification link has expired.
 
-## Endpoint
-
-```
-POST /auth/resend_verification
-```
-
 ## Authentication
 
 No authentication required.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | ✅ | User's registered email address |
+<ParamField body="email" type="string" required>User's registered email address</ParamField>
 
 ## Example Request
 

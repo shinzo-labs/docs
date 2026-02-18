@@ -21,12 +21,6 @@ Authorization: Bearer <jwt_token>
 
 Get all telemetry resources (services) that have sent data.
 
-### Endpoint
-
-```
-GET /telemetry/fetch_resources
-```
-
 ### Example Request
 
 ```bash
@@ -56,24 +50,16 @@ curl -X GET https://api.app.shinzo.ai/telemetry/fetch_resources \
 
 Get traces with optional filtering.
 
-### Endpoint
-
-```
-GET /telemetry/fetch_traces
-```
-
 ### Query Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Filter by start date (ISO 8601) |
-| `end_date` | string | Filter by end date (ISO 8601) |
-| `resource_id` | string | Filter by resource ID |
-| `service_name` | string | Filter by service name |
-| `limit` | number | Max results to return |
-| `offset` | number | Pagination offset |
-| `sort` | string | Sort field |
-| `sort_direction` | string | Sort direction (`asc`, `desc`) |
+<ParamField query="start_date" type="string">Filter by start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">Filter by end date (ISO 8601)</ParamField>
+<ParamField query="resource_id" type="string">Filter by resource ID</ParamField>
+<ParamField query="service_name" type="string">Filter by service name</ParamField>
+<ParamField query="limit" type="number">Max results to return</ParamField>
+<ParamField query="offset" type="number">Pagination offset</ParamField>
+<ParamField query="sort" type="string">Sort field</ParamField>
+<ParamField query="sort_direction" type="string">Sort direction (`asc`, `desc`)</ParamField>
 
 ### Example Request
 
@@ -111,25 +97,17 @@ curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_traces?service_name=my-mc
 
 Get individual spans with optional filtering.
 
-### Endpoint
-
-```
-GET /telemetry/fetch_spans
-```
-
 ### Query Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Filter by start date (ISO 8601) |
-| `end_date` | string | Filter by end date (ISO 8601) |
-| `resource_id` | string | Filter by resource ID |
-| `service_name` | string | Filter by service name |
-| `trace_id` | string | Filter by trace ID |
-| `limit` | number | Max results to return |
-| `offset` | number | Pagination offset |
-| `sort` | string | Sort field |
-| `sort_direction` | string | Sort direction (`asc`, `desc`) |
+<ParamField query="start_date" type="string">Filter by start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">Filter by end date (ISO 8601)</ParamField>
+<ParamField query="resource_id" type="string">Filter by resource ID</ParamField>
+<ParamField query="service_name" type="string">Filter by service name</ParamField>
+<ParamField query="trace_id" type="string">Filter by trace ID</ParamField>
+<ParamField query="limit" type="number">Max results to return</ParamField>
+<ParamField query="offset" type="number">Pagination offset</ParamField>
+<ParamField query="sort" type="string">Sort field</ParamField>
+<ParamField query="sort_direction" type="string">Sort direction (`asc`, `desc`)</ParamField>
 
 ### Example Request
 
@@ -173,23 +151,15 @@ curl -X GET "https://api.app.shinzo.ai/telemetry/fetch_spans?trace_id=5b8aa5a2d2
 
 Get metrics data with optional filtering.
 
-### Endpoint
-
-```
-GET /telemetry/fetch_metrics
-```
-
 ### Query Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `start_date` | string | Filter by start date (ISO 8601) |
-| `end_date` | string | Filter by end date (ISO 8601) |
-| `resource_id` | string | Filter by resource ID |
-| `service_name` | string | Filter by service name |
-| `metric_name` | string | Filter by metric name |
-| `limit` | number | Max results to return |
-| `offset` | number | Pagination offset |
+<ParamField query="start_date" type="string">Filter by start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">Filter by end date (ISO 8601)</ParamField>
+<ParamField query="resource_id" type="string">Filter by resource ID</ParamField>
+<ParamField query="service_name" type="string">Filter by service name</ParamField>
+<ParamField query="metric_name" type="string">Filter by metric name</ParamField>
+<ParamField query="limit" type="number">Max results to return</ParamField>
+<ParamField query="offset" type="number">Pagination offset</ParamField>
 
 ### Example Request
 

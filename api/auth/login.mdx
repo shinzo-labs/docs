@@ -8,22 +8,12 @@ api: "POST /auth/login"
 
 Authenticate a user with email and password to receive a JWT token for subsequent API requests.
 
-## Endpoint
-
-```
-POST /auth/login
-```
-
 ## Authentication
 
 No authentication required.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | ✅ | Registered email address |
-| `password` | string | ✅ | User password |
+<ParamField body="email" type="string" required>Registered email address</ParamField>
+<ParamField body="password" type="string" required>User password</ParamField>
 
 ## Example Request
 

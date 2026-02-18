@@ -8,23 +8,13 @@ api: "POST /auth/provider_keys/test"
 
 Validate that an AI provider API key is working correctly without storing it in the Shinzo Platform. This is useful for verifying credentials before saving them.
 
-## Endpoint
-
-```
-POST /auth/provider_keys/test
-```
-
 ## Authentication
 
 No authentication required.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `provider` | string | ✅ | Provider name (`anthropic`) |
-| `provider_api_key` | string | ✅ | The API key to test |
-| `provider_base_url` | string | ❌ | Custom base URL (for proxies or self-hosted) |
+<ParamField body="provider" type="string" required>Provider name (`anthropic`)</ParamField>
+<ParamField body="provider_api_key" type="string" required>The API key to test</ParamField>
+<ParamField body="provider_base_url" type="string">Custom base URL (for proxies or self-hosted)</ParamField>
 
 ## Example Request
 

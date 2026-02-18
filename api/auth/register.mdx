@@ -8,22 +8,12 @@ api: "POST /auth/create_user"
 
 Create a new user account with email and password.
 
-## Endpoint
-
-```
-POST /auth/create_user
-```
-
 ## Authentication
 
 No authentication required.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | ✅ | Valid email address |
-| `password` | string | ✅ | Password (minimum 8 characters) |
+<ParamField body="email" type="string" required>Valid email address</ParamField>
+<ParamField body="password" type="string" required>Password (minimum 8 characters)</ParamField>
 
 ## Example Request
 

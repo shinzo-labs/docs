@@ -8,12 +8,6 @@ api: "POST /spotlight/anthropic/v1/messages"
 
 Forward message requests to Anthropic's Claude API through Spotlight. All requests are automatically tracked for analytics.
 
-## Endpoint
-
-```
-POST /spotlight/anthropic/v1/messages
-```
-
 ## Authentication
 
 Requires JWT token or Platform API key:
@@ -35,17 +29,13 @@ Provider credentials can be supplied in two ways:
 x-api-key: sk-ant-api03-...
 ```
 
-## Request Body
-
 The request body follows Anthropic's Messages API format. See [Anthropic's documentation](https://docs.anthropic.com/claude/reference/messages_post) for full details.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model` | string | ✅ | Model to use (e.g., `claude-sonnet-4-20250514`) |
-| `messages` | array | ✅ | Array of message objects |
-| `max_tokens` | integer | ✅ | Maximum tokens to generate |
-| `metadata` | object | ❌ | Metadata including `user_id` for session tracking |
-| `stream` | boolean | ❌ | Enable streaming responses |
+<ParamField body="model" type="string" required>Model to use (e.g., `claude-sonnet-4-20250514`)</ParamField>
+<ParamField body="messages" type="array" required>Array of message objects</ParamField>
+<ParamField body="max_tokens" type="integer" required>Maximum tokens to generate</ParamField>
+<ParamField body="metadata" type="object">Metadata including `user_id` for session tracking</ParamField>
+<ParamField body="stream" type="boolean">Enable streaming responses</ParamField>
 
 ## Example Request
 

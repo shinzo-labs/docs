@@ -121,6 +121,7 @@
           {
             "group": "Authentication",
             "pages": [
+              "api/auth/overview",
               "api/auth/register",
               "api/auth/login",
               "api/auth/verify",
