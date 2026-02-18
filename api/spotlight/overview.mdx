@@ -43,28 +43,27 @@ Spotlight needs credentials to make requests to AI providers. You can:
 
 ### Model Proxy
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/spotlight/anthropic/v1/messages` | POST | Send messages to Claude (streaming supported) |
-| `/spotlight/anthropic/v1/messages/count_tokens` | POST | Count tokens for a request |
-| `/spotlight/anthropic/api/event_logging/batch` | POST | Send event logs to Anthropic |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/spotlight/anthropic/v1/messages`](/api/spotlight/messages) | Send messages to Claude (streaming supported) |
+| `POST` | [`/spotlight/anthropic/v1/messages/count_tokens`](/api/spotlight/count-tokens) | Count tokens for a request |
 
 ### Analytics
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/spotlight/analytics/tokens` | GET | Token usage analytics |
-| `/spotlight/analytics/sessions` | GET | List sessions with aggregates |
-| `/spotlight/analytics/sessions/:sessionUuid` | GET | Detailed session view |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/spotlight/analytics/tokens`](/api/spotlight/token-analytics) | Token usage analytics |
+| `GET` | [`/spotlight/analytics/sessions`](/api/spotlight/list-sessions) | List sessions with aggregates |
+| `GET` | [`/spotlight/analytics/sessions/{sessionUuid}`](/api/spotlight/get-session) | Detailed session view |
 
 ### Session Sharing
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/spotlight/analytics/sessions/:sessionUuid/share` | POST | Create shareable link |
-| `/spotlight/analytics/sessions/:sessionUuid/share` | GET | Get share status |
-| `/spotlight/analytics/sessions/:sessionUuid/share` | DELETE | Remove sharing |
-| `/spotlight/analytics/sessions/shared/:shareToken` | GET | View shared session (public) |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/spotlight/analytics/sessions/{sessionUuid}/share`](/api/spotlight/create-share) | Create shareable link |
+| `GET` | [`/spotlight/analytics/sessions/{sessionUuid}/share`](/api/spotlight/get-share-status) | Get share status |
+| `DELETE` | [`/spotlight/analytics/sessions/{sessionUuid}/share`](/api/spotlight/remove-share) | Remove sharing |
+| `GET` | [`/spotlight/analytics/sessions/shared/{shareToken}`](/api/spotlight/view-shared) | View shared session (public) |
 
 ## Session Tracking
 

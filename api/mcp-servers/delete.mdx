@@ -1,0 +1,39 @@
+---
+title: "Delete MCP Server"
+description: "Delete an MCP server registration."
+api: "DELETE /v1/mcp/servers/{id}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "MCP server deleted successfully"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | MCP server deleted successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
+| `409` | Server has active agent access grants |
+
+<Warning>
+If you receive a `409` response, you must revoke all agent access grants before deleting the server. Use the [Revoke Agent Access](/api/mcp-servers/revoke-access) endpoint to remove each grant first.
+</Warning>

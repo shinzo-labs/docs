@@ -8,24 +8,14 @@ api: "POST /spotlight/anthropic/v1/messages/count_tokens"
 
 Count the number of input tokens that a request would use without actually sending it to the model. Useful for estimating costs and managing context windows.
 
-## Endpoint
-
-```
-POST /spotlight/anthropic/v1/messages/count_tokens
-```
-
 ## Authentication
 
 Requires JWT token or Platform API key.
 
-## Request Body
-
 Same format as the Messages API, but the request is not executed:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model` | string | Yes | Model to use for tokenization |
-| `messages` | array | Yes | Array of message objects |
+<ParamField body="model" type="string" required>Model to use for tokenization</ParamField>
+<ParamField body="messages" type="array" required>Array of message objects</ParamField>
 
 ## Example Request
 

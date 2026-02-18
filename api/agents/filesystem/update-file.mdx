@@ -1,0 +1,54 @@
+---
+title: "Update File"
+description: "Replace the contents of an existing file in an agent's workspace."
+api: "PUT /v1/agent/{agentId}/filesystem/files/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="content" type="string" required>New file content</ParamField>
+<ParamField body="encoding" type="string" default="utf-8">Content encoding (`utf-8` or `base64`)</ParamField>
+
+## Example Request
+
+```bash
+curl -X PUT "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/config.json" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "{\"debug\": false, \"log_level\": \"warn\"}",
+    "encoding": "utf-8"
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/config.json",
+  "size": 40,
+  "updated_at": "2025-01-20T12:30:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the updated file |
+| `size` | number | New file size in bytes |
+| `updated_at` | string | Update timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | File updated successfully |
+| `400` | Invalid request body |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or file not found |

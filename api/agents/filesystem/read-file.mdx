@@ -1,0 +1,56 @@
+---
+title: "Read File"
+description: "Read the contents of a file from an agent's workspace."
+api: "GET /v1/agent/{agentId}/filesystem/files/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField query="encoding" type="string">Response encoding (`utf-8` or `base64`)</ParamField>
+<ParamField query="download" type="boolean">Return the file as a binary download</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/config.json" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+For text files, you receive a JSON object with the file content:
+
+```json
+{
+  "path": "/workspace/config.json",
+  "content": "{\"debug\": true, \"log_level\": \"info\"}",
+  "encoding": "utf-8",
+  "size": 38,
+  "mime_type": "application/json"
+}
+```
+
+When you set `download=true`, the response is a raw binary stream with the appropriate `Content-Type` header.
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the file in the workspace |
+| `content` | string | File content in the requested encoding |
+| `encoding` | string | Encoding used for the content (`utf-8` or `base64`) |
+| `size` | number | File size in bytes |
+| `mime_type` | string | Detected MIME type of the file |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | File content returned successfully |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or file not found |

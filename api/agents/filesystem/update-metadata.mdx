@@ -1,0 +1,61 @@
+---
+title: "Update File Metadata"
+description: "Update metadata for a file in an agent's workspace."
+api: "PATCH /v1/agent/{agentId}/filesystem/metadata/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File or directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="permissions" type="string">New file permissions in octal format (e.g., `755`)</ParamField>
+<ParamField body="owner" type="string">New owner</ParamField>
+<ParamField body="group" type="string">New group</ParamField>
+<ParamField body="tags" type="array">Tags to apply to the file</ParamField>
+
+## Example Request
+
+```bash
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/metadata/workspace/scripts/deploy.sh" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissions": "755"
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/scripts/deploy.sh",
+  "type": "file",
+  "size": 512,
+  "permissions": "755",
+  "created_at": "2025-01-15T10:00:00Z",
+  "modified_at": "2025-01-20T14:00:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the file or directory |
+| `type` | string | Entry type (`file` or `directory`) |
+| `size` | number | Size in bytes |
+| `permissions` | string | Updated file permissions in octal format |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+| `modified_at` | string | Last modified timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Metadata updated successfully |
+| `400` | Invalid request body |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or path not found |

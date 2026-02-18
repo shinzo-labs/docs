@@ -1,0 +1,63 @@
+---
+title: "Create MCP Server"
+description: "Register a new MCP server for use with your agents."
+api: "POST /v1/mcp/servers"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField body="name" type="string" required>Server name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">Description of the server (max 500 characters)</ParamField>
+<ParamField body="transport_type" type="string">Transport type (use `"http"`)</ParamField>
+<ParamField body="url" type="string" required>Endpoint URL for the MCP server</ParamField>
+<ParamField body="headers" type="object">HTTP headers, such as authentication headers (stored encrypted)</ParamField>
+<ParamField body="configuration" type="object">Additional configuration options</ParamField>
+
+<Warning>
+Sensitive values in `headers` are encrypted at rest. They are never returned in API responses after creation.
+</Warning>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github-mcp",
+    "description": "GitHub MCP Server",
+    "transport_type": "http",
+    "url": "https://mcp.github.com/sse",
+    "headers": {
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
+    }
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "github-mcp",
+  "description": "GitHub MCP Server",
+  "endpoint_url": "https://mcp.github.com/sse",
+  "transport_type": "http",
+  "hosting_mode": "remote",
+  "status": "active",
+  "health_status": "unknown",
+  "created_at": "2026-01-15T10:00:00Z",
+  "updated_at": "2026-01-15T10:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | MCP server created successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `409` | Server with that name already exists |

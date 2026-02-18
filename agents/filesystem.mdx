@@ -1,0 +1,355 @@
+---
+title: "Filesystem Management"
+description: "Manage files and directories in agent workspaces programmatically."
+---
+
+## Overview
+
+Every agent on the Shinzo Platform has a persistent workspace -- an isolated filesystem where it can store configuration, data, and generated artifacts. The Filesystem API gives you full programmatic access to read, write, search, and organize files within any agent's workspace.
+
+All filesystem endpoints follow the pattern:
+
+```
+/v1/agent/:agentId/filesystem/...
+```
+
+File and directory paths are specified as wildcard parameters in the URL. For example, to read a file at `workspace/config.json`, you would call:
+
+```
+GET /v1/agent/:agentId/filesystem/files/workspace/config.json
+```
+
+## File Operations
+
+### Read a File
+
+Retrieve the contents of a file from an agent's workspace:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/config.json" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+You can request the response in `utf-8` (default) or `base64` encoding by passing the `encoding` query parameter. Use `base64` for binary files such as images or compiled assets.
+
+### Create a File
+
+Create a new file in the agent workspace:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/notes.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "These are my notes.",
+    "encoding": "utf-8",
+    "overwrite": false
+  }'
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `content` | string | ✅ | — | File content |
+| `encoding` | enum | ❌ | `"utf-8"` | `"utf-8"` or `"base64"` |
+| `overwrite` | boolean | ❌ | `false` | Whether to overwrite an existing file at the same path |
+
+### Update a File
+
+Replace the contents of an existing file:
+
+```bash
+curl -X PUT "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/notes.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Updated notes content.",
+    "encoding": "utf-8"
+  }'
+```
+
+### Delete a File
+
+Remove a file from the workspace:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/notes.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Patch a File
+
+Apply partial updates to a file without replacing its entire contents. Supported operations are `append`, `prepend`, `insert`, and `replace`.
+
+<CodeGroup>
+
+```bash Append
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/log.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "append",
+    "content": "\nNew log entry at 2026-02-18T10:00:00Z"
+  }'
+```
+
+```bash Insert at Position
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/data.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "insert",
+    "content": "inserted text",
+    "position": 128
+  }'
+```
+
+```bash Replace Range
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/data.txt" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operation": "replace",
+    "content": "replacement text",
+    "position": 64,
+    "length": 20
+  }'
+```
+
+</CodeGroup>
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `operation` | enum | ✅ | `"append"`, `"prepend"`, `"insert"`, or `"replace"` |
+| `content` | string | ✅ | Content to apply |
+| `position` | number | For `insert`/`replace` | Byte offset for the operation |
+| `length` | number | For `replace` | Number of bytes to replace |
+
+## Directory Operations
+
+### List a Directory
+
+List the contents of a directory in the agent workspace:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/directories/workspace?recursive=false&includeHidden=false" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `recursive` | boolean | `false` | List contents recursively |
+| `includeHidden` | boolean | `false` | Include hidden files (dotfiles) |
+
+### Create a Directory
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/directories/workspace/data/exports" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recursive": true
+  }'
+```
+
+Set `recursive` to `true` to create parent directories that do not exist yet.
+
+### Delete a Directory
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/directories/workspace/temp" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recursive": true
+  }'
+```
+
+<Warning>
+Deleting a directory with `recursive: true` permanently removes all files and subdirectories within it. This cannot be undone.
+</Warning>
+
+## Bulk Operations
+
+### Copy
+
+Copy a file or directory to a new location within the workspace:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/copy" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "workspace/config.json",
+    "destination": "workspace/config.backup.json",
+    "overwrite": false
+  }'
+```
+
+### Move
+
+Move or rename a file or directory:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/move" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "workspace/old-name.txt",
+    "destination": "workspace/new-name.txt",
+    "overwrite": false
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `source` | string | ✅ | Source path |
+| `destination` | string | ✅ | Destination path |
+| `overwrite` | boolean | ❌ | Whether to overwrite if the destination already exists |
+
+## Search
+
+Search for files by name, content, or both within an agent's workspace:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/search" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "database",
+    "type": "both",
+    "path": "workspace",
+    "filePattern": "*.json",
+    "caseSensitive": false,
+    "maxResults": 50
+  }'
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `query` | string | ✅ | — | Search term |
+| `type` | enum | ❌ | `"both"` | `"filename"`, `"content"`, or `"both"` |
+| `path` | string | ❌ | — | Base directory to search from |
+| `filePattern` | string | ❌ | — | Glob pattern to filter files (e.g., `*.json`) |
+| `caseSensitive` | boolean | ❌ | `false` | Whether the search is case-sensitive |
+| `maxResults` | number | ❌ | — | Maximum number of results to return |
+
+## Archives
+
+### Create an Archive
+
+Package files and directories into a compressed archive:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/archive" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paths": ["workspace/data", "workspace/config.json"],
+    "outputPath": "workspace/backup.tar.gz",
+    "format": "tar.gz",
+    "compressionLevel": 6
+  }'
+```
+
+Supported formats: `zip`, `tar`, `tar.gz`, `tar.bz2`.
+
+### Extract an Archive
+
+Extract an archive into a target directory:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/extract" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "archivePath": "workspace/backup.tar.gz",
+    "outputPath": "workspace/restored",
+    "overwrite": false
+  }'
+```
+
+## File Metadata
+
+### Get Metadata
+
+Retrieve metadata for a file or directory, including size, permissions, and timestamps:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/metadata/workspace/config.json" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Update Metadata
+
+Update file permissions, ownership, or tags:
+
+```bash
+curl -X PUT "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/metadata/workspace/config.json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissions": "644",
+    "tags": ["config", "production"]
+  }'
+```
+
+## Practical Examples
+
+### Seeding an Agent Workspace
+
+After creating an agent, populate its workspace with configuration and data files:
+
+```bash
+# Create directory structure
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/directories/workspace/config" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"recursive": true}'
+
+# Upload configuration
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/files/workspace/config/settings.json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "{\"env\": \"production\", \"debug\": false}",
+    "encoding": "utf-8"
+  }'
+```
+
+<Tip>
+You can also seed files at agent creation time using the `initial_files` parameter. See the [Agent Configuration](/agents/configuration) guide for details.
+</Tip>
+
+### Backing Up Agent Data
+
+Create a compressed archive of important workspace data:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/filesystem/archive" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paths": ["workspace/data", "workspace/config"],
+    "outputPath": "workspace/backups/backup-2026-02-18.tar.gz",
+    "format": "tar.gz"
+  }'
+```
+
+## Best Practices
+
+- **Use `initial_files` for bootstrapping.** Provide configuration and seed data at agent creation time rather than making separate API calls afterward.
+- **Use `base64` encoding for binary files.** Text files work with the default `utf-8`, but images, compiled assets, and other binary content require `base64`.
+- **Prefer `patch` over full updates for large files.** Appending log entries or inserting content at a specific position is more efficient than re-uploading the entire file.
+- **Set `overwrite: false` as a safety measure.** This prevents accidental data loss when creating or copying files.
+- **Organize workspaces with clear directory structures.** Use consistent paths like `config/`, `data/`, and `output/` across your agents.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
+    Configure agent workspaces, memory, and initial files.
+  </Card>
+  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
+    Send messages to agents and retrieve conversation history.
+  </Card>
+</CardGroup>

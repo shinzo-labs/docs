@@ -1,0 +1,57 @@
+---
+title: "Create File"
+description: "Create a new file in an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/files/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>File path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="content" type="string" required>File content</ParamField>
+<ParamField body="encoding" type="string" default="utf-8">Content encoding (`utf-8` or `base64`)</ParamField>
+<ParamField body="overwrite" type="boolean">Overwrite if file already exists at the specified path</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/files/workspace/data/output.txt" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Hello, World!",
+    "encoding": "utf-8",
+    "permissions": "644"
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/data/output.txt",
+  "size": 13,
+  "created_at": "2025-01-20T10:00:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the created file |
+| `size` | number | File size in bytes |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | File created successfully |
+| `400` | Invalid request body |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent not found |
+| `409` | File already exists at the specified path |

@@ -1,0 +1,37 @@
+---
+title: "Remove Sharing"
+description: "Remove the shareable link for a session."
+api: "DELETE /spotlight/analytics/sessions/{sessionUuid}/share"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+<ParamField path="sessionUuid" type="string" required>The session UUID to remove sharing from</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Sharing removed successfully",
+  "session_uuid": "sess_abc123"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `404` | Session not found |

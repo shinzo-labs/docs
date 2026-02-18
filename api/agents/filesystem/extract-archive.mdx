@@ -1,0 +1,53 @@
+---
+title: "Extract Archive"
+description: "Extract a compressed archive in an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/archives/extract"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="archivePath" type="string" required>Path to the archive file in the workspace</ParamField>
+<ParamField body="outputPath" type="string" required>Directory to extract the archive contents into</ParamField>
+<ParamField body="overwrite" type="boolean">Overwrite existing files during extraction</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/archives/extract" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "archive_path": "/workspace/backup.tar.gz",
+    "destination": "/workspace/restored",
+    "overwrite": true
+  }'
+```
+
+## Response
+
+```json
+{
+  "destination": "/workspace/restored",
+  "files_extracted": 12
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `destination` | string | Directory where the archive was extracted |
+| `files_extracted` | number | Total number of files extracted |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Archive extracted successfully |
+| `400` | Invalid request body or unsupported archive format |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or archive file not found |

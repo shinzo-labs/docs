@@ -1,0 +1,63 @@
+---
+title: "Grant Agent Access"
+description: "Grant an agent access to an MCP server's tools."
+api: "POST /v1/mcp/servers/{id}/access"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+<ParamField body="agent_uuid" type="string" required>UUID of the agent to grant access to</ParamField>
+<ParamField body="access_mode" type="string" default="all">Access mode: `all` or `selected`</ParamField>
+<ParamField body="allowed_tools" type="array">List of tool names to allow. Required when `access_mode` is `selected`</ParamField>
+
+## Example Request
+
+Grant access to all tools:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890/access \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+  }'
+```
+
+Grant access to specific tools only:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890/access \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "access_mode": "selected",
+    "allowed_tools": ["create_issue", "list_issues"]
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": "grant-uuid-1",
+  "agent_uuid": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "access_mode": "selected",
+  "allowed_tools": ["create_issue", "list_issues"],
+  "enabled": true,
+  "created_at": "2026-01-15T10:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Access granted successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server or agent not found |
+| `409` | Agent already has access to this server |

@@ -1,0 +1,35 @@
+---
+title: "Tokens Overview"
+description: "Manage ingest tokens and platform API keys for authentication."
+---
+
+# Tokens
+
+Token endpoints let you generate and manage the credentials used to authenticate with the Shinzo Platform.
+
+## Token Types
+
+| Token Type | Purpose | Auth Scope |
+|------------|---------|------------|
+| **Ingest Token** | Telemetry data ingestion from MCP servers | Write-only access to telemetry endpoints |
+| **Platform API Key** | Programmatic access to agents, Spotlight, and management APIs | Full API access |
+
+## Endpoints
+
+### Ingest Tokens
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/auth/generate_ingest_token`](/api/tokens/generate-ingest-token) | Generate a new ingest token |
+| `GET` | [`/auth/fetch_ingest_tokens`](/api/tokens/list-ingest-tokens) | List all ingest tokens |
+| `POST` | [`/auth/revoke_ingest_token/{tokenUuid}`](/api/tokens/revoke-ingest-token) | Revoke an ingest token |
+
+### Platform API Keys
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/auth/platform_keys`](/api/tokens/create-platform-key) | Create a new platform API key |
+| `GET` | [`/auth/platform_keys`](/api/tokens/list-platform-keys) | List all platform API keys |
+| `DELETE` | [`/auth/platform_keys/{keyUuid}`](/api/tokens/delete-platform-key) | Delete a platform API key |
+
+For details on authentication methods, see [Authentication](/api/authentication).

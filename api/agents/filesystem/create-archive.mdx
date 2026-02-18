@@ -1,0 +1,60 @@
+---
+title: "Create Archive"
+description: "Create a compressed archive from files in an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/archives"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="paths" type="array" required>List of file or directory paths to include in the archive</ParamField>
+<ParamField body="outputPath" type="string" required>Destination path for the archive file</ParamField>
+<ParamField body="format" type="string">Archive format: `zip`, `tar`, `tar.gz`, or `tar.bz2`</ParamField>
+<ParamField body="compressionLevel" type="number">Compression level (0-9, where 9 is maximum compression)</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/archives" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paths": [
+      "/workspace/src",
+      "/workspace/config.json"
+    ],
+    "output_path": "/workspace/backup.tar.gz",
+    "format": "tar.gz",
+    "compression_level": 6
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/backup.tar.gz",
+  "size": 4096,
+  "format": "tar.gz"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the created archive |
+| `size` | number | Archive size in bytes |
+| `format` | string | Archive format used |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Archive created successfully |
+| `400` | Invalid request body or paths |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or source paths not found |

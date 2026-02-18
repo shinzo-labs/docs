@@ -1,0 +1,52 @@
+---
+title: "Create Directory"
+description: "Create a new directory in an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/directories/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>Directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField body="recursive" type="boolean">Create parent directories if they don't exist</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/directories/workspace/data/exports" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "permissions": "755",
+    "recursive": true
+  }'
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/data/exports",
+  "created_at": "2025-01-20T10:00:00Z"
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the created directory |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `201` | Directory created successfully |
+| `400` | Invalid request body |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent not found |
+| `409` | Directory already exists |

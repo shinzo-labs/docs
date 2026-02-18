@@ -11,21 +11,11 @@ Share sessions with others by creating public shareable links. Shared sessions c
 
 Create a shareable link for a session.
 
-### Endpoint
-
-```
-POST /spotlight/analytics/sessions/:sessionUuid/share
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
-### Path Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sessionUuid` | string | The session UUID to share |
+<ParamField path="sessionUuid" type="string" required>The session UUID to share</ParamField>
 
 ### Example Request
 
@@ -49,12 +39,6 @@ curl -X POST https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/
 ## Get Share Status
 
 Check if a session is shared and get the share token.
-
-### Endpoint
-
-```
-GET /spotlight/analytics/sessions/:sessionUuid/share
-```
 
 ### Authentication
 
@@ -92,12 +76,6 @@ curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/s
 
 Remove the shareable link for a session.
 
-### Endpoint
-
-```
-DELETE /spotlight/analytics/sessions/:sessionUuid/share
-```
-
 ### Authentication
 
 Requires JWT token authentication.
@@ -124,21 +102,11 @@ curl -X DELETE https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc12
 
 View a shared session using the share token. This endpoint is public and does not require authentication.
 
-### Endpoint
-
-```
-GET /spotlight/analytics/sessions/shared/:shareToken
-```
-
 ### Authentication
 
 None required.
 
-### Path Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `shareToken` | string | The share token from the share URL |
+<ParamField path="shareToken" type="string" required>The share token from the share URL</ParamField>
 
 ### Example Request
 

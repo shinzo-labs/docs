@@ -1,0 +1,38 @@
+---
+title: "Create Share Link"
+description: "Create a shareable link for a session."
+api: "POST /spotlight/analytics/sessions/{sessionUuid}/share"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+<ParamField path="sessionUuid" type="string" required>The session UUID to share</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "share_token": "shr_xyz789abc123",
+  "share_url": "https://app.shinzo.ai/shared/shr_xyz789abc123",
+  "created_at": "2025-01-20T14:00:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `404` | Session not found |

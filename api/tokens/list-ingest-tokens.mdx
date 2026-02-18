@@ -1,0 +1,48 @@
+---
+title: "List Ingest Tokens"
+description: "Retrieve all ingest tokens associated with your account."
+api: "GET /auth/fetch_ingest_tokens"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/auth/fetch_ingest_tokens \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "tokens": [
+    {
+      "uuid": "itk_abc123def456",
+      "created_at": "2025-01-15T10:00:00Z",
+      "last_used_at": "2025-01-20T14:30:00Z",
+      "status": "active"
+    },
+    {
+      "uuid": "itk_xyz789uvw012",
+      "created_at": "2025-01-10T08:00:00Z",
+      "last_used_at": "2025-01-18T09:15:00Z",
+      "status": "active"
+    }
+  ]
+}
+```
+
+<Note>
+Token values are not returned when listing tokens. Only metadata is shown.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Tokens retrieved successfully |
+| `401` | Invalid or missing JWT token |

@@ -8,22 +8,12 @@ api: "POST /auth/verify_user"
 
 Verify a user's email address using the token sent via email during registration.
 
-## Endpoint
-
-```
-POST /auth/verify_user
-```
-
 ## Authentication
 
 No authentication required.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `email` | string | Yes | User's email address |
-| `verification_token` | string | Yes | Token from the verification email |
+<ParamField body="email" type="string" required>User's email address</ParamField>
+<ParamField body="verification_token" type="string" required>Token from the verification email</ParamField>
 
 ## Example Request
 

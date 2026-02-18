@@ -1,0 +1,43 @@
+---
+title: "Create Discord Link Code"
+description: "Generate a code to pair a Discord account with an agent."
+api: "POST /v1/agent/{id}/discord/link"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/discord/link \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "code": "A1B2C3",
+  "expires_at": "2025-01-20T10:10:00Z",
+  "instructions": "Send '/link A1B2C3' as DM to Shinzo bot"
+}
+```
+
+## How It Works
+
+1. Call this endpoint to generate a 6-character link code.
+2. The code expires after 10 minutes.
+3. Send `/link <CODE>` as a direct message to the Shinzo Discord bot.
+4. Once linked, you can send messages to your agent directly through Discord.
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Link code generated successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

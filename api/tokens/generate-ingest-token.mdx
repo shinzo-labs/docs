@@ -1,0 +1,47 @@
+---
+title: "Generate Ingest Token"
+description: "Create a new ingest token for telemetry data ingestion."
+api: "POST /auth/generate_ingest_token"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/auth/generate_ingest_token \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "uuid": "itk_abc123def456",
+  "token": "abc123-def456-ghi789-...",
+  "created_at": "2025-01-15T10:00:00Z",
+  "status": "active"
+}
+```
+
+<Warning>
+The token value is only displayed once at creation. Store it securely as it cannot be retrieved later.
+</Warning>
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Unique identifier for the token |
+| `token` | string | The token value (shown only once) |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+| `status` | string | Token status (`active`) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Token generated successfully |
+| `401` | Invalid or missing JWT token |

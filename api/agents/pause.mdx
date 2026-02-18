@@ -1,0 +1,39 @@
+---
+title: "Pause Agent"
+description: "Temporarily pause an agent to prevent it from processing new messages."
+api: "POST /v1/agent/{id}/pause"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/pause \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Agent paused successfully"
+}
+```
+
+<Note>
+Pausing an agent does not cancel any active tasks that are already in progress. Those tasks will complete normally. The agent simply stops accepting new messages until you [resume](/api/agents/resume) it.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent paused successfully |
+| `400` | Agent is already paused |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

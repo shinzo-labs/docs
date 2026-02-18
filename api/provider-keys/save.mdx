@@ -8,24 +8,14 @@ api: "POST /auth/provider_keys"
 
 Securely store an AI provider API key in the Shinzo Platform. Keys are encrypted at rest and can be used with the Spotlight model proxy.
 
-## Endpoint
-
-```
-POST /auth/provider_keys
-```
-
 ## Authentication
 
 Requires JWT token authentication.
 
-## Request Body
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `provider` | string | Yes | Provider name (`anthropic`) |
-| `provider_api_key` | string | Yes | The API key to store |
-| `provider_base_url` | string | No | Custom base URL (for proxies or self-hosted) |
-| `label` | string | No | Optional label to identify this key |
+<ParamField body="provider" type="string" required>Provider name (`anthropic`)</ParamField>
+<ParamField body="provider_api_key" type="string" required>The API key to store</ParamField>
+<ParamField body="provider_base_url" type="string">Custom base URL (for proxies or self-hosted)</ParamField>
+<ParamField body="label" type="string">Optional label to identify this key</ParamField>
 
 ## Example Request
 

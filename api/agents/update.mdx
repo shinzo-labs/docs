@@ -1,61 +1,68 @@
 ---
 title: "Update Agent"
 description: "Update an existing agent's configuration."
-api: "POST /agent/update/:id"
+api: "POST /v1/agent/update/{id}"
 ---
-
-# Update Agent
-
-Update the configuration of an existing agent.
-
-## Endpoint
-
-```
-POST /agent/update/:id
-```
 
 ## Authentication
 
-Requires JWT token or Platform API key.
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Path Parameters
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField body="name" type="string">New agent name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">New description (max 500 characters)</ParamField>
+<ParamField body="pvc_size" type="string">New persistent volume size</ParamField>
+<ParamField body="system_prompt" type="string">New system prompt</ParamField>
+<ParamField body="system_prompt_type" type="string">How to apply the system prompt: `replace` or `append`</ParamField>
+<ParamField body="configuration" type="object">Configuration updates (same structure as [Create Agent](/api/agents/create))</ParamField>
+<ParamField body="files" type="object">File operations to perform on the agent workspace</ParamField>
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | string | Agent UUID |
+### File Operations
 
-## Request Body
-
-All fields are optional. Only include fields you want to update.
+The `files` object allows you to add, update, or delete files in the agent workspace within a single request.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | New agent name |
-| `description` | string | New description |
-| `configuration` | object | Configuration updates |
+| `add` | array | Files to add (each with `path`, `content`, and optional `encoding`) |
+| `update` | array | Files to update (each with `path`, `content`, and optional `encoding`) |
+| `delete` | array | File paths to delete (array of strings) |
 
 ## Example Request
 
 ```bash
-curl -X POST https://api.app.shinzo.ai/agent/update/agt_abc123def456 \
-  -H "Authorization: Bearer <jwt_token>" \
+curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "description": "Updated description",
+    "description": "Updated agent for thorough code reviews",
     "configuration": {
-      "timeout_seconds": 3600
+      "timeout_seconds": 3600,
+      "webhooks": {
+        "message_complete": "https://myapp.com/webhooks/complete",
+        "agent_error": "https://myapp.com/webhooks/error"
+      }
+    },
+    "files": {
+      "add": [
+        {
+          "path": "templates/review.md",
+          "content": "# Review Template\n\n## Summary\n..."
+        }
+      ],
+      "delete": ["old-config.json"]
     }
   }'
 ```
 
-## Response
+## Example Response
 
 ```json
 {
-  "uuid": "agt_abc123def456",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "name": "code-review-agent",
-  "description": "Updated description",
+  "description": "Updated agent for thorough code reviews",
   "status": "active",
+  "created_at": "2025-01-15T10:00:00Z",
   "updated_at": "2025-01-20T14:30:00Z",
   "configuration": {
     "timeout_seconds": 3600,
@@ -63,7 +70,19 @@ curl -X POST https://api.app.shinzo.ai/agent/update/agt_abc123def456 \
       "type": "hierarchical",
       "max_size_mb": 1024,
       "persistence": "persistent"
+    },
+    "webhooks": {
+      "message_complete": "https://myapp.com/webhooks/complete",
+      "agent_error": "https://myapp.com/webhooks/error"
     }
+  },
+  "system_prompt": "You are a senior code reviewer.",
+  "system_prompt_type": "append",
+  "mcp_servers": [],
+  "filesystem_summary": {
+    "total_files": 16,
+    "total_size_mb": 2.5,
+    "last_modified": "2025-01-20T14:30:00Z"
   }
 }
 ```
@@ -73,13 +92,7 @@ curl -X POST https://api.app.shinzo.ai/agent/update/agt_abc123def456 \
 | Code | Description |
 |------|-------------|
 | `200` | Agent updated successfully |
-| `400` | Invalid request |
-| `401` | Invalid authentication |
-| `403` | AI Agents feature not enabled |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `403` | AI Agents feature not enabled for your account |
 | `404` | Agent not found |
-| `409` | Agent has running tasks (cannot update) |
-
-## Notes
-
-- Agents with running tasks cannot be updated unless you cancel the tasks first
-- Configuration changes may require the agent to restart

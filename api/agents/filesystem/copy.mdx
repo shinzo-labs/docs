@@ -1,0 +1,89 @@
+---
+title: "Copy Files"
+description: "Copy files or directories within an agent's workspace."
+api: "POST /v1/agent/{agentId}/filesystem/operations/copy"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField body="source" type="string" required>Source path in the workspace</ParamField>
+<ParamField body="destination" type="string" required>Destination path in the workspace</ParamField>
+<ParamField body="overwrite" type="boolean">Overwrite if the destination already exists</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/operations/copy" \
+  -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "operations": [
+      {
+        "source": "/workspace/config.json",
+        "destination": "/workspace/config.backup.json",
+        "overwrite": false
+      },
+      {
+        "source": "/workspace/src",
+        "destination": "/workspace/src-backup"
+      }
+    ]
+  }'
+```
+
+## Response
+
+```json
+{
+  "results": [
+    {
+      "source": "/workspace/config.json",
+      "destination": "/workspace/config.backup.json",
+      "success": true
+    },
+    {
+      "source": "/workspace/src",
+      "destination": "/workspace/src-backup",
+      "success": true
+    }
+  ]
+}
+```
+
+When an operation fails, the `error` field describes the reason:
+
+```json
+{
+  "results": [
+    {
+      "source": "/workspace/missing.txt",
+      "destination": "/workspace/copy.txt",
+      "success": false,
+      "error": "Source file not found"
+    }
+  ]
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `results` | array | Results for each copy operation |
+| `results[].source` | string | Source path |
+| `results[].destination` | string | Destination path |
+| `results[].success` | boolean | Whether the operation succeeded |
+| `results[].error` | string | Error message (present only on failure) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Copy operations completed (check individual results for per-operation status) |
+| `400` | Invalid request body |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent not found |

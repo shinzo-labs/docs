@@ -1,0 +1,70 @@
+---
+title: "List Directory"
+description: "List the contents of a directory in an agent's workspace."
+api: "GET /v1/agent/{agentId}/filesystem/directories/{path}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key.
+
+<ParamField path="agentId" type="string" required>Agent UUID</ParamField>
+<ParamField path="path" type="string" required>Directory path within the agent workspace (wildcard segment)</ParamField>
+<ParamField query="recursive" type="boolean">List directory contents recursively</ParamField>
+<ParamField query="includeHidden" type="boolean">Include hidden files in the listing</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/directories/workspace/src" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+With recursive listing:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/agt_abc123/filesystem/directories/workspace/src?recursive=true" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "path": "/workspace/src",
+  "entries": [
+    {
+      "name": "index.js",
+      "type": "file",
+      "size": 1024,
+      "modified_at": "2025-01-20T10:00:00Z"
+    },
+    {
+      "name": "utils",
+      "type": "directory",
+      "size": 0,
+      "modified_at": "2025-01-19T15:00:00Z"
+    }
+  ]
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `path` | string | Absolute path of the listed directory |
+| `entries` | array | List of directory entries |
+| `entries[].name` | string | Name of the file or directory |
+| `entries[].type` | string | Entry type (`file` or `directory`) |
+| `entries[].size` | number | Size in bytes (files only) |
+| `entries[].modified_at` | string | Last modified timestamp (ISO 8601) |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Directory contents returned successfully |
+| `401` | Invalid authentication |
+| `403` | Access denied |
+| `404` | Agent or directory not found |

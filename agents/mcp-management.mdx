@@ -1,0 +1,257 @@
+---
+title: "MCP Server Management"
+description: "Register, configure, and manage remote MCP servers for your AI agents."
+---
+
+## Overview
+
+MCP (Model Context Protocol) servers extend your agents' capabilities by connecting them to external tools and services. You register remote MCP servers by providing their endpoint URL and authentication headers, then grant specific agents access to use their tools.
+
+<Info>
+Only remote-hosted (HTTP) MCP servers are supported at the moment. The platform connects to your server's endpoint URL and handles credential encryption, health monitoring, and tool discovery for you.
+</Info>
+
+## Registering MCP Servers
+
+Register a new MCP server with `POST /v1/mcp/servers`. Provide the server's endpoint URL and any authentication headers:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github-mcp",
+    "description": "GitHub integration for repository management",
+    "transport_type": "http",
+    "url": "https://mcp.github.com/sse",
+    "headers": {
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
+    }
+  }'
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `name` | string | ✅ | Unique server name (1-100 characters) |
+| `description` | string | ❌ | Description of the server (max 500 characters) |
+| `transport_type` | string | ❌ | Transport type (use `"http"`) |
+| `url` | string | ✅ | Endpoint URL for the MCP server |
+| `headers` | object | ❌ | HTTP headers, such as authentication headers (encrypted at rest) |
+| `configuration` | object | ❌ | Additional configuration options |
+
+<Info>
+HTTP servers also support OAuth-based authentication. When configured, the platform handles token refresh and credential management automatically.
+</Info>
+
+<Warning>
+HTTP headers containing sensitive values are encrypted at rest and are never returned in API responses after creation.
+</Warning>
+
+## Listing Servers
+
+Retrieve your registered MCP servers with `GET /v1/mcp/servers`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers?page=1&limit=20&status=active" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | number | `1` | Page number |
+| `limit` | number | `20` | Results per page (max 100) |
+| `status` | enum | — | Filter by status: `active`, `inactive`, `error`, `deploying` |
+
+## Getting Server Details
+
+Retrieve a specific server's configuration and access grants with `GET /v1/mcp/servers/:id`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the server's configuration and a list of agents that have been granted access.
+
+## Updating Servers
+
+Update a server's configuration with `PUT /v1/mcp/servers/:id`:
+
+```bash
+curl -X PUT "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Updated description",
+    "headers": {
+      "Authorization": "Bearer new-api-key"
+    },
+    "status": "active"
+  }'
+```
+
+You can update the name, description, URL, headers, configuration, or status.
+
+## Deleting Servers
+
+Remove a registered MCP server with `DELETE /v1/mcp/servers/:id`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+<Warning>
+Deletion fails if any agents still have active access grants for this server. Revoke all agent access before deleting.
+</Warning>
+
+## Health Checks
+
+Check the connectivity and responsiveness of a server with `GET /v1/mcp/servers/:id/health`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/health" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the server's status and response latency, helping you diagnose connectivity issues.
+
+## Tool Refresh
+
+Query a server's `tools/list` endpoint to update the set of available tools with `POST /v1/mcp/servers/:id/tools/refresh`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/tools/refresh" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Run this after updating a server's configuration or deploying a new version of the underlying MCP server to ensure the platform has an up-to-date list of available tools.
+
+## Access Management
+
+Control which agents can use an MCP server by managing access grants.
+
+### Grant Access
+
+Grant an agent access to a server with `POST /v1/mcp/servers/:id/access`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "all"
+  }'
+```
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `agent_uuid` | string | ✅ | — | UUID of the agent to grant access to |
+| `access_mode` | enum | ❌ | `"all"` | `"all"` grants access to every tool; `"selected"` restricts to specific tools |
+| `allowed_tools` | array | If `selected` | — | List of tool names the agent is allowed to use |
+
+To restrict an agent to specific tools:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "selected",
+    "allowed_tools": ["create_issue", "list_issues", "get_issue"]
+  }'
+```
+
+<Tip>
+Use `selected` access mode with `allowed_tools` in production to follow the principle of least privilege. Only grant agents access to the specific tools they need.
+</Tip>
+
+### List Access Grants
+
+See which agents have access to a server with `GET /v1/mcp/servers/:id/access`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Revoke Access
+
+Remove an agent's access with `DELETE /v1/mcp/servers/:id/access/:agentId`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/mcp/servers/SERVER_ID/access/AGENT_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+## Example: GitHub Integration
+
+This example walks through registering a GitHub MCP server and granting an agent access to it.
+
+**Step 1:** Register the GitHub MCP server:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/mcp/servers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "github",
+    "description": "GitHub repository and issue management",
+    "transport_type": "http",
+    "url": "https://mcp.github.com/sse",
+    "headers": {
+      "Authorization": "Bearer ghp_xxxxxxxxxxxx"
+    }
+  }'
+```
+
+**Step 2:** Grant your agent access with selected tools:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/GITHUB_SERVER_ID/access" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_uuid": "AGENT_ID",
+    "access_mode": "selected",
+    "allowed_tools": [
+      "create_issue",
+      "list_issues",
+      "create_pull_request",
+      "get_file_contents"
+    ]
+  }'
+```
+
+**Step 3:** Verify connectivity:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/mcp/servers/GITHUB_SERVER_ID/health" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Your agent can now use the GitHub tools in its conversations.
+
+## Best Practices
+
+- **Encrypt credentials properly.** Always pass secrets through `headers`. Never hardcode credentials in URLs.
+- **Use `selected` access mode in production.** Restrict agents to only the tools they need rather than granting blanket `all` access.
+- **Run health checks after configuration changes.** Verify server connectivity whenever you update credentials or URLs.
+- **Refresh tools after server updates.** When the underlying MCP server is updated with new tools, call the tool refresh endpoint to update the platform's tool registry.
+- **Revoke access before deleting servers.** Clean up all agent access grants before removing a server to avoid errors.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Configuration" icon="gear" href="/agents/configuration">
+    Configure agents and connect them to MCP servers.
+  </Card>
+  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
+    Send messages and manage conversations.
+  </Card>
+  <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
+    Manage files in agent workspaces.
+  </Card>
+</CardGroup>

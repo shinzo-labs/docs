@@ -1,0 +1,69 @@
+---
+title: "List Messages"
+description: "Retrieve messages for an agent with cursor-based pagination."
+api: "GET /v1/agent/{id}/messages"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField query="limit" type="number" default="50">Results per page (1-100)</ParamField>
+<ParamField query="before" type="string">UUID cursor -- return messages before this message ID</ParamField>
+<ParamField query="after" type="string">UUID cursor -- return messages after this message ID</ParamField>
+<ParamField query="status" type="string">Filter by status: `pending`, `delivered`, or `read`</ParamField>
+<ParamField query="channel" type="string">Filter by channel: `api` or `discord`</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/messages?limit=20&channel=api" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "messages": [
+    {
+      "id": "msg_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "role": "user",
+      "content": "Review the code in /workspace/src and provide feedback",
+      "status": "delivered",
+      "channel": "api",
+      "queue_mode": "collect",
+      "reply_to_id": null,
+      "created_at": "2025-01-20T10:00:00Z",
+      "delivered_at": "2025-01-20T10:00:05Z",
+      "read_at": null
+    },
+    {
+      "id": "msg_b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "role": "assistant",
+      "content": "I've reviewed the code in /workspace/src. Here are my findings...",
+      "status": "read",
+      "channel": "api",
+      "queue_mode": null,
+      "reply_to_id": "msg_a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "created_at": "2025-01-20T10:02:30Z",
+      "delivered_at": "2025-01-20T10:02:30Z",
+      "read_at": "2025-01-20T10:03:00Z"
+    }
+  ],
+  "has_more": false
+}
+```
+
+## Pagination
+
+This endpoint uses cursor-based pagination. To fetch the next page, pass the `id` of the last message in your current page as the `after` parameter. To fetch previous messages, pass the `id` of the first message as the `before` parameter.
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

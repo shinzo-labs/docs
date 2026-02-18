@@ -9,12 +9,17 @@
   },
   "favicon": "/favicon.ico",
   "api": {
-    "baseUrl": "https://api.app.shinzo.ai",
-    "auth": {
-      "method": "bearer"
+    "mdx": {
+      "server": "https://api.app.shinzo.ai",
+      "auth": {
+        "method": "bearer"
+      }
     },
     "playground": {
-      "mode": "show"
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": ["curl"]
     }
   },
   "navigation": {
@@ -43,7 +48,11 @@
           {
             "group": "Shinzo Agents",
             "pages": [
-              "shinzo-agents"
+              "shinzo-agents",
+              "agents/configuration",
+              "agents/messaging",
+              "agents/filesystem",
+              "agents/mcp-management"
             ]
           }
         ]
@@ -112,13 +121,17 @@
           {
             "group": "Authentication",
             "pages": [
+              "api/auth/overview",
               "api/auth/register",
               "api/auth/login",
               "api/auth/verify",
               "api/auth/resend-verification",
               "api/auth/fetch-user",
               "api/auth/fetch-quota",
-              "api/auth/oauth"
+              "api/auth/oauth-google",
+              "api/auth/oauth-google-callback",
+              "api/auth/oauth-github",
+              "api/auth/oauth-github-callback"
             ]
           },
           {
@@ -130,9 +143,63 @@
               "api/agents/get",
               "api/agents/update",
               "api/agents/delete",
-              "api/agents/pause-resume",
-              "api/agents/tasks",
-              "api/agents/filesystem"
+              "api/agents/pause",
+              "api/agents/resume"
+            ]
+          },
+          {
+            "group": "Agent Messaging",
+            "pages": [
+              "api/agents/messaging-overview",
+              "api/agents/send-message",
+              "api/agents/list-messages"
+            ]
+          },
+          {
+            "group": "Agent Channels",
+            "pages": [
+              "api/agents/channels-overview",
+              "api/agents/list-channels",
+              "api/agents/discord-link",
+              "api/agents/discord-status",
+              "api/agents/discord-unlink"
+            ]
+          },
+          {
+            "group": "Agent Filesystem",
+            "pages": [
+              "api/agents/filesystem-overview",
+              "api/agents/filesystem/read-file",
+              "api/agents/filesystem/create-file",
+              "api/agents/filesystem/update-file",
+              "api/agents/filesystem/delete-file",
+              "api/agents/filesystem/patch-file",
+              "api/agents/filesystem/list-directory",
+              "api/agents/filesystem/create-directory",
+              "api/agents/filesystem/delete-directory",
+              "api/agents/filesystem/copy",
+              "api/agents/filesystem/move",
+              "api/agents/filesystem/search",
+              "api/agents/filesystem/get-metadata",
+              "api/agents/filesystem/update-metadata",
+              "api/agents/filesystem/create-archive",
+              "api/agents/filesystem/extract-archive"
+            ]
+          },
+          {
+            "group": "MCP Servers",
+            "pages": [
+              "api/mcp-servers/overview",
+              "api/mcp-servers/create",
+              "api/mcp-servers/list",
+              "api/mcp-servers/get",
+              "api/mcp-servers/update",
+              "api/mcp-servers/delete",
+              "api/mcp-servers/refresh-tools",
+              "api/mcp-servers/health",
+              "api/mcp-servers/grant-access",
+              "api/mcp-servers/list-access",
+              "api/mcp-servers/revoke-access"
             ]
           },
           {
@@ -141,15 +208,25 @@
               "api/spotlight/overview",
               "api/spotlight/messages",
               "api/spotlight/count-tokens",
-              "api/spotlight/sessions",
-              "api/spotlight/sharing"
+              "api/spotlight/token-analytics",
+              "api/spotlight/list-sessions",
+              "api/spotlight/get-session",
+              "api/spotlight/create-share",
+              "api/spotlight/get-share-status",
+              "api/spotlight/remove-share",
+              "api/spotlight/view-shared"
             ]
           },
           {
             "group": "Tokens",
             "pages": [
-              "api/tokens/ingest",
-              "api/tokens/platform-keys"
+              "api/tokens/overview",
+              "api/tokens/generate-ingest-token",
+              "api/tokens/list-ingest-tokens",
+              "api/tokens/revoke-ingest-token",
+              "api/tokens/create-platform-key",
+              "api/tokens/list-platform-keys",
+              "api/tokens/delete-platform-key"
             ]
           },
           {
@@ -166,9 +243,13 @@
           {
             "group": "Telemetry",
             "pages": [
+              "api/telemetry/overview",
               "api/telemetry/ingest-traces",
               "api/telemetry/ingest-metrics",
-              "api/telemetry/fetch"
+              "api/telemetry/fetch-resources",
+              "api/telemetry/fetch-traces",
+              "api/telemetry/fetch-spans",
+              "api/telemetry/fetch-metrics"
             ]
           }
         ]

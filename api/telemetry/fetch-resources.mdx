@@ -1,0 +1,44 @@
+---
+title: "Fetch Resources"
+description: "Get all telemetry resources (services) that have sent data."
+api: "GET /telemetry/fetch_resources"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+```bash
+Authorization: Bearer <jwt_token>
+```
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/telemetry/fetch_resources \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "resources": [
+    {
+      "resource_id": "res_abc123",
+      "service_name": "my-mcp-server",
+      "service_version": "1.0.0",
+      "first_seen_at": "2025-01-10T08:00:00Z",
+      "last_seen_at": "2025-01-20T14:30:00Z"
+    }
+  ]
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `400` | Invalid query parameters |
+| `401` | Invalid or missing token |

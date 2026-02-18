@@ -1,83 +1,87 @@
 ---
 title: "Create Agent"
 description: "Deploy a new AI agent on the Shinzo Platform."
-api: "POST /agent/create"
+api: "POST /v1/agent/create"
 ---
-
-# Create Agent
-
-Deploy a new AI agent with custom configuration. The agent will be provisioned in a Kubernetes environment with its own persistent storage.
-
-## Endpoint
-
-```
-POST /agent/create
-```
 
 ## Authentication
 
-Requires JWT token or Platform API key.
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
 
-## Request Body
+<ParamField body="name" type="string" required>Agent name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">Agent description (max 500 characters)</ParamField>
+<ParamField body="pvc_size" type="string" default="1Gi">Persistent volume size</ParamField>
+<ParamField body="anthropic_api_key" type="string">Anthropic API key for the agent. If omitted, your stored key is used</ParamField>
+<ParamField body="model" type="string">Model name to use. Supported: `claude-3-7-sonnet-latest`, `claude-haiku-4-5`, `claude-opus-4-0`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-opus-4-6`, `claude-sonnet-4-0`, `claude-sonnet-4-5`, `claude-sonnet-4-6`</ParamField>
+<ParamField body="system_prompt" type="string">Custom system prompt for the agent</ParamField>
+<ParamField body="system_prompt_type" type="string" default="append">How to apply the system prompt: `replace` or `append`</ParamField>
+<ParamField body="configuration" type="object">Agent configuration options (see below)</ParamField>
+<ParamField body="initial_files" type="array">Files to create in the agent workspace on deploy</ParamField>
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Agent name (1-100 characters) |
-| `description` | string | No | Agent description (max 500 characters) |
-| `pvc_size` | string | No | Persistent volume size (e.g., `2Gi`) |
-| `anthropic_api_key` | string | Yes | Anthropic API key for the agent |
-| `configuration` | object | No | Agent configuration options |
-| `initial_files` | array | No | Files to create in agent workspace |
-
-### Configuration Options
+### Configuration Object
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `timeout_seconds` | number | 3600 | Task timeout in seconds |
+| `timeout_seconds` | number | `3600` | Task timeout in seconds |
+| `model` | string | - | Model name to use. Supported: `claude-3-7-sonnet-latest`, `claude-haiku-4-5`, `claude-opus-4-0`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-opus-4-6`, `claude-sonnet-4-0`, `claude-sonnet-4-5`, `claude-sonnet-4-6` |
 | `mcp_servers` | object | - | MCP server configurations |
 | `memory_config` | object | - | Memory configuration |
 | `webhooks` | object | - | Webhook URLs for notifications |
+| `compaction` | object | - | Context compaction configuration |
+| `custom_env` | object | - | Custom environment variables injected into the agent container |
 
 ### Memory Configuration
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `type` | string | `hierarchical` | Memory type (`hierarchical` or `flat`) |
-| `max_size_mb` | number | 1024 | Maximum memory size in MB |
+| `max_size_mb` | number | `1024` | Maximum memory size in MB |
 | `persistence` | string | `persistent` | Memory persistence (`ephemeral` or `persistent`) |
 
 ### Webhooks
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `task_complete` | string | URL called when a task completes |
-| `task_failed` | string | URL called when a task fails |
-| `task_awaiting_input` | string | URL called when a task needs input |
+| `message_complete` | string | URL called when a message completes |
+| `message_failed` | string | URL called when a message fails |
 | `agent_error` | string | URL called on agent error |
+
+### Compaction
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `enabled` | boolean | `true` | Enable context compaction |
+| `model` | string | `claude-haiku-4-5-20251001` | Model used for summarization |
+| `threshold_trigger` | number | `120000` | Input token threshold to trigger compaction |
 
 ### Initial Files
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `path` | string | Yes | File path in workspace |
-| `content` | string | Yes | File content |
-| `encoding` | string | No | Content encoding (`utf-8` or `base64`, default: `utf-8`) |
+| `path` | string | ✅ | File path in the agent workspace |
+| `content` | string | ✅ | File content |
+| `encoding` | string | ❌ | Content encoding: `utf-8` (default) or `base64` |
 
 ## Example Request
 
 ```bash
-curl -X POST https://api.app.shinzo.ai/agent/create \
-  -H "Authorization: Bearer <jwt_token>" \
+curl -X POST https://api.app.shinzo.ai/v1/agent/create \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "code-review-agent",
     "description": "Agent for automated code reviews",
-    "anthropic_api_key": "sk-ant-api03-...",
     "pvc_size": "5Gi",
+    "system_prompt": "You are a senior code reviewer. Be thorough and constructive.",
+    "system_prompt_type": "append",
     "configuration": {
       "timeout_seconds": 1800,
       "webhooks": {
-        "task_complete": "https://myapp.com/webhooks/task-complete"
+        "message_complete": "https://myapp.com/webhooks/complete"
+      },
+      "compaction": {
+        "enabled": true,
+        "threshold_trigger": 100000
       }
     },
     "initial_files": [
@@ -89,40 +93,42 @@ curl -X POST https://api.app.shinzo.ai/agent/create \
   }'
 ```
 
-## Response
+## Example Response
 
 ```json
 {
-  "uuid": "agt_abc123def456",
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "name": "code-review-agent",
   "description": "Agent for automated code reviews",
   "status": "active",
   "created_at": "2025-01-15T10:00:00Z",
-  "endpoint_url": "https://agent-abc123.shinzo.ai",
-  "container_id": "k8s-pod-xyz789",
-  "platform_api_key": "sk_shinzo_auto_generated...",
+  "updated_at": "2025-01-15T10:00:00Z",
   "configuration": {
     "timeout_seconds": 1800,
     "memory_config": {
       "type": "hierarchical",
       "max_size_mb": 1024,
       "persistence": "persistent"
+    },
+    "webhooks": {
+      "message_complete": "https://myapp.com/webhooks/complete"
+    },
+    "compaction": {
+      "enabled": true,
+      "model": "claude-haiku-4-5-20251001",
+      "threshold_trigger": 100000
     }
+  },
+  "system_prompt": "You are a senior code reviewer. Be thorough and constructive.",
+  "system_prompt_type": "append",
+  "mcp_servers": [],
+  "filesystem_summary": {
+    "total_files": 1,
+    "total_size_mb": 0.01,
+    "last_modified": "2025-01-15T10:00:00Z"
   }
 }
 ```
-
-## Response Fields
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `uuid` | string | Unique agent identifier |
-| `name` | string | Agent name |
-| `status` | string | Agent status (`active`) |
-| `endpoint_url` | string | Agent's API endpoint |
-| `container_id` | string | Kubernetes pod identifier |
-| `platform_api_key` | string | Auto-generated API key for Spotlight analytics |
-| `created_at` | string | Creation timestamp |
 
 ## Status Codes
 
@@ -130,14 +136,5 @@ curl -X POST https://api.app.shinzo.ai/agent/create \
 |------|-------------|
 | `201` | Agent created successfully |
 | `400` | Invalid request (validation error) |
-| `401` | Invalid authentication |
-| `403` | AI Agents feature not enabled |
-
-## Resource Limits
-
-Agents are provisioned with the following resource limits:
-
-| Resource | Request | Limit |
-|----------|---------|-------|
-| CPU | 250m | 1000m |
-| Memory | 512Mi | 2Gi |
+| `401` | Unauthorized - invalid or missing authentication |
+| `403` | AI Agents feature not enabled for your account |

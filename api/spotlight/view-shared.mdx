@@ -1,0 +1,49 @@
+---
+title: "View Shared Session"
+description: "View a shared session using the share token. This endpoint is public."
+api: "GET /spotlight/analytics/sessions/shared/{shareToken}"
+---
+
+## Authentication
+
+None required.
+
+## Path Parameters
+
+<ParamField path="shareToken" type="string" required>The share token from the share URL</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/shared/shr_xyz789abc123
+```
+
+## Response
+
+```json
+{
+  "session": {
+    "session_id": "my-app-session-123",
+    "start_time": "2025-01-15T10:00:00Z",
+    "end_time": "2025-01-15T11:30:00Z",
+    "total_requests": 15,
+    "total_input_tokens": 12450,
+    "total_output_tokens": 8320
+  },
+  "interactions": [
+    {
+      "timestamp": "2025-01-15T10:00:00Z",
+      "model": "claude-sonnet-4-20250514",
+      "input_tokens": 120,
+      "output_tokens": 85
+    }
+  ]
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `404` | Share token not found or expired |

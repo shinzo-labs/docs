@@ -1,0 +1,39 @@
+---
+title: "Resume Agent"
+description: "Resume a paused agent to restore message processing."
+api: "POST /v1/agent/{id}/resume"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/resume \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Agent resumed successfully"
+}
+```
+
+<Note>
+Resuming an agent restores it to `active` status. Any messages that were queued while the agent was paused will begin processing.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent resumed successfully |
+| `400` | Agent is not paused |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

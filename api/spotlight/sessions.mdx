@@ -12,31 +12,19 @@ Retrieve analytics about your AI model usage grouped by sessions. Sessions are i
 
 Get a paginated list of sessions with aggregated metrics.
 
-### Endpoint
-
-```
-GET /spotlight/analytics/sessions
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
-### Query Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `start_date` | string | 30 days ago | Start date (ISO 8601) |
-| `end_date` | string | now | End date (ISO 8601) |
-| `session_id` | string | - | Filter by specific session ID |
-| `model` | string | - | Filter by model name |
-| `provider` | string | - | Filter by provider |
-| `limit` | integer | 25 | Results per page (max varies) |
-| `offset` | integer | 0 | Pagination offset |
-| `sort` | string | `start_time` | Sort field |
-| `sortDirection` | string | `desc` | Sort direction (`asc`, `desc`) |
-
-**Sort options**: `start_time`, `end_time`, `total_requests`, `total_input_tokens`, `total_output_tokens`, `session_id`
+<ParamField query="start_date" type="string">Start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">End date (ISO 8601)</ParamField>
+<ParamField query="session_id" type="string">Filter by specific session ID</ParamField>
+<ParamField query="model" type="string">Filter by model name</ParamField>
+<ParamField query="provider" type="string">Filter by provider</ParamField>
+<ParamField query="limit" type="integer" default="25">Results per page</ParamField>
+<ParamField query="offset" type="integer" default="0">Pagination offset</ParamField>
+<ParamField query="sort" type="string" default="start_time">Sort field (`start_time`, `end_time`, `total_requests`, `total_input_tokens`, `total_output_tokens`, `session_id`)</ParamField>
+<ParamField query="sortDirection" type="string" default="desc">Sort direction (`asc`, `desc`)</ParamField>
 
 ### Example Request
 
@@ -77,21 +65,11 @@ curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions?limit=10&sor
 
 Get detailed information about a specific session including all interactions.
 
-### Endpoint
-
-```
-GET /spotlight/analytics/sessions/:sessionUuid
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
-### Path Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sessionUuid` | string | The session UUID |
+<ParamField path="sessionUuid" type="string" required>The session UUID</ParamField>
 
 ### Example Request
 
@@ -134,24 +112,14 @@ curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123 \
 
 Get aggregated token usage metrics.
 
-### Endpoint
-
-```
-GET /spotlight/analytics/tokens
-```
-
 ### Authentication
 
 Requires JWT token authentication.
 
-### Query Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `start_date` | string | 30 days ago | Start date (ISO 8601) |
-| `end_date` | string | now | End date (ISO 8601) |
-| `session_id` | string | - | Filter by session |
-| `model` | string | - | Filter by model |
+<ParamField query="start_date" type="string">Start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">End date (ISO 8601)</ParamField>
+<ParamField query="session_id" type="string">Filter by session</ParamField>
+<ParamField query="model" type="string">Filter by model</ParamField>
 
 ### Example Request
 

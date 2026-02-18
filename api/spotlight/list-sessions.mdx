@@ -1,0 +1,66 @@
+---
+title: "List Sessions"
+description: "Get a paginated list of sessions with aggregated metrics."
+api: "GET /spotlight/analytics/sessions"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Query Parameters
+
+<ParamField query="start_date" type="string">Start date (ISO 8601)</ParamField>
+<ParamField query="end_date" type="string">End date (ISO 8601)</ParamField>
+<ParamField query="session_id" type="string">Filter by specific session ID</ParamField>
+<ParamField query="model" type="string">Filter by model name</ParamField>
+<ParamField query="provider" type="string">Filter by provider</ParamField>
+<ParamField query="limit" type="integer" default="25">Results per page</ParamField>
+<ParamField query="offset" type="integer" default="0">Pagination offset</ParamField>
+<ParamField query="sort" type="string" default="start_time">Sort field</ParamField>
+<ParamField query="sortDirection" type="string" default="desc">Sort direction (`asc`, `desc`)</ParamField>
+
+<Note>
+  Available sort options: `start_time`, `end_time`, `total_requests`, `total_input_tokens`, `total_output_tokens`, `session_id`.
+</Note>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/spotlight/analytics/sessions?limit=10&sort=total_input_tokens&sortDirection=desc" \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response
+
+```json
+{
+  "sessions": [
+    {
+      "session_id": "my-app-session-123",
+      "session_uuid": "sess_abc123",
+      "start_time": "2025-01-15T10:00:00Z",
+      "end_time": "2025-01-15T11:30:00Z",
+      "total_requests": 15,
+      "total_input_tokens": 12450,
+      "total_output_tokens": 8320,
+      "total_cache_read_tokens": 2100,
+      "models_used": ["claude-sonnet-4-20250514"],
+      "providers_used": ["anthropic"]
+    }
+  ],
+  "pagination": {
+    "total": 42,
+    "limit": 10,
+    "offset": 0
+  }
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `400` | Bad request - invalid query parameters |

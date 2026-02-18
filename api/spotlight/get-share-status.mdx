@@ -1,0 +1,47 @@
+---
+title: "Get Share Status"
+description: "Check if a session is shared and get the share token."
+api: "GET /spotlight/analytics/sessions/{sessionUuid}/share"
+---
+
+## Authentication
+
+Requires JWT token authentication.
+
+## Path Parameters
+
+<ParamField path="sessionUuid" type="string" required>The session UUID to check sharing status for</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET https://api.app.shinzo.ai/spotlight/analytics/sessions/sess_abc123/share \
+  -H "Authorization: Bearer <jwt_token>"
+```
+
+## Response (Shared)
+
+```json
+{
+  "is_shared": true,
+  "share_token": "shr_xyz789abc123",
+  "share_url": "https://app.shinzo.ai/shared/shr_xyz789abc123",
+  "shared_at": "2025-01-20T14:00:00Z"
+}
+```
+
+## Response (Not Shared)
+
+```json
+{
+  "is_shared": false
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Success |
+| `401` | Unauthorized - invalid or missing JWT token |
+| `404` | Session not found |

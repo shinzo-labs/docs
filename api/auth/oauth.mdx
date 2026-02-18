@@ -19,7 +19,7 @@ GET /auth/oauth/google
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `returnTo` | string | No | URL to redirect after successful authentication |
+| `returnTo` | string | ❌ | URL to redirect after successful authentication |
 
 **Example Request:**
 
@@ -49,8 +49,8 @@ After the user authorizes with Google, they're redirected back with an authoriza
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `code` | string | Yes | Authorization code from Google |
-| `state` | string | No | State parameter for CSRF protection |
+| `code` | string | ✅ | Authorization code from Google |
+| `state` | string | ❌ | State parameter for CSRF protection |
 
 **Response:**
 
@@ -77,7 +77,7 @@ GET /auth/oauth/github
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `returnTo` | string | No | URL to redirect after successful authentication |
+| `returnTo` | string | ❌ | URL to redirect after successful authentication |
 
 **Example Request:**
 
@@ -103,8 +103,8 @@ POST /auth/oauth/github/callback
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `code` | string | Yes | Authorization code from GitHub |
-| `state` | string | No | State parameter for CSRF protection |
+| `code` | string | ✅ | Authorization code from GitHub |
+| `state` | string | ❌ | State parameter for CSRF protection |
 
 **Response:**
 

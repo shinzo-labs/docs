@@ -1,0 +1,263 @@
+---
+title: "Agent Configuration"
+description: "Learn how to configure and deploy AI agents on the Shinzo Platform."
+---
+
+## Overview
+
+Agents on the Shinzo Platform run in isolated Kubernetes environments with persistent storage, MCP server connectivity, and webhook support. Each agent operates as an independent deployment with its own filesystem, message queue, and configurable toolset.
+
+You can create agents with minimal configuration and progressively add capabilities as your use case evolves.
+
+## Prerequisites
+
+Before creating an agent, make sure you have:
+
+- A Shinzo Platform account with the **AI Agents** feature enabled
+- An authentication token (passed via `Authorization: Bearer <token>` header)
+- An Anthropic API key (either stored in your account settings or provided per-agent)
+
+## Quick Start
+
+Create a basic agent with a single API call:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/create \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-first-agent",
+    "configuration": {}
+  }'
+```
+
+This creates an agent with default settings: 1 GiB of persistent storage, a 1-hour task timeout, and hierarchical memory. The agent uses your stored Anthropic API key if you do not provide one explicitly.
+
+## Configuration Reference
+
+### Top-Level Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | ✅ | — | Agent name, 1-100 characters |
+| `description` | string | ❌ | — | Purpose description, max 500 characters |
+| `pvc_size` | string | ❌ | `"1Gi"` | Persistent volume size for agent workspace |
+| `anthropic_api_key` | string | ❌ | — | Anthropic API key. If omitted, your stored account key is used |
+| `system_prompt` | string | ❌ | — | Custom system prompt for the agent |
+| `system_prompt_type` | enum | ❌ | `"append"` | `"replace"` overwrites the default prompt; `"append"` adds to it |
+| `configuration` | object | ✅ | — | Agent configuration object (see below) |
+| `initial_files` | array | ❌ | — | Files to create in the agent workspace on startup |
+
+### Configuration Object
+
+The `configuration` object controls runtime behavior, tooling, memory, and notifications.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `timeout_seconds` | number | `3600` | Maximum time in seconds for a single task |
+| `model` | string | — | Model name to use for the agent. Supported models: `claude-3-7-sonnet-latest`, `claude-haiku-4-5`, `claude-opus-4-0`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-opus-4-6`, `claude-sonnet-4-0`, `claude-sonnet-4-5`, `claude-sonnet-4-6` |
+| `mcp_servers` | object | — | MCP server configurations keyed by server name |
+| `memory_config` | object | — | Memory type, size, and persistence settings |
+| `webhooks` | object | — | URLs for event notifications |
+| `compaction` | object | — | Context compaction settings |
+| `custom_env` | object | — | Key-value pairs injected as environment variables |
+
+#### Memory Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `type` | enum | `"hierarchical"` | `"hierarchical"` or `"flat"` memory structure |
+| `max_size_mb` | number | `1024` | Maximum memory size in megabytes |
+| `persistence` | enum | `"persistent"` | `"persistent"` retains memory across restarts; `"ephemeral"` clears on restart |
+
+#### Webhooks
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message_complete` | string | URL called when the agent finishes processing a message |
+| `message_failed` | string | URL called when message processing fails |
+| `agent_error` | string | URL called when the agent encounters an error |
+
+#### Compaction
+
+Compaction automatically summarizes long conversation histories to keep context within model limits.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `enabled` | boolean | `true` | Enable or disable automatic compaction |
+| `model` | string | `"claude-haiku-4-5-20251001"` | Model used for summarization |
+| `threshold_trigger` | number | `120000` | Input token count that triggers compaction |
+
+### Initial Files
+
+You can pre-populate the agent workspace with files at creation time. Each file entry accepts:
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `path` | string | ✅ | File path in the agent workspace |
+| `content` | string | ✅ | File content |
+| `encoding` | enum | ❌ | `"utf-8"` (default) or `"base64"` for binary content |
+
+## Example Configurations
+
+### Development Agent
+
+A lightweight agent for testing and iteration:
+
+```json
+{
+  "name": "dev-assistant",
+  "description": "Development and testing agent",
+  "pvc_size": "1Gi",
+  "system_prompt": "You are a development assistant. Be concise.",
+  "system_prompt_type": "append",
+  "configuration": {
+    "timeout_seconds": 1800,
+    "memory_config": {
+      "type": "flat",
+      "max_size_mb": 256,
+      "persistence": "ephemeral"
+    }
+  }
+}
+```
+
+### Production Agent
+
+A fully configured agent with webhooks, MCP servers, and persistent memory:
+
+```json
+{
+  "name": "production-agent",
+  "description": "Customer-facing production agent",
+  "pvc_size": "5Gi",
+  "configuration": {
+    "timeout_seconds": 3600,
+    "memory_config": {
+      "type": "hierarchical",
+      "max_size_mb": 1024,
+      "persistence": "persistent"
+    },
+    "webhooks": {
+      "message_complete": "https://your-app.com/webhooks/complete",
+      "message_failed": "https://your-app.com/webhooks/failed",
+      "agent_error": "https://your-app.com/webhooks/error"
+    },
+    "compaction": {
+      "enabled": true,
+      "threshold_trigger": 100000
+    },
+    "custom_env": {
+      "APP_ENV": "production",
+      "LOG_LEVEL": "info"
+    }
+  },
+  "initial_files": [
+    {
+      "path": "config/settings.json",
+      "content": "{\"mode\": \"production\"}"
+    }
+  ]
+}
+```
+
+## Deployment Patterns
+
+### Async Processing
+
+Create agents that process tasks in the background and notify your application via webhooks when complete. Use the `message_complete` webhook to receive results without polling.
+
+### Interactive
+
+Use the API or Discord channel to have real-time conversations with your agent. The `collect` queue mode batches incoming messages while the agent is busy, so nothing is lost.
+
+### Integration
+
+Connect agents to external services through MCP servers. Register tools like GitHub, databases, or custom APIs, then grant your agent access to use them autonomously.
+
+## Agent States
+
+Agents transition through the following states during their lifecycle:
+
+| State | Description |
+|-------|-------------|
+| `active` | Agent is running and processing messages |
+| `paused` | Agent is temporarily suspended; messages queue but are not processed |
+| `stopped` | Agent is fully stopped and not accepting messages |
+| `error` | Agent encountered a fatal error and requires attention |
+
+### State Transitions
+
+| From | To | How |
+|------|----|-----|
+| `active` | `paused` | Call `POST /v1/agent/pause/:id` |
+| `paused` | `active` | Call `POST /v1/agent/resume/:id` |
+| `active` | `stopped` | Delete the agent |
+| `active` | `error` | Automatic on fatal error |
+| `error` | `active` | Resolve the issue and resume |
+
+## Updating Agents
+
+Update an existing agent's configuration, metadata, or files with `POST /v1/agent/update/:id`:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/update/AGENT_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "updated-agent-name",
+    "description": "Updated description",
+    "system_prompt": "New instructions for the agent.",
+    "configuration": {
+      "timeout_seconds": 7200
+    },
+    "files": {
+      "add": [
+        { "path": "new-file.txt", "content": "Hello" }
+      ],
+      "update": [
+        { "path": "config/settings.json", "content": "{\"mode\": \"debug\"}" }
+      ],
+      "delete": ["old-file.txt"]
+    }
+  }'
+```
+
+You can update any combination of fields. Only the fields you include in the request body are modified.
+
+## Deleting Agents
+
+Delete an agent and all associated data with `POST /v1/agent/delete/:id`:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/delete/AGENT_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+<Warning>
+Deleting an agent permanently removes its workspace, message history, and all associated data. This action cannot be undone.
+</Warning>
+
+## Best Practices
+
+- **Start small.** Begin with minimal configuration and add capabilities as you understand your agent's needs.
+- **Use ephemeral memory for development.** Switch to persistent memory only when you need state across restarts.
+- **Set appropriate timeouts.** Avoid excessively long timeouts that could waste resources on stuck tasks.
+- **Configure webhooks for production.** Webhooks let you react to agent events without polling.
+- **Store API keys at the account level.** This avoids embedding keys in every agent creation request.
+- **Use `system_prompt_type: "append"`** unless you have a specific reason to replace the default prompt entirely.
+- **Pre-populate workspaces with `initial_files`** to give agents the context they need from the start.
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Messaging" icon="message" href="/agents/messaging">
+    Send messages to your agents and manage conversations.
+  </Card>
+  <Card title="MCP Server Management" icon="plug" href="/agents/mcp-management">
+    Connect external tools and services to your agents.
+  </Card>
+  <Card title="Filesystem Management" icon="folder" href="/agents/filesystem">
+    Manage files in agent workspaces programmatically.
+  </Card>
+</CardGroup>

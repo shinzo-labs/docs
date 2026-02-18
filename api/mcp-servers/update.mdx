@@ -1,0 +1,56 @@
+---
+title: "Update MCP Server"
+description: "Update an existing MCP server's configuration."
+api: "PUT /v1/mcp/servers/{id}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>MCP server UUID</ParamField>
+<ParamField body="name" type="string">Server name (1-100 characters)</ParamField>
+<ParamField body="description" type="string">Description (max 500 characters)</ParamField>
+<ParamField body="url" type="string">Endpoint URL</ParamField>
+<ParamField body="headers" type="object">HTTP headers (stored encrypted)</ParamField>
+<ParamField body="status" type="string">Server status: `active` or `inactive`</ParamField>
+<ParamField body="configuration" type="object">Additional configuration options</ParamField>
+
+## Example Request
+
+```bash
+curl -X PUT https://api.app.shinzo.ai/v1/mcp/servers/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "description": "Updated GitHub MCP Server",
+    "status": "inactive"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "github-mcp",
+  "description": "Updated GitHub MCP Server",
+  "endpoint_url": "https://mcp.github.com/sse",
+  "transport_type": "http",
+  "hosting_mode": "remote",
+  "status": "inactive",
+  "health_status": "healthy",
+  "created_at": "2026-01-10T08:00:00Z",
+  "updated_at": "2026-01-15T14:30:00Z"
+}
+```
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | MCP server updated successfully |
+| `400` | Invalid request (validation error) |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
+| `409` | Server with that name already exists |
