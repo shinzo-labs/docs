@@ -168,7 +168,11 @@ An agent can maintain active conversations across multiple channels simultaneous
 
 ## Discord Integration
 
-Discord is the first fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+Discord is the first fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the centralized Shinzo bot.
+
+<Info>
+**Centralized bot architecture:** All agents share a single Shinzo Discord bot. You connect your Discord account to your agent using a secure link code. Per-agent custom bot tokens are planned for a future release.
+</Info>
 
 ### Link Code Workflow
 
@@ -196,7 +200,16 @@ The response includes the code and its expiration time:
 Link codes expire after 10 minutes. If the code expires before it is used, generate a new one.
 </Warning>
 
-**Step 2: Link via Discord**
+**Step 2: Find the Shinzo bot on Discord**
+
+You need to locate the Shinzo bot before you can link your agent. There are two ways to do this:
+
+- **Option A (Direct Message):** Search for the Shinzo bot in your Discord app's DM list or server member list (if the bot has been added to a server you're in)
+- **Option B (Server Invite):** If you don't see the bot, ask your account administrator for the bot invite link or the bot's Discord username
+
+Once you've opened a DM with the Shinzo bot, proceed to Step 3.
+
+**Step 3: Link via Discord**
 
 Send the following command as a direct message to the **Shinzo bot** on Discord:
 
@@ -204,11 +217,36 @@ Send the following command as a direct message to the **Shinzo bot** on Discord:
 /link A1B2C3
 ```
 
-The bot confirms the link and your agent is now connected to your Discord account.
+Replace `A1B2C3` with your actual link code from Step 1. The bot will respond with a confirmation message:
 
-**Step 3: Start chatting**
+```
+✅ Successfully linked to agent "Your Agent Name"!
+You can now send messages to this agent directly in this conversation.
+```
 
-Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message.
+**Step 4: Start chatting**
+
+Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message in the same conversation thread.
+
+Example conversation:
+```
+You: What's the weather in San Francisco?
+Agent: I'll check the weather for you...
+```
+
+<Tip>
+You can link multiple agents to the same Discord account by repeating the link code workflow with different agent IDs. Use the `/switch AGENT_ID` command (if supported) or manage active links via the API.
+</Tip>
+
+### Troubleshooting Discord Integration
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| **Bot doesn't respond to `/link` command** | Bot may be offline, or you're messaging the wrong bot | 1. Verify you're DMing the correct Shinzo bot (check bot username)<br/>2. Check if the bot shows as "Online" in Discord<br/>3. Contact support if the bot appears offline |
+| **"Invalid or expired code" error** | Link code expired (10 minute limit) or already used | Generate a new link code via `POST /v1/agent/:id/discord/link` and try again |
+| **Agent doesn't respond to messages after linking** | Agent may be paused, stopped, or out of output tokens | 1. Check agent status via `GET /v1/agent/:id`<br/>2. Verify agent has sufficient output token balance<br/>3. Check agent logs for errors |
+| **Messages not appearing in API message history** | Normal behavior — Discord messages use separate routing | Discord messages ARE recorded in the agent's message history. Use `GET /v1/agent/:id/messages?channel=discord` to retrieve them |
+| **Want to link a different Discord account** | Need to unlink current account first | Run `DELETE /v1/agent/:id/discord/unlink` then repeat the link code workflow with the new Discord account |
 
 ### Check Link Status
 
@@ -280,23 +318,44 @@ This returns all connected channels, including API (always present) and any link
 }
 ```
 
+### Coming Soon: Custom Bot Tokens
+
+Per-agent custom Discord bot tokens are planned for a future release. When available, you'll be able to:
+
+- **Brand your own bot:** Create a Discord application with your company name, logo, and custom bot identity
+- **Deploy white-label bots:** Each customer can configure their own bot token for fully branded experiences
+- **Multi-tenant architectures:** Separate bot tokens per customer or team for isolation
+- **Configure via API:** Set `discord_bot_token` in the agent create/update payload (`POST /v1/agent` or `PATCH /v1/agent/:id`)
+
+This feature requires additional backend architecture and is queued for development after current active PRs are merged. [Follow our changelog](https://docs.shinzo.ai/changelog) for updates.
+
 ## Use Cases for Discord Integration
 
 - **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
 - **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
+- **Customer support.** Deploy agents that respond to customer inquiries via Discord DMs (using the centralized Shinzo bot).
 - **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
 - **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
+- **Internal tooling.** Create internal agents for task automation that your team accesses via Discord (no custom UI needed).
 
 ## Best Practices
+
+### General Messaging
 
 - **Use `collect` mode by default.** Reserve `interrupt` for genuinely urgent messages that cannot wait for the current task to finish.
 - **Attach metadata for traceability.** Include request IDs, user identifiers, or other context in the `metadata` field to correlate messages with your application logic.
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
-- **Generate link codes close to when they will be used.** Codes expire after 10 minutes, so avoid generating them far in advance.
-- **Check link status before generating new codes.** If a Discord account is already linked, you do not need a new code.
-- **Unlink before re-linking.** If you need to change the linked Discord account, unlink the current one first.
+
+### Discord-Specific
+
+- **Generate link codes just before use.** Codes expire after 10 minutes, so avoid generating them far in advance.
+- **Check link status before generating new codes.** If a Discord account is already linked, you do not need a new code — use `GET /v1/agent/:id/discord/status` to verify.
+- **Unlink before re-linking.** If you need to change the linked Discord account, unlink the current one first with `DELETE /v1/agent/:id/discord/unlink`.
+- **Monitor agent status.** Ensure your agent has sufficient output token balance and is in `active` status before sharing the Discord link with users.
+- **Test the link flow.** After linking, send a test message to verify the bot responds correctly before deploying to end users.
+- **Document bot username.** If sharing the Discord integration with your team or customers, provide clear instructions on which bot to DM (bot username and discriminator).
 
 ## Next Steps
 
