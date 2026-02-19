@@ -168,22 +168,191 @@ An agent can maintain active conversations across multiple channels simultaneous
 
 ## Discord Integration
 
-Discord is the first fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+Discord is the first fully supported external channel. Shinzo offers two approaches for connecting your agents to Discord:
 
-### Link Code Workflow
+1. **Centralized Shinzo Bot** (Quickstart) — Use the shared Shinzo bot for immediate setup with no Discord Developer Portal configuration required.
+2. **Self-Hosted Bot** (Recommended for Production) — Create your own Discord bot with full control over bot identity, permissions, and branding.
 
-Connecting an agent to Discord follows a simple three-step process:
+<Tabs>
+  <Tab title="Self-Hosted Bot (Recommended)">
 
-**Step 1: Generate a link code**
+### Self-Hosted Discord Bot Setup
 
-Request a 6-character link code from the API with `POST /v1/agent/:id/discord/link`:
+Running your own Discord bot gives you complete control over the bot's identity, avatar, username, and permissions. This is the recommended approach for production deployments and custom branding.
+
+Shinzo handles all the infrastructure — you provide the bot token, and Shinzo runs the Discord gateway connection on behalf of your agent. No additional hosting or server setup is required on your end.
+
+---
+
+#### Step 1: Create a Discord Application
+
+Visit the [Discord Developer Portal](https://discord.com/developers/applications) and create a new application:
+
+1. Click **"New Application"** in the top right
+2. Enter a name for your bot (e.g., "My Shinzo Agent")
+3. Accept Discord's Terms of Service
+4. Click **"Create"**
+
+<Info>
+The application name will be visible to users when the bot sends messages. Choose a name that reflects your agent's purpose (e.g., "DevOps Assistant", "Support Bot", "Analytics Agent").
+</Info>
+
+---
+
+#### Step 2: Add a Bot User
+
+Navigate to the **Bot** section in the left sidebar:
+
+1. Click **"Add Bot"**
+2. Confirm by clicking **"Yes, do it!"**
+3. **(Optional)** Customize the bot's username and avatar by uploading an image
+
+<Tip>
+Set a clear, professional username and avatar — these are what users will see when your agent responds in Discord.
+</Tip>
+
+---
+
+#### Step 3: Enable Required Intents
+
+Discord bots require explicit permission to access certain gateway events. Scroll down to the **Privileged Gateway Intents** section and enable:
+
+| Intent | Required? | Purpose |
+|--------|-----------|---------|
+| **Message Content Intent** | ✅ **Required** | Allows the bot to read message content sent by users |
+| **Server Members Intent** | ❌ Optional | Enables role-based routing and member list access (not required for DM-only bots) |
+| **Presence Intent** | ❌ Optional | Shows user online/offline status (not required for basic messaging) |
+
+<Warning>
+**Message Content Intent is mandatory** for Shinzo agents to receive and process user messages. Without this intent enabled, your bot will not function.
+</Warning>
+
+---
+
+#### Step 4: Generate and Secure Your Bot Token
+
+Still in the **Bot** section, locate the **Token** area:
+
+1. Click **"Reset Token"** (or **"Copy"** if this is your first time)
+2. Confirm the action if prompted
+3. **Copy the token immediately** — you will not be able to view it again without resetting
+
+<Warning>
+**Treat your bot token like a password.** Anyone with access to the token can control your bot. Never commit it to version control, share it publicly, or embed it in client-side code.
+</Warning>
+
+Store the token securely in a password manager or environment variable vault until you configure it with Shinzo in Step 7.
+
+---
+
+#### Step 5: Generate an OAuth2 Invite URL
+
+Navigate to the **OAuth2 → URL Generator** section in the left sidebar:
+
+1. Under **Scopes**, select:
+   - `bot` — Grants bot permissions
+   - `applications.commands` — Enables slash commands (optional, for `/link` command support)
+
+2. Under **Bot Permissions**, select:
+   - **View Channels** — Required to see channels the bot is invited to
+   - **Send Messages** — Required to send responses
+   - **Read Message History** — Recommended for context-aware conversations
+   - **Embed Links** — Allows rich link previews in messages
+   - **Attach Files** — Enables file upload capabilities
+
+<Info>
+The minimum required permissions are **View Channels** and **Send Messages**. Additional permissions enable richer agent interactions.
+</Info>
+
+3. Copy the generated URL at the bottom of the page
+
+---
+
+#### Step 6: Add the Bot to Your Discord Server
+
+Open the OAuth2 URL you generated in Step 5 in your browser:
+
+1. Select the Discord server where you want to add the bot
+   - You must have **Manage Server** permission on the target server
+2. Review the requested permissions
+3. Click **"Authorize"**
+4. Complete any CAPTCHA challenges if prompted
+
+<Tip>
+For personal use cases (like a personal assistant), you can create a private Discord server with just yourself and your bot. For team use cases, add the bot to your team's shared server.
+</Tip>
+
+---
+
+#### Step 7: Configure the Bot Token in Shinzo
+
+Provide your bot token to Shinzo when creating or updating an agent. You have two options:
+
+**Option A: Using `custom_env` (Current Method)**
+
+When creating or updating an agent, include the `DISCORD_BOT_TOKEN` in the `custom_env` field:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Discord Agent",
+    "configuration": {
+      "custom_env": {
+        "DISCORD_BOT_TOKEN": "your-bot-token-here"
+      }
+    }
+  }'
+```
+
+To update an existing agent with a Discord bot token:
+
+```bash
+curl -X PATCH https://api.app.shinzo.ai/v1/agent/AGENT_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "configuration": {
+      "custom_env": {
+        "DISCORD_BOT_TOKEN": "your-bot-token-here"
+      }
+    }
+  }'
+```
+
+**Option B: Using Dedicated API Field** *(Availability pending — check with Shinzo engineering)*
+
+A dedicated `discord_bot_token` field may be added to the agent configuration API in the future:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Discord Agent",
+    "configuration": {
+      "discord_bot_token": "your-bot-token-here"
+    }
+  }'
+```
+
+<Note>
+Once configured, Shinzo runs the Discord gateway connection on behalf of your agent. The bot will come online automatically when the agent starts, and go offline when the agent is stopped or paused.
+</Note>
+
+---
+
+#### Step 8: Link Your Discord Account to the Agent
+
+Generate a 6-character link code from the API:
 
 ```bash
 curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/link" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-The response includes the code and its expiration time:
+Response:
 
 ```json
 {
@@ -193,10 +362,97 @@ The response includes the code and its expiration time:
 ```
 
 <Warning>
-Link codes expire after 10 minutes. If the code expires before it is used, generate a new one.
+Link codes expire after 10 minutes. Generate a new code if it expires before use.
 </Warning>
 
-**Step 2: Link via Discord**
+Send the link code as a **direct message** to your bot on Discord:
+
+```
+/link A1B2C3
+```
+
+The bot will confirm the link, and your agent is now connected to your Discord account.
+
+---
+
+#### Step 9: Start Chatting
+
+Send any message to your bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message from your custom bot.
+
+<Tip>
+Users can interact with your agent through DMs or in channels where the bot has been added. All conversations are private to each user's Discord account and agent pairing.
+</Tip>
+
+---
+
+### Troubleshooting Self-Hosted Bots
+
+| Issue | Solution |
+|-------|----------|
+| **Bot appears offline** | Verify the `DISCORD_BOT_TOKEN` is correctly configured in your agent's `custom_env`. Check that the agent is running (not paused or stopped). |
+| **Bot doesn't respond to messages** | Ensure **Message Content Intent** is enabled in the Discord Developer Portal. The bot must have **View Channels** and **Send Messages** permissions in the server. |
+| **/link command not recognized** | Make sure you granted the `applications.commands` scope when generating the OAuth2 invite URL. Re-invite the bot with the correct scopes if needed. |
+| **Bot token rejected** | Verify you copied the token correctly without extra spaces. If you suspect the token was compromised, reset it in the Discord Developer Portal and update your agent configuration. |
+| **Messages delayed or dropped** | Check your agent's message queue status via the API. If the agent is under heavy load, consider increasing resources or using `interrupt` mode for urgent messages. |
+
+---
+
+### Updating or Rotating Bot Tokens
+
+To rotate your Discord bot token for security reasons:
+
+1. Reset the token in the Discord Developer Portal (Bot → Reset Token)
+2. Copy the new token
+3. Update your agent's configuration with the new token via `PATCH /v1/agent/:id`
+4. The bot will reconnect automatically with the new credentials
+
+<Warning>
+When you reset a token, the old token is immediately invalidated. Update your agent configuration promptly to avoid service interruption.
+</Warning>
+
+  </Tab>
+
+  <Tab title="Centralized Shinzo Bot (Quickstart)">
+
+### Centralized Shinzo Bot
+
+The centralized Shinzo bot offers the fastest path to Discord integration with zero configuration. Use this approach for:
+
+- **Quick prototyping** — Test agent behavior without setting up a Discord application
+- **Personal projects** — Simple use cases where bot branding doesn't matter
+- **Temporary integrations** — Short-term testing or demos
+
+<Note>
+With the centralized bot, all users interact with the same "Shinzo" bot identity. For custom branding and production deployments, use the **Self-Hosted Bot** approach instead.
+</Note>
+
+---
+
+#### Step 1: Generate a Link Code
+
+Request a 6-character link code from the API:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/link" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response:
+
+```json
+{
+  "code": "A1B2C3",
+  "expires_at": "2026-02-18T10:40:00Z"
+}
+```
+
+<Warning>
+Link codes expire after 10 minutes. Generate a new code if it expires before use.
+</Warning>
+
+---
+
+#### Step 2: Link via Discord
 
 Send the following command as a direct message to the **Shinzo bot** on Discord:
 
@@ -204,11 +460,20 @@ Send the following command as a direct message to the **Shinzo bot** on Discord:
 /link A1B2C3
 ```
 
-The bot confirms the link and your agent is now connected to your Discord account.
+The bot confirms the link, and your agent is now connected to your Discord account.
 
-**Step 3: Start chatting**
+<Info>
+If you haven't added the Shinzo bot to your server yet, search for "Shinzo" in the Discord bot directory or contact Shinzo support for the invite link.
+</Info>
 
-Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message.
+---
+
+#### Step 3: Start Chatting
+
+Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message from the centralized Shinzo bot.
+
+  </Tab>
+</Tabs>
 
 ### Check Link Status
 
@@ -282,21 +547,31 @@ This returns all connected channels, including API (always present) and any link
 
 ## Use Cases for Discord Integration
 
-- **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
-- **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
-- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
-- **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
+- **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client. Use a self-hosted bot for custom branding or the centralized Shinzo bot for quick setup.
+- **Team collaboration.** Deploy a self-hosted bot to your team's Discord server. Team members can each link their own agents (or share access to a common agent) for collaborative workflows.
+- **Customer support.** Create a branded support bot that handles customer inquiries directly in Discord. Use self-hosted bots for professional branding that matches your company identity.
+- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to Discord DMs or channels. Ideal for monitoring alerts, deployment notifications, or scheduled reports.
+- **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend. Start with the centralized bot, then migrate to a self-hosted bot for production.
+- **Multi-tenant SaaS.** Allow each customer to configure their own Discord bot for white-label agent deployments. Customers control bot branding while you handle the infrastructure.
 
 ## Best Practices
 
+### General Messaging
 - **Use `collect` mode by default.** Reserve `interrupt` for genuinely urgent messages that cannot wait for the current task to finish.
 - **Attach metadata for traceability.** Include request IDs, user identifiers, or other context in the `metadata` field to correlate messages with your application logic.
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
+
+### Discord Integration
+- **Use self-hosted bots for production.** The centralized Shinzo bot is great for prototyping, but self-hosted bots give you full control over branding and identity.
+- **Secure your bot tokens.** Store Discord bot tokens in secure environment variables or secret vaults. Never commit them to version control or share them publicly.
+- **Enable Message Content Intent.** This is required for your bot to read user messages. Enable it in the Discord Developer Portal under Bot → Privileged Gateway Intents.
+- **Rotate tokens regularly.** For production bots, rotate your Discord bot token periodically as a security best practice. Update your agent configuration after rotation.
 - **Generate link codes close to when they will be used.** Codes expire after 10 minutes, so avoid generating them far in advance.
 - **Check link status before generating new codes.** If a Discord account is already linked, you do not need a new code.
 - **Unlink before re-linking.** If you need to change the linked Discord account, unlink the current one first.
+- **Set appropriate permissions.** Only grant your Discord bot the minimum permissions required for your use case. Start with View Channels, Send Messages, and Read Message History.
 
 ## Next Steps
 
