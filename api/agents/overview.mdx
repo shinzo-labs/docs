@@ -27,15 +27,46 @@ AI Agents must be enabled for your account. If you receive a `403 Forbidden` err
 
 ## Endpoints
 
+### Agent Management
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | [`/v1/agent/create`](/api/agents/create) | Deploy a new AI agent |
 | `GET` | [`/v1/agent/list`](/api/agents/list) | List all your agents |
-| `GET` | [`/v1/agent/{id}`](/api/agents/get) | Get agent details |
+| `GET` | [`/v1/agent/{id}`](/api/agents/get) | Get agent details and configuration |
+| `GET` | [`/v1/agent/{id}/summary`](/api/agents/get-summary) | Get agent summary (status, tokens, metadata) |
+| `GET` | [`/v1/agent/{id}/ready`](/api/agents/check-ready) | Check if agent is ready to receive messages |
 | `POST` | [`/v1/agent/update/{id}`](/api/agents/update) | Update agent configuration |
 | `POST` | [`/v1/agent/delete/{id}`](/api/agents/delete) | Delete an agent |
 | `POST` | [`/v1/agent/{id}/pause`](/api/agents/pause) | Pause an agent |
 | `POST` | [`/v1/agent/{id}/resume`](/api/agents/resume) | Resume a paused agent |
+| `POST` | [`/v1/agent/{id}/stop`](/api/agents/stop) | Stop an agent (shuts down pod) |
+| `POST` | [`/v1/agent/{id}/status`](/api/agents/set-status) | Set agent status directly |
+| `POST` | [`/v1/agent/{id}/balance`](/api/agents/update-balance) | Update agent token balance |
+
+### Messaging
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/{id}/messages`](/api/agents/send-message) | Send a message to an agent |
+| `GET` | [`/v1/agent/{id}/messages`](/api/agents/list-messages) | List agent messages |
+| `GET` | [`/v1/agent/{id}/conversations`](/api/agents/list-conversations) | List conversations grouped by counterparty |
+
+### Channel Integrations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/agent/{id}/channels`](/api/agents/list-channels) | List active channel bindings |
+| `POST` | [`/v1/agent/{id}/discord/link`](/api/agents/discord-link) | Generate Discord link code |
+| `GET` | [`/v1/agent/{id}/discord/status`](/api/agents/discord-status) | Check Discord link status |
+| `DELETE` | [`/v1/agent/{id}/discord/unlink`](/api/agents/discord-unlink) | Unlink Discord account |
+| `POST` | [`/v1/agent/{id}/slack/link`](/api/agents/slack-link) | Generate Slack link code |
+| `GET` | [`/v1/agent/{id}/slack/status`](/api/agents/slack-status) | Check Slack link status |
+| `DELETE` | [`/v1/agent/{id}/slack/unlink`](/api/agents/slack-unlink) | Unlink Slack account |
+
+### Filesystem
+
+See [Filesystem Overview](/api/agents/filesystem-overview) for complete filesystem API documentation.
 
 ## Agent States
 

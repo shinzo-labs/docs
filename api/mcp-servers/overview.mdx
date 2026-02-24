@@ -30,6 +30,13 @@ Only remote-hosted (HTTP) MCP servers are supported at the moment.
 | `POST` | [`/v1/mcp/servers/{id}/tools/refresh`](/api/mcp-servers/refresh-tools) | Refresh available tools |
 | `GET` | [`/v1/mcp/servers/{id}/health`](/api/mcp-servers/health) | Check server health |
 
+### OAuth Authentication
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v1/mcp/servers/{id}/oauth/authorize`](/api/mcp-servers/oauth-authorize) | Initiate OAuth flow for MCP server |
+| `POST` | [`/v1/mcp/servers/{id}/oauth/callback`](/api/mcp-servers/oauth-callback) | OAuth callback endpoint |
+
 ### Access Management
 
 | Method | Endpoint | Description |
