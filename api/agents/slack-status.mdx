@@ -1,0 +1,75 @@
+---
+title: "Get Slack Status"
+description: "Check if a Slack account is linked to an agent and get binding details."
+api: "GET /v1/agent/{id}/slack/status"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/slack/status \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+### Linked Account
+
+```json
+{
+  "linked": true,
+  "slack_user_id": "U01234ABCDE",
+  "slack_team_id": "T01234ABCDE",
+  "slack_username": "john_doe",
+  "linked_at": "2026-02-20T10:30:00Z",
+  "channel_binding_id": "cb-123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+### Not Linked
+
+```json
+{
+  "linked": false
+}
+```
+
+## Response Fields
+
+<ResponseField name="linked" type="boolean" required>
+Whether a Slack account is currently linked to the agent
+</ResponseField>
+
+<ResponseField name="slack_user_id" type="string">
+Slack user ID (only present if linked)
+</ResponseField>
+
+<ResponseField name="slack_team_id" type="string">
+Slack workspace/team ID (only present if linked)
+</ResponseField>
+
+<ResponseField name="slack_username" type="string">
+Slack username (only present if linked)
+</ResponseField>
+
+<ResponseField name="linked_at" type="string">
+ISO 8601 timestamp of when the account was linked (only present if linked)
+</ResponseField>
+
+<ResponseField name="channel_binding_id" type="string">
+UUID of the channel binding record (only present if linked)
+</ResponseField>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Status retrieved successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

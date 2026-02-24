@@ -1,0 +1,68 @@
+---
+title: "Update Token Balance"
+description: "Update an agent's output token balance by incrementing or setting directly."
+api: "POST /v1/agent/{id}/balance"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+<ParamField body="amount" type="number" required>
+Number of output tokens to add (increment) or set as the new balance (set)
+</ParamField>
+
+<ParamField body="type" type="string" required>
+Update type: `increment` (adds to current balance) or `set` (replaces balance)
+</ParamField>
+
+## Example Request
+
+### Increment Balance
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/balance \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 500000,
+    "type": "increment"
+  }'
+```
+
+### Set Balance
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/balance \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 1000000,
+    "type": "set"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "message": "Agent balance updated successfully",
+  "new_balance": 1500000,
+  "previous_balance": 1000000
+}
+```
+
+<Note>
+Token balance controls how many output tokens the agent can generate. At Sonnet 4.5 pricing (~$15 per million tokens), a balance of 1,000,000 tokens ≈ $15 of usage.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Balance updated successfully |
+| `400` | Invalid amount or type |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

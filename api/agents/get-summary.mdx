@@ -1,0 +1,84 @@
+---
+title: "Get Agent Summary"
+description: "Get a slim summary of agent status, token balance, and metadata without full configuration."
+api: "GET /v1/agent/{id}/summary"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/summary \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "My Assistant",
+  "status": "active",
+  "output_token_balance": 850000,
+  "total_output_tokens_used": 150000,
+  "message_count": 42,
+  "mcp_server_count": 3,
+  "created_at": "2026-02-15T10:00:00Z",
+  "updated_at": "2026-02-24T14:30:00Z"
+}
+```
+
+## Response Fields
+
+<ResponseField name="uuid" type="string" required>
+Agent UUID
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+Agent name
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+Current agent status: `active`, `paused`, `stopped`, or `error`
+</ResponseField>
+
+<ResponseField name="output_token_balance" type="number" required>
+Remaining output tokens available to the agent
+</ResponseField>
+
+<ResponseField name="total_output_tokens_used" type="number" required>
+Total output tokens consumed by the agent lifetime
+</ResponseField>
+
+<ResponseField name="message_count" type="number" required>
+Total number of messages sent to/from this agent
+</ResponseField>
+
+<ResponseField name="mcp_server_count" type="number" required>
+Number of MCP servers the agent has access to
+</ResponseField>
+
+<ResponseField name="created_at" type="string" required>
+ISO 8601 timestamp of agent creation
+</ResponseField>
+
+<ResponseField name="updated_at" type="string" required>
+ISO 8601 timestamp of last configuration update
+</ResponseField>
+
+<Tip>
+Use this endpoint for status checks and monitoring. For full configuration including system prompts and MCP server details, use [Get Agent](/api/agents/get) instead.
+</Tip>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent summary retrieved successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

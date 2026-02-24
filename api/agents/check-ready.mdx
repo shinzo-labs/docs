@@ -1,0 +1,76 @@
+---
+title: "Check Agent Ready"
+description: "Check if an agent is ready to receive messages (pod running and healthy)."
+api: "GET /v1/agent/{id}/ready"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/ready \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+### Agent Ready
+
+```json
+{
+  "ready": true,
+  "status": "active",
+  "pod_status": "running",
+  "last_heartbeat": "2026-02-24T14:30:00Z"
+}
+```
+
+### Agent Not Ready
+
+```json
+{
+  "ready": false,
+  "status": "stopped",
+  "pod_status": "not_running",
+  "reason": "Agent pod is stopped"
+}
+```
+
+## Response Fields
+
+<ResponseField name="ready" type="boolean" required>
+Whether the agent is ready to receive and process messages
+</ResponseField>
+
+<ResponseField name="status" type="string" required>
+Current agent status: `active`, `paused`, `stopped`, or `error`
+</ResponseField>
+
+<ResponseField name="pod_status" type="string" required>
+Kubernetes pod status: `running`, `pending`, `not_running`, or `error`
+</ResponseField>
+
+<ResponseField name="last_heartbeat" type="string">
+ISO 8601 timestamp of last health check from agent pod (only present if pod is running)
+</ResponseField>
+
+<ResponseField name="reason" type="string">
+Human-readable reason why agent is not ready (only present if `ready` is false)
+</ResponseField>
+
+<Note>
+Use this endpoint before sending messages to ensure the agent is available. An agent is ready when its status is `active` and its pod is running.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Readiness check completed |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |
