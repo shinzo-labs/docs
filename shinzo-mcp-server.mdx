@@ -173,65 +173,197 @@ async with streamablehttp_client(
 
 ## Available Tools
 
-Once connected, you'll have access to tools across 6 categories:
+Once connected, you'll have access to **55 tools** across 8 categories:
 
 | Category | Tools | What you can do |
 |----------|-------|-----------------|
-| **Agent Management** | 7 tools | Create, configure, pause, and delete agents |
-| **Agent Messaging** | 2 tools | Send messages and retrieve message history |
-| **Agent Filesystem** | 5 tools | Read, write, and search files in agent workspaces |
-| **MCP Server Management** | 5 tools | Register servers and manage agent access |
-| **Token Analytics** | 3 tools | Query usage, costs, and session history |
-| **Discord Integration** | 3 tools | Link/unlink Discord accounts to agents |
+| **Analytics** | 4 tools | Query usage, costs, and session history |
+| **Agent Management** | 11 tools | Create, configure, pause, and delete agents |
+| **Agent Messaging** | 3 tools | Send messages and retrieve conversation history |
+| **Agent Filesystem** | 17 tools | Read, write, search, and organize files in agent workspaces |
+| **Discord Integration** | 4 tools | Link/unlink Discord accounts and manage channel bindings |
+| **Slack Integration** | 3 tools | Link/unlink Slack accounts to agents |
+| **MCP Server Management** | 13 tools | Register servers, manage agent access, and check health |
 
-### Agent Management
+---
+
+### Analytics (4 tools)
+
+Monitor token usage, costs, and session activity.
+
 | Tool | Description |
 |------|-------------|
-| `create_agent` | Deploy a new AI agent with custom configuration |
-| `list_agents` | List all your agents with filtering and pagination |
-| `get_agent` | Get detailed info about a specific agent |
-| `update_agent` | Update an agent's configuration, system prompt, or files |
+| `get_usage_summary` | Get today/week/month token usage summary — fastest way to answer "how many tokens did I burn?" |
+| `get_token_analytics` | Get detailed token usage analytics aggregated by model and provider |
+| `list_ai_sessions` | List AI interaction sessions with filtering and pagination |
+| `get_session_details` | Get detailed info about a specific session including interactions, request/response data, and linked messages |
+
+**Usage examples:**
+- "How many tokens did I use today?"
+- "Show me the most expensive sessions this month"
+- "Get details for session abc-123"
+
+---
+
+### Agent Management (11 tools)
+
+Create, configure, and control your AI agents.
+
+| Tool | Description |
+|------|-------------|
+| `create_agent` | Deploy a new AI agent with custom configuration, system prompt, and initial files |
+| `list_agents` | List all your agents with filtering, sorting, and pagination |
+| `get_agent` | Get detailed info about a specific agent (system prompt, MCP servers, filesystem summary) |
+| `get_agent_summary` | Get slim agent summary (status, token balance, message count) — faster than `get_agent` |
+| `update_agent` | Update agent configuration, system prompt, files, or MCP server access |
 | `delete_agent` | Delete an agent and all its data |
-| `pause_agent` | Temporarily pause an agent |
-| `resume_agent` | Resume a paused agent |
+| `pause_agent` | Pause agent execution loop (pod stays alive for filesystem access) |
+| `resume_agent` | Resume a paused or stopped agent |
+| `stop_agent` | Stop agent and shut down pod (workspace preserved) |
+| `set_agent_status` | Set agent status directly (active, paused, or stopped) |
+| `update_agent_balance` | Update agent output token balance (increment or set) |
 
-### Agent Messaging
+**Usage examples:**
+- "Create a research agent with 2GB storage"
+- "List all active agents"
+- "Pause agent abc-123 while I update its config"
+- "Add 100k tokens to agent abc-123's balance"
+
+---
+
+### Agent Messaging (3 tools)
+
+Send messages to agents and retrieve conversation history.
+
 | Tool | Description |
 |------|-------------|
-| `send_agent_message` | Send a message to an agent via API, Discord, or other channels |
-| `list_agent_messages` | Retrieve message history for an agent |
+| `send_agent_message` | Send a message to an agent via API channel (supports queue modes: collect or interrupt) |
+| `list_agent_messages` | List messages for an agent with filtering (status, sender, recipient, counterparty) and cursor pagination |
+| `list_agent_conversations` | List conversations grouped by counterparty with message counts and recent messages |
 
-### Agent Filesystem
+**Usage examples:**
+- "Send 'analyze this dataset' to agent abc-123"
+- "Show unread messages for agent abc-123"
+- "List all conversations for agent abc-123"
+
+---
+
+### Agent Filesystem (17 tools)
+
+Full programmatic access to agent workspace files and directories.
+
+#### File Operations (5 tools)
 | Tool | Description |
 |------|-------------|
-| `read_agent_file` | Read a file from an agent's workspace |
-| `create_agent_file` | Create a new file in an agent's workspace |
-| `update_agent_file` | Update a file in an agent's workspace |
-| `list_agent_directory` | List files and folders in an agent's workspace |
-| `search_agent_filesystem` | Search files or content in an agent's workspace |
+| `read_agent_file` | Read file contents (supports UTF-8 and base64 encoding) |
+| `create_agent_file` | Create a new file with optional overwrite |
+| `update_agent_file` | Update existing file contents |
+| `delete_agent_file` | Delete a file |
+| `patch_agent_file` | Apply partial updates (append, prepend, insert, replace) |
 
-### MCP Server Management
+#### Directory Operations (2 tools)
 | Tool | Description |
 |------|-------------|
-| `create_mcp_server` | Register a new MCP server |
-| `list_mcp_servers` | List all registered MCP servers |
-| `grant_agent_mcp_access` | Grant an agent access to an MCP server |
-| `revoke_agent_mcp_access` | Revoke an agent's MCP server access |
-| `check_mcp_server_health` | Check if an MCP server is reachable |
+| `list_agent_directory` | List directory contents (supports recursive and hidden files) |
+| `create_agent_directory` | Create directory (supports recursive parent creation) |
+| `delete_agent_directory` | Delete directory (supports recursive deletion) |
 
-### Token Analytics
+#### Bulk Operations (3 tools)
 | Tool | Description |
 |------|-------------|
-| `get_token_analytics` | Get AI token usage analytics and cost trends |
-| `list_ai_sessions` | List AI interaction sessions with filtering |
-| `get_session_details` | Get detailed info about a specific session |
+| `copy_agent_path` | Copy file or directory with overwrite support |
+| `move_agent_path` | Move or rename file/directory with overwrite support |
+| `search_agent_filesystem` | Search by filename, content, or both (supports glob patterns, case sensitivity, max results) |
 
-### Discord Integration
+#### Metadata (2 tools)
 | Tool | Description |
 |------|-------------|
-| `create_discord_link_code` | Generate a code to link a Discord account to an agent |
-| `get_discord_status` | Check Discord link status for an agent |
-| `unlink_discord` | Unlink a Discord account from an agent |
+| `get_file_metadata` | Get file or directory metadata (size, permissions, timestamps) |
+| `update_file_metadata` | Update file metadata (permissions, owner, group, tags) |
+
+#### Archives (2 tools)
+| Tool | Description |
+|------|-------------|
+| `create_agent_archive` | Create archive from files (zip, tar, tar.gz, tar.bz2) |
+| `extract_agent_archive` | Extract archive to destination path |
+
+**Usage examples:**
+- "Read the config.json file from agent abc-123"
+- "Create a requirements.txt file in agent abc-123's workspace"
+- "Search for 'TODO' in all Python files for agent abc-123"
+- "Create a backup archive of agent abc-123's entire workspace"
+
+---
+
+### Discord Integration (4 tools)
+
+Connect agents to Discord for user interactions.
+
+| Tool | Description |
+|------|-------------|
+| `create_discord_link_code` | Generate a 6-character code to link Discord account to agent (expires in 10 min) |
+| `get_discord_status` | Check Discord link status and binding details for an agent |
+| `unlink_discord` | Unlink Discord account from agent (deactivates channel binding) |
+| `list_channel_bindings` | List all active channel bindings (Discord, API, Slack, etc.) for an agent |
+
+**Usage examples:**
+- "Generate Discord link code for agent abc-123"
+- "Check Discord status for agent abc-123"
+- "Unlink Discord from agent abc-123"
+- "Show all active channels for agent abc-123"
+
+---
+
+### Slack Integration (3 tools)
+
+Connect agents to Slack for team communication.
+
+| Tool | Description |
+|------|-------------|
+| `create_slack_link_code` | Generate a 6-character code to link Slack account to agent (expires in 10 min) |
+| `get_slack_status` | Check Slack link status and binding details for an agent |
+| `unlink_slack` | Unlink Slack account from agent (deactivates channel binding) |
+
+**Usage examples:**
+- "Generate Slack link code for agent abc-123"
+- "Check Slack status for agent abc-123"
+- "Unlink Slack from agent abc-123"
+
+**Note**: Slack integration requires either the centralized Shinzo Slack bot or a custom Slack bot configured for your agent. See the [Slack Integration Guide](/channels/slack) for setup instructions.
+
+---
+
+### MCP Server Management (13 tools)
+
+Register, configure, and manage MCP servers for your agents.
+
+#### Server CRUD (5 tools)
+| Tool | Description |
+|------|-------------|
+| `create_mcp_server` | Register new MCP server (stdio or HTTP, with init steps, files, and environment variables) |
+| `list_mcp_servers` | List all registered MCP servers with filtering and pagination |
+| `get_mcp_server` | Get detailed info about MCP server including agent access grants |
+| `update_mcp_server` | Update MCP server configuration, credentials, or status |
+| `delete_mcp_server` | Delete MCP server (fails if agents have active access grants) |
+
+#### Server Operations (2 tools)
+| Tool | Description |
+|------|-------------|
+| `refresh_mcp_server_tools` | Refresh available tools list by querying MCP server endpoint |
+| `check_mcp_server_health` | Check MCP server health and connectivity |
+
+#### Access Management (3 tools)
+| Tool | Description |
+|------|-------------|
+| `grant_agent_mcp_access` | Grant agent access to MCP server (all tools or selected tools) |
+| `revoke_agent_mcp_access` | Revoke agent's MCP server access |
+| `list_agent_mcp_access` | List all agent access grants for an MCP server |
+
+**Usage examples:**
+- "Register the GitHub MCP server for my agents"
+- "Grant agent abc-123 access to the github server"
+- "Check health of the filesystem server"
+- "List all agents that can access the github server"
 
 ---
 
@@ -286,7 +418,6 @@ await client.callTool({
   arguments: {
     agentId,
     content: "Summarize the latest developments in large language models.",
-    channel: "api",
     queue_mode: "collect"
   }
 });
@@ -316,7 +447,6 @@ agent_id = json.loads(result.content[0].text)["uuid"]
 await session.call_tool("send_agent_message", {
     "agentId": agent_id,
     "content": "Summarize the latest developments in large language models.",
-    "channel": "api",
     "queue_mode": "collect"
 })
 

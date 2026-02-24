@@ -33,9 +33,9 @@ All filesystem endpoints follow the pattern: `/v1/agent/{agentId}/filesystem/...
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | [`/v1/agent/{id}/filesystem/copy`](/api/agents/filesystem/copy) | Copy files or directories |
-| `POST` | [`/v1/agent/{id}/filesystem/move`](/api/agents/filesystem/move) | Move or rename files |
-| `POST` | [`/v1/agent/{id}/filesystem/search`](/api/agents/filesystem/search) | Search by filename or content |
+| `POST` | [`/v1/agent/{id}/filesystem/operations/copy`](/api/agents/filesystem/copy) | Copy files or directories |
+| `POST` | [`/v1/agent/{id}/filesystem/operations/move`](/api/agents/filesystem/move) | Move or rename files |
+| `POST` | [`/v1/agent/{id}/filesystem/operations/search`](/api/agents/filesystem/search) | Search by filename or content |
 
 ### Metadata
 
@@ -48,7 +48,7 @@ All filesystem endpoints follow the pattern: `/v1/agent/{agentId}/filesystem/...
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | [`/v1/agent/{id}/filesystem/archive`](/api/agents/filesystem/create-archive) | Create an archive |
-| `POST` | [`/v1/agent/{id}/filesystem/extract`](/api/agents/filesystem/extract-archive) | Extract an archive |
+| `POST` | [`/v1/agent/{id}/filesystem/archives`](/api/agents/filesystem/create-archive) | Create an archive |
+| `POST` | [`/v1/agent/{id}/filesystem/archives/extract`](/api/agents/filesystem/extract-archive) | Extract an archive |
 
 For a conceptual guide, see [Filesystem Management](/agents/filesystem).
