@@ -1,0 +1,63 @@
+---
+title: "Set Preference"
+description: "Set or update a user preference value."
+api: "POST /v1/user/preferences"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField body="key" type="string" required>
+Preference key (max 255 characters)
+</ParamField>
+
+<ParamField body="value" type="string" required>
+Preference value (stored as string, max 1000 characters)
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/user/preferences \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "key": "theme",
+    "value": "dark"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "message": "Preference saved successfully",
+  "key": "theme",
+  "value": "dark"
+}
+```
+
+<Tip>
+If the key already exists, this endpoint will update its value. Use this for both creating and updating preferences.
+</Tip>
+
+## Common Preference Keys
+
+While you can use any key you want, here are some commonly used keys:
+
+| Key | Description | Example Values |
+|-----|-------------|----------------|
+| `theme` | UI theme | `"light"`, `"dark"`, `"system"` |
+| `notifications_enabled` | Email notifications | `"true"`, `"false"` |
+| `default_model` | Preferred AI model | `"claude-sonnet-4-5"`, `"claude-opus-4"` |
+| `sidebar_collapsed` | UI state | `"true"`, `"false"` |
+| `tour_completed` | Onboarding status | `"true"`, `"false"` |
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Preference saved successfully |
+| `400` | Invalid key or value (too long, invalid format) |
+| `401` | Unauthorized - invalid or missing authentication |

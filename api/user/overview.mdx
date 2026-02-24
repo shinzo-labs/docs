@@ -1,0 +1,50 @@
+---
+title: "User API Overview"
+description: "Manage user preferences and settings."
+---
+
+# User API
+
+The User API provides endpoints for managing user-level preferences and settings. These are distinct from agent-level configurations and apply across all agents owned by the user.
+
+## Authentication
+
+All User API endpoints require JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Endpoint Categories
+
+### Preferences
+
+Store and retrieve user preferences (key-value pairs):
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/user/preferences` | List all user preferences |
+| `POST` | `/v1/user/preferences` | Set or update a preference |
+| `DELETE` | `/v1/user/preferences/{key}` | Delete a specific preference |
+
+### Survey
+
+User feedback and survey responses:
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/user/survey` | Get user's survey responses |
+| `POST` | `/v1/user/survey` | Submit survey response |
+
+## Preferences
+
+User preferences are stored as key-value pairs and can be used to persist UI state, feature flags, or user-specific configuration across the application.
+
+**Example use cases:**
+- Theme preferences (light/dark mode)
+- Default agent settings
+- Notification preferences
+- Feature tour completion status
+- Custom workspace layouts
+
+## Related Endpoints
+
+For user account information, see:
+- [Fetch User](/api/auth/fetch-user) - Get user account details
+- [Fetch User Quota](/api/auth/fetch-quota) - Get usage limits and quotas

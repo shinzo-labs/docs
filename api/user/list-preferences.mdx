@@ -1,0 +1,47 @@
+---
+title: "List Preferences"
+description: "Retrieve all user preferences as key-value pairs."
+api: "GET /v1/user/preferences"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Example Request
+
+```bash
+curl https://api.app.shinzo.ai/v1/user/preferences \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "preferences": {
+    "theme": "dark",
+    "notifications_enabled": "true",
+    "default_model": "claude-sonnet-4-5",
+    "tour_completed": "true",
+    "sidebar_collapsed": "false"
+  }
+}
+```
+
+## Response Fields
+
+<ResponseField name="preferences" type="object" required>
+Object containing all user preferences as key-value pairs (all values are stored as strings)
+</ResponseField>
+
+<Note>
+All preference values are stored as strings. Convert to the appropriate type in your application (e.g., `"true"` → `true`, `"42"` → `42`).
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Preferences retrieved successfully |
+| `401` | Unauthorized - invalid or missing authentication |

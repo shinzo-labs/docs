@@ -1,0 +1,58 @@
+---
+title: "MCP OAuth Authorize"
+description: "Initiate OAuth flow for an MCP server requiring OAuth authentication."
+api: "GET /v1/mcp/servers/{id}/oauth/authorize"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>
+MCP server UUID
+</ParamField>
+
+<ParamField query="redirect_uri" type="string">
+Optional redirect URI after OAuth completion
+</ParamField>
+
+## Example Request
+
+```bash
+curl "https://api.app.shinzo.ai/v1/mcp/servers/abc123/oauth/authorize?redirect_uri=https://myapp.com/callback" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+This endpoint returns a redirect response (HTTP 302) to the OAuth provider's authorization page.
+
+<Warning>
+**Browser-Based Flow**: This endpoint is designed for browser-based OAuth flows. It will redirect the user to the OAuth provider (e.g., Google, GitHub) for authorization. Not suitable for programmatic API access.
+</Warning>
+
+## OAuth Flow
+
+1. User initiates OAuth by calling this endpoint
+2. Backend redirects to OAuth provider authorization page
+3. User grants permissions
+4. OAuth provider redirects to `/mcp/servers/{id}/oauth/callback`
+5. Backend exchanges code for access token
+6. MCP server is configured with OAuth credentials
+
+## Use Cases
+
+Some MCP servers require OAuth authentication to access external services:
+
+- **Google Cloud MCP**: Requires Google OAuth to access GCP APIs
+- **GitHub MCP**: Requires GitHub OAuth for repository access
+- **Slack MCP**: Requires Slack OAuth for workspace access
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `302` | Redirect to OAuth provider |
+| `400` | MCP server does not support OAuth |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
