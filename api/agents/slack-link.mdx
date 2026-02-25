@@ -1,0 +1,41 @@
+---
+title: "Link Slack Account"
+description: "Generate a link code to pair a Slack account with an agent."
+api: "POST /v1/agent/{id}/slack/link"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/slack/link \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "code": "ABC123",
+  "expires_at": "2026-02-24T15:30:00Z",
+  "instructions": "Send '/link ABC123' as a DM to the agent's Slack bot"
+}
+```
+
+<Note>
+Link codes expire after 10 minutes. The user must send `/link <CODE>` as a direct message to the agent's Slack bot to complete the pairing.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Link code generated successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |
+| `409` | Agent already linked to a Slack account |

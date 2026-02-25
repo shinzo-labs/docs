@@ -1,0 +1,39 @@
+---
+title: "Stop Agent"
+description: "Stop an agent and shut down its pod. Workspace is preserved."
+api: "POST /v1/agent/{id}/stop"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/stop \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Agent stopped successfully"
+}
+```
+
+<Note>
+Stopping an agent shuts down its pod completely to save resources. The agent's workspace and configuration are preserved. Use [pause](/api/agents/pause) instead if you need filesystem access while the agent is idle.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent stopped successfully |
+| `400` | Agent is already stopped |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

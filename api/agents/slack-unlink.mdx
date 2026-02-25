@@ -1,0 +1,38 @@
+---
+title: "Unlink Slack Account"
+description: "Remove the Slack account binding from an agent."
+api: "DELETE /v1/agent/{id}/slack/unlink"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/slack/unlink \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Slack account unlinked successfully"
+}
+```
+
+<Note>
+Unlinking deactivates the channel binding. The agent will no longer receive messages from Slack or be able to send messages to the linked Slack user.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Slack account unlinked successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found or no Slack account linked |

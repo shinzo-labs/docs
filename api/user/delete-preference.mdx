@@ -1,0 +1,41 @@
+---
+title: "Delete Preference"
+description: "Delete a specific user preference."
+api: "DELETE /v1/user/preferences/{key}"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="key" type="string" required>
+Preference key to delete
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/user/preferences/theme \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "Preference deleted successfully",
+  "key": "theme"
+}
+```
+
+<Note>
+Deleting a non-existent preference key will return a 404 error. Use [List Preferences](/api/user/list-preferences) to check if a key exists before deleting.
+</Note>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Preference deleted successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Preference key not found |

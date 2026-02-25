@@ -1,0 +1,56 @@
+---
+title: "Set Agent Status"
+description: "Set an agent's status directly with support for all state transitions."
+api: "POST /v1/agent/{id}/status"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+<ParamField body="status" type="string" required>
+Target status: `active`, `paused`, or `stopped`
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/status \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "paused"
+  }'
+```
+
+## Example Response
+
+```json
+{
+  "message": "Agent status updated successfully",
+  "status": "paused"
+}
+```
+
+## Status Values
+
+| Status | Description |
+|--------|-------------|
+| `active` | Agent execution loop running, pod up |
+| `paused` | Agent execution loop idle, pod up (filesystem accessible) |
+| `stopped` | Agent pod shut down (workspace preserved) |
+
+<Tip>
+Use `paused` to bring a stopped agent's pod up without starting the execution loop. This gives you filesystem access without the agent processing messages.
+</Tip>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Agent status updated successfully |
+| `400` | Invalid status value |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |

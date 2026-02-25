@@ -1,0 +1,81 @@
+---
+title: "MCP OAuth Callback"
+description: "OAuth callback endpoint for completing MCP server OAuth flows."
+api: "POST /v1/mcp/servers/{id}/oauth/callback"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>
+MCP server UUID
+</ParamField>
+
+<ParamField query="code" type="string" required>
+OAuth authorization code from provider
+</ParamField>
+
+<ParamField query="state" type="string">
+OAuth state parameter (for CSRF protection)
+</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/mcp/servers/abc123/oauth/callback?code=AUTH_CODE_HERE&state=STATE_HERE" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "message": "OAuth authentication successful",
+  "server_id": "abc123",
+  "provider": "google",
+  "authenticated_at": "2026-02-24T15:00:00Z"
+}
+```
+
+<Warning>
+**Internal Use**: This endpoint is typically called automatically as part of the OAuth redirect flow initiated by [OAuth Authorize](/api/mcp-servers/oauth-authorize). You rarely need to call it directly.
+</Warning>
+
+## OAuth Flow
+
+This endpoint is step 4 in the OAuth flow:
+
+1. User calls `/mcp/servers/{id}/oauth/authorize`
+2. OAuth provider shows authorization page
+3. User grants permissions
+4. **Provider redirects here with authorization code** ← This endpoint
+5. Backend exchanges code for access token
+6. MCP server configured with credentials
+
+## Response Fields
+
+<ResponseField name="message" type="string" required>
+Success message
+</ResponseField>
+
+<ResponseField name="server_id" type="string" required>
+UUID of the MCP server that was authenticated
+</ResponseField>
+
+<ResponseField name="provider" type="string" required>
+OAuth provider name (e.g., `"google"`, `"github"`, `"slack"`)
+</ResponseField>
+
+<ResponseField name="authenticated_at" type="string" required>
+ISO 8601 timestamp of when authentication completed
+</ResponseField>
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | OAuth authentication successful |
+| `400` | Invalid or expired authorization code |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | MCP server not found |
