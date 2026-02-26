@@ -1,0 +1,47 @@
+---
+title: "Delete Schedule"
+description: "Delete a cron schedule"
+api: "DELETE /v1/agent/:id/schedules/:scheduleId"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField path="scheduleId" type="string" required>Schedule UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/:id/schedules/:scheduleId \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Schedule deleted successfully"
+}
+```
+
+<Warning>
+This action is **permanent** and cannot be undone. Consider using the [Toggle Schedule](/api/agents/schedule-toggle) endpoint to temporarily disable a schedule instead.
+</Warning>
+
+## Error Responses
+
+### 404 Not Found
+- Agent not found, schedule not found, or you don't have access
+
+### 429 Too Many Requests
+- Rate limit exceeded
+
+## See Also
+
+- [Create Schedule](/api/agents/schedule-create)
+- [Toggle Schedule](/api/agents/schedule-toggle)
+- [List Schedules](/api/agents/schedule-list)

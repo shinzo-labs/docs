@@ -1,0 +1,91 @@
+---
+title: "List Triggers"
+description: "List all webhook triggers for an agent"
+api: "GET /v1/agent/:id/triggers"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Query Parameters
+
+<ParamField query="page" type="number" default="1">Page number (min: 1)</ParamField>
+<ParamField query="limit" type="number" default="20">Results per page (min: 1, max: 100)</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/:id/triggers?page=1&limit=20" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+```json
+{
+  "triggers": [
+    {
+      "uuid": "trigger-abc-123",
+      "agent_uuid": "agent-xyz-789",
+      "name": "GitHub Deployment",
+      "message_template": "Deployment {{payload.status}} for {{payload.repository.name}}.",
+      "enabled": true,
+      "webhook_url": "https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-abc-123",
+      "created_at": "2026-02-20T10:30:00Z",
+      "updated_at": "2026-02-20T10:30:00Z"
+    },
+    {
+      "uuid": "trigger-def-456",
+      "agent_uuid": "agent-xyz-789",
+      "name": "PagerDuty Alert",
+      "message_template": "Incident: {{payload.incident.title}}. Severity: {{payload.incident.urgency}}.",
+      "enabled": false,
+      "webhook_url": "https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-def-456",
+      "created_at": "2026-02-15T08:00:00Z",
+      "updated_at": "2026-02-24T12:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 2,
+    "total_pages": 1
+  }
+}
+```
+
+<Note>
+The `webhook_secret` is **not** included in list responses for security. Secrets are shown only once during trigger creation.
+</Note>
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Trigger UUID |
+| `agent_uuid` | string | Agent UUID |
+| `name` | string | Trigger name |
+| `message_template` | string | Message template with `{{payload.*}}` variables |
+| `enabled` | boolean | Whether trigger is active |
+| `webhook_url` | string | Full webhook URL for external systems to POST to |
+| `created_at` | string | Creation timestamp (ISO 8601) |
+| `updated_at` | string | Last update timestamp (ISO 8601) |
+
+## Error Responses
+
+### 404 Not Found
+- Agent not found or you don't have access
+
+### 429 Too Many Requests
+- Rate limit exceeded
+
+## See Also
+
+- [Create Trigger](/api/agents/trigger-create)
+- [Update Trigger](/api/agents/trigger-update)
+- [Delete Trigger](/api/agents/trigger-delete)
