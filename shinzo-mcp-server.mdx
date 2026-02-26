@@ -173,10 +173,10 @@ async with streamablehttp_client(
 
 ## Available Tools
 
-Once connected, you'll have access to **55 tools** across 8 categories:
+Once connected, you'll have access to **66 tools** across 9 categories:
 
 | Category | Tools | What you can do |
-|----------|-------|-----------------|
+|----------|-------|------------------|
 | **Analytics** | 4 tools | Query usage, costs, and session history |
 | **Agent Management** | 11 tools | Create, configure, pause, and delete agents |
 | **Agent Messaging** | 3 tools | Send messages and retrieve conversation history |
@@ -184,6 +184,7 @@ Once connected, you'll have access to **55 tools** across 8 categories:
 | **Discord Integration** | 4 tools | Link/unlink Discord accounts and manage channel bindings |
 | **Slack Integration** | 3 tools | Link/unlink Slack accounts to agents |
 | **MCP Server Management** | 13 tools | Register servers, manage agent access, and check health |
+| **Schedules & Triggers** | 11 tools | Automate agents with cron schedules and webhook triggers |
 
 ---
 
@@ -195,7 +196,7 @@ Monitor token usage, costs, and session activity.
 |------|-------------|
 | `get_usage_summary` | Get today/week/month token usage summary — fastest way to answer "how many tokens did I burn?" |
 | `get_token_analytics` | Get detailed token usage analytics aggregated by model and provider |
-| `list_ai_sessions` | List AI interaction sessions with filtering and pagination |
+| `list_ai_sessions` | List AI interaction sessions with filtering (including `agent_uuid` to scope to a single agent) and pagination |
 | `get_session_details` | Get detailed info about a specific session including interactions, request/response data, and linked messages |
 
 **Usage examples:**
@@ -215,7 +216,7 @@ Create, configure, and control your AI agents.
 | `list_agents` | List all your agents with filtering, sorting, and pagination |
 | `get_agent` | Get detailed info about a specific agent (system prompt, MCP servers, filesystem summary) |
 | `get_agent_summary` | Get slim agent summary (status, token balance, message count) — faster than `get_agent` |
-| `update_agent` | Update agent configuration, system prompt, files, or MCP server access |
+| `update_agent` | Update agent configuration, system prompt, files, MCP server access, or per-agent Discord bot token |
 | `delete_agent` | Delete an agent and all its data |
 | `pause_agent` | Pause agent execution loop (pod stays alive for filesystem access) |
 | `resume_agent` | Resume a paused or stopped agent |
@@ -330,6 +331,57 @@ Connect agents to Slack for team communication.
 - "Unlink Slack from agent abc-123"
 
 **Note**: Slack integration requires either the centralized Shinzo Slack bot or a custom Slack bot configured for your agent. See the [Slack Integration Guide](/channels/slack) for setup instructions.
+
+---
+
+### Schedules & Triggers (11 tools)
+
+Automate agent activity with cron schedules and webhook triggers.
+
+#### Schedules (7 tools)
+
+Set up recurring cron jobs that send a message to an agent at a defined cadence.
+
+| Tool | Description |
+|------|-------------|
+| `create_schedule` | Create a cron schedule for an agent — define expression, timezone, and message template |
+| `list_schedules` | List all cron schedules for an agent with pagination |
+| `get_schedule` | Get details of a specific schedule |
+| `update_schedule` | Update schedule name, cron expression, message template, timezone, or enabled state |
+| `toggle_schedule` | Toggle a schedule between enabled and disabled |
+| `delete_schedule` | Delete a cron schedule |
+| `list_schedule_executions` | List execution history for a schedule (last 50 runs by default) |
+
+**Cron expression examples:**
+
+| Expression | Meaning |
+|------------|---------|
+| `0 9 * * 1-5` | Every weekday at 9am |
+| `0 */6 * * *` | Every 6 hours |
+| `0 8 * * 1` | Every Monday at 8am |
+| `*/15 * * * *` | Every 15 minutes |
+
+Message templates support variables: `{{date}}`, `{{time}}`, and `{{schedule.name}}`.
+
+#### Triggers (4 tools)
+
+Set up webhook endpoints that send a message to an agent when called.
+
+| Tool | Description |
+|------|-------------|
+| `create_trigger` | Create a webhook trigger — returns a URL and auto-generated secret. POST to the URL to activate the agent |
+| `list_triggers` | List all webhook triggers for an agent |
+| `update_trigger` | Update trigger name, message template, or enabled state |
+| `delete_trigger` | Delete a webhook trigger |
+
+Message templates support `{{payload.*}}` substitution to embed fields from the incoming webhook JSON body.
+
+**Usage examples:**
+- "Create a daily summary schedule for agent abc-123 at 9am UTC on weekdays"
+- "Set up a webhook trigger for agent abc-123 to process incoming GitHub events"
+- "List all schedules for agent abc-123"
+- "Disable the daily report schedule until Monday"
+- "Show execution history for schedule xyz-456"
 
 ---
 
