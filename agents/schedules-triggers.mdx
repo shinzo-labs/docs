@@ -1,0 +1,571 @@
+---
+title: "Agent Schedules & Triggers"
+description: "Automate agent workflows with cron schedules and webhook triggers."
+---
+
+## Overview
+
+Shinzo agents support two powerful automation patterns:
+
+- **Schedules**: Time-based automation using cron expressions (e.g., "every Monday at 9am")
+- **Triggers**: Event-driven automation via webhook endpoints
+
+Both send messages to your agent at the scheduled time or when the webhook is called, enabling autonomous workflows, periodic tasks, and event-driven responses.
+
+<Info>
+**Use cases**: Weekly reports, daily monitoring checks, CI/CD pipeline integration, external system notifications, and multi-agent coordination.
+</Info>
+
+---
+
+## Schedules
+
+Schedules use cron expressions to send messages to your agent at recurring times. Perfect for reports, monitoring, backups, and any time-based workflow.
+
+### Creating a Schedule
+
+Create a cron schedule that sends a message to your agent at the specified times:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Weekly Status Report",
+    "cron_expression": "0 9 * * 1",
+    "message_template": "Generate weekly status report for the team. Today is {{date}}.",
+    "timezone": "America/New_York",
+    "enabled": true
+  }'
+```
+
+#### Request Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | ✅ | — | Human-readable name for this schedule |
+| `cron_expression` | string | ✅ | — | Standard cron expression (e.g., `"0 9 * * 1-5"` for weekdays at 9am) |
+| `message_template` | string | ✅ | — | Message content sent to agent. Supports template variables: `{{date}}`, `{{time}}`, `{{schedule.name}}` |
+| `timezone` | string | ❌ | `"UTC"` | IANA timezone (e.g., `"America/New_York"`, `"Europe/London"`) |
+| `enabled` | boolean | ❌ | `true` | Whether the schedule is active |
+
+#### Response
+
+```json
+{
+  "schedule": {
+    "uuid": "sched_abc123",
+    "agent_uuid": "agent_xyz789",
+    "name": "Weekly Status Report",
+    "cron_expression": "0 9 * * 1",
+    "message_template": "Generate weekly status report for the team. Today is {{date}}.",
+    "timezone": "America/New_York",
+    "enabled": true,
+    "next_execution": "2026-03-10T14:00:00Z",
+    "created_at": "2026-03-09T18:30:00Z",
+    "updated_at": "2026-03-09T18:30:00Z"
+  }
+}
+```
+
+### Cron Expression Examples
+
+| Pattern | Description | Example |
+|---------|-------------|---------|
+| `0 9 * * 1-5` | Weekdays at 9:00 AM | Daily standup report |
+| `0 0 * * 0` | Sundays at midnight | Weekly cleanup task |
+| `*/15 * * * *` | Every 15 minutes | Monitoring check |
+| `0 */6 * * *` | Every 6 hours | System health report |
+| `0 0 1 * *` | First day of month at midnight | Monthly summary |
+| `30 14 * * *` | Every day at 2:30 PM | Afternoon reminder |
+
+<Warning>
+**Minimum interval**: Schedules must not trigger more frequently than once per minute. Use `*/1 * * * *` for the most frequent schedule.
+</Warning>
+
+### Listing Schedules
+
+Retrieve all schedules for an agent:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules?limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | `20` | Results per page (1-100) |
+| `page` | number | `1` | Page number for pagination |
+
+#### Response
+
+```json
+{
+  "schedules": [
+    {
+      "uuid": "sched_abc123",
+      "agent_uuid": "agent_xyz789",
+      "name": "Weekly Status Report",
+      "cron_expression": "0 9 * * 1",
+      "message_template": "Generate weekly status report for the team. Today is {{date}}.",
+      "timezone": "America/New_York",
+      "enabled": true,
+      "next_execution": "2026-03-10T14:00:00Z",
+      "last_execution": "2026-03-03T14:00:00Z",
+      "execution_count": 12,
+      "created_at": "2026-01-06T18:30:00Z",
+      "updated_at": "2026-03-09T18:30:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 5,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 1
+  }
+}
+```
+
+### Getting a Schedule
+
+Retrieve details for a specific schedule:
+
+```bash
+curl -X GET https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules/SCHEDULE_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Response
+
+Returns the full schedule object including execution history metadata.
+
+### Updating a Schedule
+
+Modify an existing schedule:
+
+```bash
+curl -X PATCH https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules/SCHEDULE_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Daily Status Report",
+    "cron_expression": "0 9 * * *",
+    "enabled": true
+  }'
+```
+
+#### Request Parameters
+
+All parameters are optional. Only provided fields will be updated:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | string | New name |
+| `cron_expression` | string | New cron expression |
+| `message_template` | string | New message template |
+| `timezone` | string | New timezone |
+| `enabled` | boolean | Enable or disable the schedule |
+
+### Toggling a Schedule
+
+Quickly enable or disable a schedule:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules/SCHEDULE_ID/toggle \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This flips the `enabled` state (true → false or false → true).
+
+### Deleting a Schedule
+
+Permanently delete a schedule:
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules/SCHEDULE_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+<Warning>
+Deletion is permanent and cannot be undone. Consider disabling the schedule instead if you might need it again.
+</Warning>
+
+### Viewing Execution History
+
+See when a schedule has run and whether executions succeeded:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/schedules/SCHEDULE_ID/executions?limit=50" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | `50` | Results per page (1-100) |
+| `page` | number | `1` | Page number |
+
+#### Response
+
+```json
+{
+  "executions": [
+    {
+      "uuid": "exec_abc123",
+      "schedule_uuid": "sched_abc123",
+      "executed_at": "2026-03-10T14:00:00Z",
+      "status": "success",
+      "message_uuid": "msg_def456",
+      "error": null
+    },
+    {
+      "uuid": "exec_xyz789",
+      "schedule_uuid": "sched_abc123",
+      "executed_at": "2026-03-03T14:00:00Z",
+      "status": "success",
+      "message_uuid": "msg_ghi789",
+      "error": null
+    }
+  ],
+  "pagination": {
+    "total": 12,
+    "page": 1,
+    "limit": 50,
+    "total_pages": 1
+  }
+}
+```
+
+---
+
+## Triggers
+
+Triggers provide webhook endpoints that send messages to your agent when called. Perfect for CI/CD pipelines, external system notifications, and event-driven workflows.
+
+### Creating a Trigger
+
+Create a webhook trigger and receive a unique URL and secret:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/triggers \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Deployment Notification",
+    "message_template": "Deployment completed: {{payload.environment}} - {{payload.commit_sha}}",
+    "enabled": true
+  }'
+```
+
+#### Request Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `name` | string | ✅ | — | Human-readable name for this trigger |
+| `message_template` | string | ✅ | — | Message template with `{{payload.*}}` variables for webhook JSON data |
+| `enabled` | boolean | ❌ | `true` | Whether the trigger is active |
+
+#### Response
+
+```json
+{
+  "trigger": {
+    "uuid": "trig_abc123",
+    "agent_uuid": "agent_xyz789",
+    "name": "Deployment Notification",
+    "message_template": "Deployment completed: {{payload.environment}} - {{payload.commit_sha}}",
+    "enabled": true,
+    "webhook_url": "https://api.app.shinzo.ai/webhooks/trig_abc123",
+    "secret": "whsec_a1b2c3d4e5f6g7h8i9j0",
+    "created_at": "2026-03-09T18:45:00Z",
+    "updated_at": "2026-03-09T18:45:00Z"
+  }
+}
+```
+
+<Info>
+**Store the secret securely!** It's only returned once at creation. Use it to verify webhook authenticity.
+</Info>
+
+### Using a Trigger
+
+Send a POST request to the webhook URL with JSON data:
+
+```bash
+curl -X POST https://api.app.shinzo.ai/webhooks/trig_abc123 \
+  -H "Content-Type: application/json" \
+  -H "X-Webhook-Secret: whsec_a1b2c3d4e5f6g7h8i9j0" \
+  -d '{
+    "environment": "production",
+    "commit_sha": "a1b2c3d",
+    "status": "success"
+  }'
+```
+
+The webhook will:
+1. Verify the secret in the `X-Webhook-Secret` header
+2. Extract data from the JSON payload
+3. Render the message template with `{{payload.*}}` variables
+4. Send the rendered message to the agent
+
+#### Template Variables
+
+Access webhook payload data using dot notation:
+
+```
+{{payload.environment}}        → "production"
+{{payload.commit_sha}}         → "a1b2c3d"
+{{payload.user.name}}          → "John Doe" (nested objects)
+{{payload.items[0].id}}        → "item_123" (array access)
+```
+
+#### Example Use Cases
+
+**CI/CD Pipeline Integration**
+```json
+{
+  "name": "Build Complete",
+  "message_template": "Build {{payload.build_number}} finished with status: {{payload.status}}. Duration: {{payload.duration}}s"
+}
+```
+
+**Error Monitoring**
+```json
+{
+  "name": "Error Alert",
+  "message_template": "🚨 Error in {{payload.service}}: {{payload.error_message}}\nStack: {{payload.stack_trace}}"
+}
+```
+
+**Customer Support**
+```json
+{
+  "name": "Support Ticket",
+  "message_template": "New support ticket #{{payload.ticket_id}} from {{payload.customer_email}}: {{payload.subject}}"
+}
+```
+
+### Listing Triggers
+
+Retrieve all triggers for an agent:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/triggers?limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | number | `20` | Results per page (1-100) |
+| `page` | number | `1` | Page number for pagination |
+
+#### Response
+
+```json
+{
+  "triggers": [
+    {
+      "uuid": "trig_abc123",
+      "agent_uuid": "agent_xyz789",
+      "name": "Deployment Notification",
+      "message_template": "Deployment completed: {{payload.environment}} - {{payload.commit_sha}}",
+      "enabled": true,
+      "webhook_url": "https://api.app.shinzo.ai/webhooks/trig_abc123",
+      "secret": "whsec_***" ,
+      "trigger_count": 47,
+      "last_triggered": "2026-03-09T17:30:00Z",
+      "created_at": "2026-02-15T10:00:00Z",
+      "updated_at": "2026-03-09T18:45:00Z"
+    }
+  ],
+  "pagination": {
+    "total": 3,
+    "page": 1,
+    "limit": 20,
+    "total_pages": 1
+  }
+}
+```
+
+<Info>
+**Secret masking**: The `secret` field is masked in list responses for security. It's only shown in full at creation.
+</Info>
+
+### Updating a Trigger
+
+Modify an existing trigger:
+
+```bash
+curl -X PATCH https://api.app.shinzo.ai/v1/agent/AGENT_ID/triggers/TRIGGER_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Production Deployment Alert",
+    "message_template": "🚀 Deployed to {{payload.environment}}: {{payload.version}}",
+    "enabled": true
+  }'
+```
+
+#### Request Parameters
+
+All parameters are optional. Only provided fields will be updated:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | string | New name |
+| `message_template` | string | New message template |
+| `enabled` | boolean | Enable or disable the trigger |
+
+<Warning>
+**Cannot regenerate secrets**: The webhook secret cannot be changed after creation. Create a new trigger if you need a new secret.
+</Warning>
+
+### Deleting a Trigger
+
+Permanently delete a trigger and deactivate its webhook URL:
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/AGENT_ID/triggers/TRIGGER_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The webhook URL will immediately stop working.
+
+---
+
+## Common Patterns
+
+### Multi-Agent Coordination
+
+Use schedules and triggers to orchestrate multiple agents:
+
+**Coordinator agent schedule**:
+```json
+{
+  "name": "Daily Team Sync",
+  "cron_expression": "0 8 * * 1-5",
+  "message_template": "Send daily sync message to all team agents"
+}
+```
+
+**Coordinator agent sends messages to other agents**, each with their specific tasks.
+
+### Backup and Archival
+
+Schedule regular backups:
+
+```json
+{
+  "name": "Weekly Backup",
+  "cron_expression": "0 2 * * 0",
+  "message_template": "Create archive of workspace and upload to backup storage"
+}
+```
+
+### External System Integration
+
+Connect external systems via webhooks:
+
+```bash
+# GitHub Actions
+- name: Notify agent
+  run: |
+    curl -X POST $WEBHOOK_URL \
+      -H "X-Webhook-Secret: $WEBHOOK_SECRET" \
+      -d '{"repo":"${{ github.repository }}","status":"success"}'
+
+# Zapier, Make.com, n8n
+# Use the webhook URL as the destination endpoint
+```
+
+### Self-Healing Workflows
+
+Agent creates its own schedules when detecting issues:
+
+```
+Agent detects service degradation
+→ Creates hourly monitoring schedule
+→ Monitors until resolved
+→ Deletes schedule when healthy
+```
+
+---
+
+## Limits and Quotas
+
+| Resource | Limit |
+|----------|-------|
+| Schedules per agent | 50 |
+| Triggers per agent | 25 |
+| Message template length | 5,000 characters |
+| Minimum schedule interval | 1 minute |
+| Webhook payload size | 1 MB |
+
+---
+
+## Security
+
+### Webhook Authentication
+
+Always verify webhook authenticity:
+
+1. **Include the secret** in the `X-Webhook-Secret` header
+2. **Validate on your end** before sending sensitive data
+3. **Regenerate if compromised** by creating a new trigger
+
+### Template Injection Prevention
+
+Message templates are sanitized to prevent code injection. Only template variable substitution is supported (`{{payload.*}}`).
+
+### Rate Limiting
+
+Webhook endpoints are rate-limited to 100 requests per minute per trigger. Excess requests receive `429 Too Many Requests`.
+
+---
+
+## Best Practices
+
+### Schedule Design
+
+✅ **Do**:
+- Use descriptive names: "Weekly Sales Report" not "Schedule 1"
+- Set appropriate timezones for your use case
+- Test cron expressions before deploying
+- Disable schedules you're not actively using
+
+❌ **Don't**:
+- Create schedules more frequent than necessary (wastes tokens)
+- Use schedules for real-time event responses (use triggers instead)
+- Forget to account for daylight saving time in your timezone
+
+### Trigger Design
+
+✅ **Do**:
+- Design clear, actionable message templates
+- Include relevant context from the payload
+- Handle missing payload fields gracefully in your agent logic
+- Log webhook calls for debugging
+
+❌ **Don't**:
+- Expose webhook URLs publicly without authentication
+- Send sensitive data in plain text
+- Create redundant triggers for the same event source
+
+### Monitoring
+
+- Check execution history regularly to catch failures
+- Monitor trigger counts to identify anomalies
+- Review and clean up unused schedules/triggers quarterly
+
+---
+
+## Next Steps
+
+- **[Agent Configuration](/agents/configuration)** - Configure agent behavior and settings
+- **[Agent Messaging](/agents/messaging)** - Send messages and manage conversations
+- **[API Reference](/api/agents/overview)** - Full API documentation for schedules and triggers

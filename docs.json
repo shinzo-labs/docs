@@ -51,6 +51,7 @@
               "shinzo-agents",
               "agents/configuration",
               "agents/messaging",
+              "agents/schedules-triggers",
               "agents/filesystem",
               "agents/mcp-management"
             ]
