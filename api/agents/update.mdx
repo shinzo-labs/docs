@@ -11,13 +11,56 @@ Requires JWT token or Platform API key via `Authorization: Bearer <token>` heade
 <ParamField path="id" type="string" required>Agent UUID</ParamField>
 <ParamField body="name" type="string">New agent name (1-100 characters)</ParamField>
 <ParamField body="description" type="string">New description (max 500 characters)</ParamField>
-<ParamField body="pvc_size" type="string">New persistent volume size</ParamField>
+<ParamField body="pvc_size" type="string">New persistent volume size (e.g., "2Gi", "10Gi")</ParamField>
 <ParamField body="system_prompt" type="string">New system prompt</ParamField>
 <ParamField body="system_prompt_type" type="string">How to apply the system prompt: `replace` or `append`</ParamField>
-<ParamField body="configuration" type="object">Configuration updates (same structure as [Create Agent](/api/agents/create))</ParamField>
+<ParamField body="output_token_balance" type="number">Set agent output token balance directly</ParamField>
+<ParamField body="session_mode" type="string">Session lifecycle mode: `ephemeral` or `persistent`</ParamField>
+<ParamField body="warmth_window_ms" type="number">Idle grace period (ms) before pod scales to zero. Min: 300000 (5 min). `null` = never scale down.</ParamField>
+<ParamField body="discord_bot_token" type="string">Discord bot token (max 200 chars). Set to `null` to clear.</ParamField>
+<ParamField body="slack_bot_token" type="object">Slack credentials: `{ bot_token, signing_secret, app_token }`. Set to `null` to clear.</ParamField>
+<ParamField body="telegram_bot_token" type="string">Telegram bot token (max 200 chars). Set to `null` to clear.</ParamField>
+<ParamField body="configuration" type="object">Configuration updates (partial update supported)</ParamField>
 <ParamField body="files" type="object">File operations to perform on the agent workspace</ParamField>
 
-### File Operations
+## Configuration Object
+
+All configuration fields are optional. Only provided fields will be updated.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `timeout_seconds` | number | New task timeout in seconds |
+| `model` | string | New model name to use |
+| `mcp_servers` | object | Updated MCP server configurations |
+| `compaction` | object | Updated compaction configuration |
+| `custom_env` | object | Updated custom environment variables (max 20 entries) |
+| `unread_reminder_interval_ms` | number | How often (ms) to remind agent about unread messages (10000-3600000) |
+| `hook_messages` | object | Updated lifecycle prompt templates |
+
+### Compaction Updates
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `enabled` | boolean | Enable/disable context compaction |
+| `threshold_trigger` | number | Input token threshold (50000-180000) |
+| `model` | string | Model for summarization |
+| `instructions` | string | Custom compaction prompt (max 2000 chars) |
+
+### Hook Messages Updates
+
+Each hook can be updated independently:
+
+| Hook | Description |
+|------|-------------|
+| `channel_message_received` | Prompt when new messages arrive |
+| `unread_message_reminder` | Periodic reminder for unread messages |
+| `interrupt` | Prompt when messages interrupt active session |
+| `session_restart` | Message injected when agent pod restarts |
+| `compaction_summarize` | Instructions for compaction summarization |
+| `compaction_continuation` | Prompt after compaction to continue work |
+| `session_resume_fallback` | Fallback when resuming without user input |
+
+## File Operations
 
 The `files` object allows you to add, update, or delete files in the agent workspace within a single request.
 
@@ -27,7 +70,15 @@ The `files` object allows you to add, update, or delete files in the agent works
 | `update` | array | Files to update (each with `path`, `content`, and optional `encoding`) |
 | `delete` | array | File paths to delete (array of strings) |
 
-## Example Request
+### File Object
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `path` | string | ✅ | File path in the agent workspace |
+| `content` | string | ✅ | File content |
+| `encoding` | string | ❌ | Content encoding: `utf-8` (default) or `base64` |
+
+## Example: Update Configuration
 
 ```bash
 curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
@@ -35,11 +86,29 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-e
   -H "Content-Type: application/json" \
   -d '{
     "description": "Updated agent for thorough code reviews",
+    "session_mode": "persistent",
     "configuration": {
       "timeout_seconds": 3600,
-      "webhooks": {
-        "message_complete": "https://myapp.com/webhooks/complete",
-        "agent_error": "https://myapp.com/webhooks/error"
+      "unread_reminder_interval_ms": 300000,
+      "compaction": {
+        "enabled": true,
+        "threshold_trigger": 150000
+      }
+    }
+  }'
+```
+
+## Example: Update Files and Configuration
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "configuration": {
+      "custom_env": {
+        "REVIEW_STYLE": "detailed",
+        "MAX_FILE_SIZE": "200000"
       }
     },
     "files": {
@@ -49,7 +118,29 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-e
           "content": "# Review Template\n\n## Summary\n..."
         }
       ],
-      "delete": ["old-config.json"]
+      "update": [
+        {
+          "path": "config.json",
+          "content": "{\"review_style\": \"detailed\"}"
+        }
+      ],
+      "delete": ["old-config.json", "deprecated/old-template.md"]
+    }
+  }'
+```
+
+## Example: Configure Bot Tokens
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "telegram_bot_token": "1234567890:ABCdefGHIjklMNOpqrsTUVwxyz",
+    "slack_bot_token": {
+      "bot_token": "xoxb-1234567890-abcdefghijk",
+      "signing_secret": "abc123def456",
+      "app_token": "xapp-1-A01234BCDEF-567890"
     }
   }'
 ```
@@ -62,18 +153,22 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-e
   "name": "code-review-agent",
   "description": "Updated agent for thorough code reviews",
   "status": "active",
-  "created_at": "2025-01-15T10:00:00Z",
-  "updated_at": "2025-01-20T14:30:00Z",
+  "session_mode": "persistent",
+  "output_token_balance": 4850000,
+  "created_at": "2026-03-01T10:00:00Z",
+  "updated_at": "2026-03-09T14:30:00Z",
   "configuration": {
     "timeout_seconds": 3600,
+    "unread_reminder_interval_ms": 300000,
     "memory_config": {
       "type": "hierarchical",
       "max_size_mb": 1024,
       "persistence": "persistent"
     },
-    "webhooks": {
-      "message_complete": "https://myapp.com/webhooks/complete",
-      "agent_error": "https://myapp.com/webhooks/error"
+    "compaction": {
+      "enabled": true,
+      "model": "claude-haiku-4-5-20251001",
+      "threshold_trigger": 150000
     }
   },
   "system_prompt": "You are a senior code reviewer.",
@@ -82,7 +177,7 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-e
   "filesystem_summary": {
     "total_files": 16,
     "total_size_mb": 2.5,
-    "last_modified": "2025-01-20T14:30:00Z"
+    "last_modified": "2026-03-09T14:30:00Z"
   }
 }
 ```
@@ -96,3 +191,11 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/update/a1b2c3d4-e5f6-7890-abcd-e
 | `401` | Unauthorized - invalid or missing authentication |
 | `403` | AI Agents feature not enabled for your account |
 | `404` | Agent not found |
+
+## Notes
+
+- **Partial updates**: Only provide the fields you want to change
+- **Bot tokens**: Setting a bot token to `null` clears the configuration but doesn't unlink existing channel bindings
+- **PVC size**: Can only be increased, not decreased
+- **Configuration merging**: Configuration updates are merged with existing settings (not replaced entirely)
+- **File operations**: All file operations in a single request are applied atomically

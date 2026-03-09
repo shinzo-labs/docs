@@ -1,0 +1,41 @@
+---
+title: "Unlink Telegram"
+description: "Disconnect a Telegram account from an agent."
+api: "DELETE /v1/agent/{id}/telegram/unlink"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/telegram/unlink \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "success": true,
+  "message": "Telegram account unlinked successfully"
+}
+```
+
+## What Happens
+
+- The Telegram channel binding is deactivated
+- The agent will no longer receive messages from the Telegram account
+- The agent's Telegram bot token remains configured (only the binding is removed)
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Account unlinked successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found or no Telegram account linked |

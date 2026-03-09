@@ -5,7 +5,7 @@ description: "Manage channel integrations for agent messaging."
 
 # Agent Channels
 
-Channel endpoints let you manage external integrations like Discord for your agents. The API channel is always available by default.
+Channel endpoints let you manage external integrations like Discord, Slack, and Telegram for your agents. The API channel is always available by default.
 
 ## Endpoints
 
@@ -15,15 +15,26 @@ Channel endpoints let you manage external integrations like Discord for your age
 | `POST` | [`/v1/agent/{id}/discord/link`](/api/agents/discord-link) | Generate a Discord link code |
 | `GET` | [`/v1/agent/{id}/discord/status`](/api/agents/discord-status) | Check Discord link status |
 | `DELETE` | [`/v1/agent/{id}/discord/unlink`](/api/agents/discord-unlink) | Unlink Discord account |
+| `POST` | [`/v1/agent/{id}/slack/link`](/api/agents/slack-link) | Generate a Slack link code |
+| `GET` | [`/v1/agent/{id}/slack/status`](/api/agents/slack-status) | Check Slack link status |
+| `DELETE` | [`/v1/agent/{id}/slack/unlink`](/api/agents/slack-unlink) | Unlink Slack account |
+| `POST` | [`/v1/agent/{id}/telegram/link`](/api/agents/telegram-link) | Generate a Telegram link code |
+| `GET` | [`/v1/agent/{id}/telegram/status`](/api/agents/telegram-status) | Check Telegram link status |
+| `DELETE` | [`/v1/agent/{id}/telegram/unlink`](/api/agents/telegram-unlink) | Unlink Telegram account |
 
-## Discord Linking Workflow
+## Linking Workflow
 
-1. **Generate a link code** via `POST /v1/agent/{id}/discord/link` (expires in 10 minutes)
-2. **Send `/link CODE`** as a DM to the Shinzo bot on Discord
+All channel integrations follow a similar workflow:
+
+1. **Generate a link code** via `POST /v1/agent/{id}/{channel}/link` (expires in 10 minutes)
+2. **Send `/link CODE`** to the appropriate bot:
+   - **Discord**: Send as DM to the Shinzo bot
+   - **Slack**: Send as DM to your agent's Slack bot
+   - **Telegram**: Send as message to your agent's Telegram bot
 3. **Start chatting** — messages are routed to your agent automatically
 
 <Info>
-**Discord** is the only external channel currently supported. Additional channels are coming soon.
+**Supported channels**: Discord, Slack, and Telegram. WhatsApp support is coming soon.
 </Info>
 
 For a full guide on channel integrations, see [Agent Messaging & Channels](/agents/messaging).

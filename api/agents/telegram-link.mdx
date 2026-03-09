@@ -1,0 +1,49 @@
+---
+title: "Create Telegram Link Code"
+description: "Generate a code to pair a Telegram account with an agent."
+api: "POST /v1/agent/{id}/telegram/link"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/telegram/link \
+  -H "Authorization: Bearer <token>"
+```
+
+## Example Response
+
+```json
+{
+  "code": "A1B2C3",
+  "expires_at": "2026-03-09T10:10:00Z",
+  "instructions": "Send '/link A1B2C3' as a message to your agent's Telegram bot"
+}
+```
+
+## How It Works
+
+1. Call this endpoint to generate a 6-character link code.
+2. The code expires after 10 minutes.
+3. Send `/link <CODE>` as a message to your agent's Telegram bot.
+4. Once linked, you can send messages to your agent directly through Telegram.
+
+## Prerequisites
+
+- Your agent must have a `telegram_bot_token` configured (set during agent creation or update)
+- You must have a Telegram bot created via [@BotFather](https://t.me/botfather)
+
+## Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Link code generated successfully |
+| `401` | Unauthorized - invalid or missing authentication |
+| `404` | Agent not found |
+| `400` | Agent does not have Telegram configured |

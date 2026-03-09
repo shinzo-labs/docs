@@ -51,6 +51,7 @@
               "shinzo-agents",
               "agents/configuration",
               "agents/messaging",
+              "agents/schedules-triggers",
               "agents/filesystem",
               "agents/mcp-management"
             ]
@@ -174,7 +175,13 @@
               "api/agents/list-channels",
               "api/agents/discord-link",
               "api/agents/discord-status",
-              "api/agents/discord-unlink"
+              "api/agents/discord-unlink",
+              "api/agents/slack-link",
+              "api/agents/slack-status",
+              "api/agents/slack-unlink",
+              "api/agents/telegram-link",
+              "api/agents/telegram-status",
+              "api/agents/telegram-unlink"
             ]
           },
           {

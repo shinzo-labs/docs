@@ -182,8 +182,10 @@ Once connected, you'll have access to **66 tools** across 9 categories:
 | **Agent Messaging** | 3 tools | Send messages and retrieve conversation history |
 | **Agent Filesystem** | 17 tools | Read, write, search, and organize files in agent workspaces |
 | **Agent Schedules & Triggers** | 11 tools | Create recurring cron schedules and webhook triggers for agents |
-| **Discord Integration** | 4 tools | Link/unlink Discord accounts and manage channel bindings |
+| **Discord Integration** | 3 tools | Link/unlink Discord accounts |
 | **Slack Integration** | 3 tools | Link/unlink Slack accounts to agents |
+| **Telegram Integration** | 3 tools | Link/unlink Telegram accounts to agents 
+| **Channel Management** | 1 tool | Manage channel bindings for agents |
 | **MCP Server Management** | 13 tools | Register servers, manage agent access, and check health |
 
 ---
@@ -337,7 +339,7 @@ Webhooks support both `X-Webhook-Secret` (plain secret) and `X-Hub-Signature-256
 
 ---
 
-### Discord Integration (4 tools)
+### Discord Integration (3 tools)
 
 Connect agents to Discord for user interactions.
 
@@ -346,13 +348,11 @@ Connect agents to Discord for user interactions.
 | `create_discord_link_code` | Generate a 6-character code to link Discord account to agent (expires in 10 min) |
 | `get_discord_status` | Check Discord link status and binding details for an agent |
 | `unlink_discord` | Unlink Discord account from agent (deactivates channel binding) |
-| `list_channel_bindings` | List all active channel bindings (Discord, API, Slack, etc.) for an agent |
 
 **Usage examples:**
 - "Generate Discord link code for agent abc-123"
 - "Check Discord status for agent abc-123"
 - "Unlink Discord from agent abc-123"
-- "Show all active channels for agent abc-123"
 
 ---
 
@@ -372,6 +372,23 @@ Connect agents to Slack for team communication.
 - "Unlink Slack from agent abc-123"
 
 **Note**: Slack integration requires either the centralized Shinzo Slack bot or a custom Slack bot configured for your agent. See the [Slack Integration Guide](/channels/slack) for setup instructions.
+
+---
+
+### Telegram Integration (3 tools)
+
+Connect agents to Telegram for user interactions.
+
+| Tool | Description |
+|------|-------------|
+| `create_telegram_link_code` | Generate a 6-character code to link Telegram account to agent (expires in 10 min) |
+| `get_telegram_status` | Check Telegram link status and binding details for an agent |
+| `unlink_telegram` | Unlink Telegram account from agent (deactivates channel binding) |
+
+**Usage examples:**
+- "Generate Telegram link code for agent abc-123"
+- "Check Telegram status for agent abc-123"
+- "Unlink Telegram from agent abc-123"
 
 ---
 
