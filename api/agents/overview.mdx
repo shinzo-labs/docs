@@ -9,7 +9,8 @@ The Shinzo Platform allows you to deploy and manage autonomous AI agents that ca
 
 - **Isolated Environments**: Each agent runs in its own container with dedicated resources and persistent storage
 - **Messaging**: Send messages to agents and receive responses via the API or connected channels
-- **Channel Integrations**: Connect agents to Discord, with Slack, Telegram, and WhatsApp coming soon
+- **Schedules & Triggers**: Automate agent tasks with recurring cron schedules and event-driven webhook triggers
+- **Channel Integrations**: Connect agents to Discord and Slack for user interactions
 - **Filesystem API**: Read, write, and manage files in the agent's workspace
 - **MCP Support**: Connect agents to MCP servers for external service integration
 - **Webhooks**: Receive notifications when messages complete, fail, or when errors occur
@@ -63,6 +64,24 @@ AI Agents must be enabled for your account. If you receive a `403 Forbidden` err
 | `POST` | [`/v1/agent/{id}/slack/link`](/api/agents/slack-link) | Generate Slack link code |
 | `GET` | [`/v1/agent/{id}/slack/status`](/api/agents/slack-status) | Check Slack link status |
 | `DELETE` | [`/v1/agent/{id}/slack/unlink`](/api/agents/slack-unlink) | Unlink Slack account |
+
+### Schedules & Triggers
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | [`/v1/agent/{id}/schedules`](/api/agents/schedule-create) | Create a cron schedule |
+| `GET` | [`/v1/agent/{id}/schedules`](/api/agents/schedule-list) | List all schedules |
+| `PATCH` | `/v1/agent/{id}/schedules/{scheduleId}` | Update a schedule |
+| `POST` | `/v1/agent/{id}/schedules/{scheduleId}/toggle` | Toggle schedule enabled state |
+| `DELETE` | [`/v1/agent/{id}/schedules/{scheduleId}`](/api/agents/schedule-delete) | Delete a schedule |
+| `GET` | `/v1/agent/{id}/schedules/{scheduleId}/executions` | Get schedule execution history |
+| `POST` | [`/v1/agent/{id}/triggers`](/api/agents/trigger-create) | Create a webhook trigger |
+| `GET` | [`/v1/agent/{id}/triggers`](/api/agents/trigger-list) | List all triggers |
+| `PATCH` | `/v1/agent/{id}/triggers/{triggerId}` | Update a trigger |
+| `DELETE` | [`/v1/agent/{id}/triggers/{triggerId}`](/api/agents/trigger-delete) | Delete a trigger |
+| `POST` | `/v1/webhooks/triggers/{triggerId}` | Inbound webhook endpoint (no auth header) |
+
+See [Schedules & Triggers Overview](/api/agents/schedules-triggers-overview) for detailed documentation and usage examples.
 
 ### Filesystem
 

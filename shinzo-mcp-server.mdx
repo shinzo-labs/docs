@@ -181,6 +181,7 @@ Once connected, you'll have access to **66 tools** across 9 categories:
 | **Agent Management** | 11 tools | Create, configure, pause, and delete agents |
 | **Agent Messaging** | 3 tools | Send messages and retrieve conversation history |
 | **Agent Filesystem** | 17 tools | Read, write, search, and organize files in agent workspaces |
+| **Agent Schedules & Triggers** | 11 tools | Create recurring cron schedules and webhook triggers for agents |
 | **Discord Integration** | 4 tools | Link/unlink Discord accounts and manage channel bindings |
 | **Slack Integration** | 3 tools | Link/unlink Slack accounts to agents |
 | **MCP Server Management** | 13 tools | Register servers, manage agent access, and check health |
@@ -293,6 +294,47 @@ Full programmatic access to agent workspace files and directories.
 - "Create a requirements.txt file in agent abc-123's workspace"
 - "Search for 'TODO' in all Python files for agent abc-123"
 - "Create a backup archive of agent abc-123's entire workspace"
+
+---
+
+### Agent Schedules & Triggers (11 tools)
+
+Automate agent tasks with recurring cron schedules and event-driven webhook triggers.
+
+#### Cron Schedules (7 tools)
+| Tool | Description |
+|------|-------------|
+| `create_schedule` | Create a recurring cron schedule for an agent (supports timezone, cron expression, message template with `{{date}}`, `{{time}}`, `{{schedule.name}}` variables) |
+| `list_schedules` | List all schedules for an agent with pagination |
+| `get_schedule` | Get details of a specific schedule |
+| `update_schedule` | Update schedule name, cron expression, message template, timezone, or enabled state |
+| `toggle_schedule` | Toggle a schedule between enabled and disabled |
+| `delete_schedule` | Delete a cron schedule |
+| `list_schedule_executions` | List execution history for a schedule (last 50 runs by default) |
+
+#### Webhook Triggers (4 tools)
+| Tool | Description |
+|------|-------------|
+| `create_trigger` | Create a webhook trigger for an agent (returns webhook URL and auto-generated secret; message template supports `{{payload.*}}` dot-path substitution from JSON payload) |
+| `list_triggers` | List all webhook triggers for an agent with pagination |
+| `update_trigger` | Update trigger name, message template, or enabled state |
+| `delete_trigger` | Delete a webhook trigger |
+
+**Usage examples:**
+- "Create a daily standup reminder at 9am PST for agent abc-123"
+- "Set up a webhook trigger for agent abc-123 to process GitHub push events"
+- "List all schedules for agent abc-123"
+- "Show execution history for schedule xyz-789"
+- "Disable the weekend backup schedule for agent abc-123"
+
+**Cron Schedule Examples:**
+- `0 9 * * 1-5` — Every weekday at 9:00 AM
+- `0 */4 * * *` — Every 4 hours
+- `0 0 * * 0` — Every Sunday at midnight
+- `30 14 1 * *` — First day of every month at 2:30 PM
+
+**Webhook Authentication:**
+Webhooks support both `X-Webhook-Secret` (plain secret) and `X-Hub-Signature-256` (GitHub-style HMAC) headers for secure validation.
 
 ---
 
