@@ -32,7 +32,7 @@ curl -X POST https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages \
 |-----------|------|----------|---------|-------------|
 | `content` | string | ✅ | — | The message text to send to the agent |
 | `metadata` | object | ❌ | — | Arbitrary key-value metadata to attach to the message |
-| `channel` | enum | ❌ | `"api"` | Channel to send through: `api` or `discord` |
+| `channel` | enum | ❌ | `"api"` | Channel to send through: `api`, `discord`, or `slack` |
 | `queue_mode` | enum | ❌ | `"collect"` | How to handle messages when the agent is busy: `collect` or `interrupt` |
 
 ### Response Format
@@ -68,7 +68,7 @@ curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/messages?limit=20" \
 | `before` | string | — | Return messages before this message UUID (cursor) |
 | `after` | string | — | Return messages after this message UUID (cursor) |
 | `status` | enum | — | Filter by status: `pending`, `delivered`, or `read` |
-| `channel` | enum | — | Filter by channel: `api` or `discord` |
+| `channel` | enum | — | Filter by channel: `api`, `discord`, or `slack` |
 
 ### Response Format
 
@@ -160,6 +160,7 @@ When a message arrives through a specific channel (for example, Discord), the ag
 This means:
 - A message sent via the API receives its response via the API
 - A message sent via Discord receives its response as a Discord message
+- A message sent via Slack receives its response as a Slack message
 - The same agent can handle conversations across multiple channels simultaneously
 
 <Info>
@@ -287,6 +288,135 @@ This returns all connected channels, including API (always present) and any link
 - **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
 - **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
 
+## Slack Integration
+
+Slack is fully supported as an external channel. Linking your agent to Slack allows users to interact with it directly through Slack direct messages via the Shinzo bot.
+
+### Link Code Workflow
+
+Connecting an agent to Slack follows the same simple three-step process as Discord:
+
+**Step 1: Generate a link code**
+
+Request a 6-character link code from the API with `POST /v1/agent/:id/slack/link`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/slack/link" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the code and its expiration time:
+
+```json
+{
+  "code": "X7Y8Z9",
+  "expires_at": "2026-02-25T10:50:00Z"
+}
+```
+
+<Warning>
+Link codes expire after 10 minutes. If the code expires before it is used, generate a new one.
+</Warning>
+
+**Step 2: Link via Slack**
+
+Send the following command as a direct message to the **Shinzo bot** on Slack:
+
+```
+/link X7Y8Z9
+```
+
+The bot confirms the link and your agent is now connected to your Slack account.
+
+**Step 3: Start chatting**
+
+Send any message to the Shinzo bot on Slack, and it will be routed to your linked agent. The agent's response comes back as a Slack message.
+
+### Check Link Status
+
+Verify whether a Slack account is linked to your agent with `GET /v1/agent/:id/slack/status`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/slack/status" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response when linked:
+
+```json
+{
+  "linked": true,
+  "slack_user_id": "U01234ABCDE",
+  "slack_team_id": "T01234ABCDE",
+  "slack_username": "your-username",
+  "linked_at": "2026-02-25T10:45:00Z"
+}
+```
+
+Response when not linked:
+
+```json
+{
+  "linked": false
+}
+```
+
+### Unlink Slack
+
+Disconnect a Slack account from your agent with `DELETE /v1/agent/:id/slack/unlink`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/slack/unlink" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This deactivates the channel binding. The agent stops receiving messages from Slack, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
+
+### Listing Channel Bindings
+
+View all active channel bindings for an agent with `GET /v1/agent/:id/channels`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/channels" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This returns all connected channels, including API (always present) and any linked external channels:
+
+```json
+{
+  "bindings": [
+    {
+      "channel": "api",
+      "status": "active",
+      "created_at": "2026-02-25T09:00:00Z"
+    },
+    {
+      "channel": "discord",
+      "status": "active",
+      "discord_user_id": "123456789012345678",
+      "discord_username": "discord-user",
+      "created_at": "2026-02-25T10:35:00Z"
+    },
+    {
+      "channel": "slack",
+      "status": "active",
+      "slack_user_id": "U01234ABCDE",
+      "slack_username": "slack-user",
+      "created_at": "2026-02-25T10:45:00Z"
+    }
+  ]
+}
+```
+
+## Use Cases for Slack Integration
+
+- **Workspace assistant.** Link your agent to Slack and interact with it throughout your workday without leaving your communication tool.
+- **Team collaboration.** Team members can each link to shared agents for access to company knowledge and tools.
+- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Slack DMs.
+- **Rapid prototyping.** Test agent behavior interactively through Slack during development without building a custom interface.
+- **Cross-platform access.** Use the same agent through both Discord and Slack depending on your context.
+
 ## Best Practices
 
 - **Use `collect` mode by default.** Reserve `interrupt` for genuinely urgent messages that cannot wait for the current task to finish.
@@ -294,9 +424,10 @@ This returns all connected channels, including API (always present) and any link
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
-- **Generate link codes close to when they will be used.** Codes expire after 10 minutes, so avoid generating them far in advance.
-- **Check link status before generating new codes.** If a Discord account is already linked, you do not need a new code.
-- **Unlink before re-linking.** If you need to change the linked Discord account, unlink the current one first.
+- **Generate link codes close to when they will be used.** Codes expire after 10 minutes for both Discord and Slack, so avoid generating them far in advance.
+- **Check link status before generating new codes.** If a channel account is already linked, you do not need a new code.
+- **Unlink before re-linking.** If you need to change the linked account on a channel, unlink the current one first.
+- **Use multiple channels simultaneously.** An agent can maintain active connections to both Discord and Slack at the same time, allowing users to choose their preferred platform.
 
 ## Next Steps
 
