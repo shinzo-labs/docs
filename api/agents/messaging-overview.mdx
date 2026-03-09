@@ -17,11 +17,11 @@ The messaging API lets you send messages to agents and retrieve conversation his
 ## Key Concepts
 
 - **Queue modes**: Control how the agent handles messages when busy. `collect` batches messages (default); `interrupt` cancels the current task.
-- **Channel routing**: Messages are automatically routed back through the channel they originated from (`api` or `discord`).
+- **Channel routing**: Messages are automatically routed back through the channel they originated from (`api`, `discord`, `slack`, `telegram`, or `agent`).
 - **Cursor pagination**: Use `before` and `after` parameters with message UUIDs to paginate through history.
 
 <Info>
-**Discord** is the only external channel integration currently supported. Support for Slack, Telegram, and WhatsApp is coming soon.
+**Supported channels**: Discord, Slack, and Telegram are fully supported. WhatsApp support is coming soon.
 </Info>
 
 For a conceptual guide on messaging patterns, see [Agent Messaging & Channels](/agents/messaging).
