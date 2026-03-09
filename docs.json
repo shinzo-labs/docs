@@ -157,6 +157,18 @@
             ]
           },
           {
+            "group": "Agent Schedules & Triggers",
+            "pages": [
+              "api/agents/schedules-triggers-overview",
+              "api/agents/schedule-create",
+              "api/agents/schedule-list",
+              "api/agents/schedule-delete",
+              "api/agents/trigger-create",
+              "api/agents/trigger-list",
+              "api/agents/trigger-delete"
+            ]
+          },
+          {
             "group": "Agent Channels",
             "pages": [
               "api/agents/channels-overview",

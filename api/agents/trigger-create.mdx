@@ -1,0 +1,165 @@
+---
+title: "Create Trigger"
+description: "Create a webhook trigger for an agent"
+api: "POST /v1/agent/:id/triggers"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Body Parameters
+
+<ParamField body="name" type="string" required>Trigger name (1-255 characters)</ParamField>
+<ParamField body="message_template" type="string" required>Message to send when webhook fires. Supports `{{payload.*}}` dot-path substitution from JSON payload</ParamField>
+<ParamField body="enabled" type="boolean" default="true">Whether the trigger is active</ParamField>
+
+## Example Request
+
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/agent/:id/triggers \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "GitHub Deployment",
+    "message_template": "Deployment {{payload.status}} for {{payload.repository.name}}. Environment: {{payload.environment}}. Commit: {{payload.deployment.sha}}. Review and notify team.",
+    "enabled": true
+  }'
+```
+
+## Response
+
+```json
+{
+  "uuid": "trigger-abc-123",
+  "agent_uuid": "agent-xyz-789",
+  "name": "GitHub Deployment",
+  "message_template": "Deployment {{payload.status}} for {{payload.repository.name}}. Environment: {{payload.environment}}. Commit: {{payload.deployment.sha}}. Review and notify team.",
+  "enabled": true,
+  "webhook_url": "https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-abc-123",
+  "webhook_secret": "whs_a1b2c3d4e5f6g7h8i9j0",
+  "created_at": "2026-02-26T10:30:00Z",
+  "updated_at": "2026-02-26T10:30:00Z"
+}
+```
+
+<Warning>
+**Save the webhook secret immediately!** It's shown only once at creation time. You'll need it to authenticate webhook requests.
+</Warning>
+
+## Webhook URL
+
+The returned `webhook_url` is the endpoint external systems should POST to:
+
+```bash
+POST https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-abc-123
+```
+
+## Webhook Authentication
+
+Include the secret in one of two ways:
+
+### Option 1: X-Webhook-Secret Header (Recommended)
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-abc-123 \
+  -H "X-Webhook-Secret: whs_a1b2c3d4e5f6g7h8i9j0" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "success",
+    "repository": {"name": "myapp"},
+    "environment": "production",
+    "deployment": {"sha": "abc123"}
+  }'
+```
+
+### Option 2: X-Hub-Signature-256 (GitHub-style HMAC)
+```bash
+# Compute HMAC-SHA256 signature
+payload='{"event":"test"}'
+signature=$(echo -n "$payload" | openssl dgst -sha256 -hmac "whs_a1b2c3d4e5f6g7h8i9j0" | sed 's/^.* //')
+
+# Send request
+curl -X POST https://api.app.shinzo.ai/v1/webhooks/triggers/trigger-abc-123 \
+  -H "X-Hub-Signature-256: sha256=$signature" \
+  -H "Content-Type: application/json" \
+  -d "$payload"
+```
+
+## Template Variable Substitution
+
+The `message_template` supports `{{payload.*}}` dot-path access to any field in the webhook JSON payload.
+
+**Example Payload:**
+```json
+{
+  "event": "deployment",
+  "status": "success",
+  "repository": {
+    "name": "myapp",
+    "owner": "acme-corp"
+  },
+  "commit": {
+    "sha": "abc123",
+    "author": {
+      "name": "John Doe",
+      "email": "john@example.com"
+    }
+  }
+}
+```
+
+**Template:**
+```
+Deployment {{payload.status}} for {{payload.repository.owner}}/{{payload.repository.name}}.
+Commit {{payload.commit.sha}} by {{payload.commit.author.name}}.
+```
+
+**Rendered:**
+```
+Deployment success for acme-corp/myapp.
+Commit abc123 by John Doe.
+```
+
+## Use Cases
+
+### GitHub Webhooks
+- Deployment status updates
+- Pull request events
+- CI/CD pipeline notifications
+- Issue/PR comments
+
+### Monitoring & Alerts
+- PagerDuty incidents
+- Datadog/New Relic alerts
+- CloudWatch alarms
+- Sentry error notifications
+
+### Business Events
+- Stripe payment notifications
+- Customer signup webhooks
+- Order fulfillment status
+- API usage alerts
+
+## Error Responses
+
+### 400 Bad Request
+- Missing required fields
+- Invalid message template
+- Name exceeds 255 characters
+
+### 404 Not Found
+- Agent not found or you don't have access
+
+### 429 Too Many Requests
+- Rate limit exceeded
+
+## See Also
+
+- [List Triggers](/api/agents/trigger-list)
+- [Update Trigger](/api/agents/trigger-update)
+- [Delete Trigger](/api/agents/trigger-delete)
+- [Schedules & Triggers Overview](/api/agents/schedules-triggers-overview)
