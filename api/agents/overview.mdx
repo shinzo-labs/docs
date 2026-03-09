@@ -9,7 +9,7 @@ The Shinzo Platform allows you to deploy and manage autonomous AI agents that ca
 
 - **Isolated Environments**: Each agent runs in its own container with dedicated resources and persistent storage
 - **Messaging**: Send messages to agents and receive responses via the API or connected channels
-- **Channel Integrations**: Connect agents to Discord, with Slack, Telegram, and WhatsApp coming soon
+- **Channel Integrations**: Connect agents to Discord, Slack, and Telegram. WhatsApp support coming soon
 - **Filesystem API**: Read, write, and manage files in the agent's workspace
 - **MCP Support**: Connect agents to MCP servers for external service integration
 - **Webhooks**: Receive notifications when messages complete, fail, or when errors occur
@@ -63,6 +63,9 @@ AI Agents must be enabled for your account. If you receive a `403 Forbidden` err
 | `POST` | [`/v1/agent/{id}/slack/link`](/api/agents/slack-link) | Generate Slack link code |
 | `GET` | [`/v1/agent/{id}/slack/status`](/api/agents/slack-status) | Check Slack link status |
 | `DELETE` | [`/v1/agent/{id}/slack/unlink`](/api/agents/slack-unlink) | Unlink Slack account |
+| `POST` | [`/v1/agent/{id}/telegram/link`](/api/agents/telegram-link) | Generate Telegram link code |
+| `GET` | [`/v1/agent/{id}/telegram/status`](/api/agents/telegram-status) | Check Telegram link status |
+| `DELETE` | [`/v1/agent/{id}/telegram/unlink`](/api/agents/telegram-unlink) | Unlink Telegram account |
 
 ### Filesystem
 
