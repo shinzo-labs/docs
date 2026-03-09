@@ -1,7 +1,7 @@
 ---
 title: "Unlink Telegram"
 description: "Disconnect a Telegram account from an agent."
-api: "POST /v1/agent/{id}/telegram/unlink"
+api: "DELETE /v1/agent/{id}/telegram/unlink"
 ---
 
 ## Authentication
@@ -13,7 +13,7 @@ Requires JWT token or Platform API key via `Authorization: Bearer <token>` heade
 ## Example Request
 
 ```bash
-curl -X POST https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/telegram/unlink \
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/a1b2c3d4-e5f6-7890-abcd-ef1234567890/telegram/unlink \
   -H "Authorization: Bearer <token>"
 ```
 

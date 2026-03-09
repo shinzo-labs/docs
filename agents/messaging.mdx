@@ -161,6 +161,7 @@ This means:
 - A message sent via the API receives its response via the API
 - A message sent via Discord receives its response as a Discord message
 - A message sent via Slack receives its response as a Slack message
+- A message sent via Telegram receives its response as a Telegram message
 - The same agent can handle conversations across multiple channels simultaneously
 
 <Info>
@@ -169,7 +170,13 @@ An agent can maintain active conversations across multiple channels simultaneous
 
 ## Discord Integration
 
-Discord is the first fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+Discord is a fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+
+**Use cases:**
+- **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
+- **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
+- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
+- **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
 
 ### Link Code Workflow
 
@@ -251,46 +258,16 @@ curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/unlink" \
 
 This deactivates the channel binding. The agent stops receiving messages from Discord, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
 
-### Listing Channel Bindings
-
-View all active channel bindings for an agent with `GET /v1/agent/:id/channels`:
-
-```bash
-curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/channels" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
-This returns all connected channels, including API (always present) and any linked external channels:
-
-```json
-{
-  "bindings": [
-    {
-      "channel": "api",
-      "status": "active",
-      "created_at": "2026-02-18T09:00:00Z"
-    },
-    {
-      "channel": "discord",
-      "status": "active",
-      "discord_user_id": "123456789012345678",
-      "discord_username": "your-username",
-      "created_at": "2026-02-18T10:35:00Z"
-    }
-  ]
-}
-```
-
-## Use Cases for Discord Integration
-
-- **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
-- **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
-- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
-- **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
-
 ## Slack Integration
 
-Slack is fully supported as an external channel. Linking your agent to Slack allows users to interact with it directly through Slack direct messages via the Shinzo bot.
+Slack is a fully supported external channel. Linking your agent to Slack allows users to interact with it directly through Slack direct messages via the Shinzo bot.
+
+**Use cases:**
+- **Workspace assistant.** Link your agent to Slack and interact with it throughout your workday without leaving your communication tool.
+- **Team collaboration.** Team members can each link to shared agents for access to company knowledge and tools.
+- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Slack DMs.
+- **Rapid prototyping.** Test agent behavior interactively through Slack during development without building a custom interface.
+- **Cross-platform access.** Use the same agent through both Discord and Slack depending on your context.
 
 ### Link Code Workflow
 
@@ -372,7 +349,97 @@ curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/slack/unlink" \
 
 This deactivates the channel binding. The agent stops receiving messages from Slack, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
 
-### Listing Channel Bindings
+## Telegram Integration
+
+Telegram is a fully supported external channel. Linking your agent to Telegram allows users to interact with it directly through Telegram direct messages via your agent's Telegram bot.
+
+**Use cases:**
+- **Mobile-first access.** Link your agent to Telegram and interact with it on-the-go from your mobile device.
+- **Privacy-focused communication.** Use Telegram's encrypted messaging for secure agent interactions.
+- **Global accessibility.** Telegram works well even in regions with limited connectivity or restrictions on other platforms.
+- **Bot-native workflows.** Leverage Telegram's bot ecosystem for rich integrations and inline interactions.
+- **Multi-platform flexibility.** Use the same agent through Discord, Slack, and Telegram depending on your preference.
+
+### Link Code Workflow
+
+Connecting an agent to Telegram follows the same simple three-step process as Discord and Slack:
+
+**Step 1: Generate a link code**
+
+Request a 6-character link code from the API with `POST /v1/agent/:id/telegram/link`:
+
+```bash
+curl -X POST "https://api.app.shinzo.ai/v1/agent/AGENT_ID/telegram/link" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The response includes the code and its expiration time:
+
+```json
+{
+  "code": "P9Q8R7",
+  "expires_at": "2026-03-09T19:00:00Z"
+}
+```
+
+<Warning>
+Link codes expire after 10 minutes. If the code expires before it is used, generate a new one.
+</Warning>
+
+**Step 2: Link via Telegram**
+
+Send the following command as a message to your **agent's Telegram bot**:
+
+```
+/link P9Q8R7
+```
+
+The bot confirms the link and your agent is now connected to your Telegram account.
+
+**Step 3: Start chatting**
+
+Send any message to your agent's Telegram bot, and it will be routed to your linked agent. The agent's response comes back as a Telegram message.
+
+### Check Link Status
+
+Verify whether a Telegram account is linked to your agent with `GET /v1/agent/:id/telegram/status`:
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/telegram/status" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response when linked:
+
+```json
+{
+  "linked": true,
+  "telegram_user_id": "123456789",
+  "telegram_username": "your-username",
+  "linked_at": "2026-03-09T18:55:00Z"
+}
+```
+
+Response when not linked:
+
+```json
+{
+  "linked": false
+}
+```
+
+### Unlink Telegram
+
+Disconnect a Telegram account from your agent with `DELETE /v1/agent/:id/telegram/unlink`:
+
+```bash
+curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/telegram/unlink" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+This deactivates the channel binding. The agent stops receiving messages from Telegram, and any messages sent to your agent's Telegram bot are no longer forwarded to the agent.
+
+## Listing Channel Bindings
 
 View all active channel bindings for an agent with `GET /v1/agent/:id/channels`:
 
@@ -389,33 +456,32 @@ This returns all connected channels, including API (always present) and any link
     {
       "channel": "api",
       "status": "active",
-      "created_at": "2026-02-25T09:00:00Z"
+      "created_at": "2026-03-09T09:00:00Z"
     },
     {
       "channel": "discord",
       "status": "active",
       "discord_user_id": "123456789012345678",
       "discord_username": "discord-user",
-      "created_at": "2026-02-25T10:35:00Z"
+      "created_at": "2026-03-09T10:35:00Z"
     },
     {
       "channel": "slack",
       "status": "active",
       "slack_user_id": "U01234ABCDE",
       "slack_username": "slack-user",
-      "created_at": "2026-02-25T10:45:00Z"
+      "created_at": "2026-03-09T10:45:00Z"
+    },
+    {
+      "channel": "telegram",
+      "status": "active",
+      "telegram_user_id": "123456789",
+      "telegram_username": "telegram-user",
+      "created_at": "2026-03-09T18:55:00Z"
     }
   ]
 }
 ```
-
-## Use Cases for Slack Integration
-
-- **Workspace assistant.** Link your agent to Slack and interact with it throughout your workday without leaving your communication tool.
-- **Team collaboration.** Team members can each link to shared agents for access to company knowledge and tools.
-- **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Slack DMs.
-- **Rapid prototyping.** Test agent behavior interactively through Slack during development without building a custom interface.
-- **Cross-platform access.** Use the same agent through both Discord and Slack depending on your context.
 
 ## Best Practices
 
@@ -424,10 +490,10 @@ This returns all connected channels, including API (always present) and any link
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
-- **Generate link codes close to when they will be used.** Codes expire after 10 minutes for both Discord and Slack, so avoid generating them far in advance.
+- **Generate link codes close to when they will be used.** Codes expire after 10 minutes for all channels, so avoid generating them far in advance.
 - **Check link status before generating new codes.** If a channel account is already linked, you do not need a new code.
 - **Unlink before re-linking.** If you need to change the linked account on a channel, unlink the current one first.
-- **Use multiple channels simultaneously.** An agent can maintain active connections to both Discord and Slack at the same time, allowing users to choose their preferred platform.
+- **Use multiple channels simultaneously.** An agent can maintain active connections to Discord, Slack, and Telegram at the same time, allowing users to choose their preferred platform.
 
 ## Next Steps
 
