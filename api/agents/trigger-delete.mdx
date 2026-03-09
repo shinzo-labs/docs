@@ -1,0 +1,47 @@
+---
+title: "Delete Trigger"
+description: "Delete a webhook trigger"
+api: "DELETE /v1/agent/:id/triggers/:triggerId"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+<ParamField path="triggerId" type="string" required>Trigger UUID</ParamField>
+
+## Example Request
+
+```bash
+curl -X DELETE https://api.app.shinzo.ai/v1/agent/:id/triggers/:triggerId \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+```json
+{
+  "message": "Trigger deleted successfully"
+}
+```
+
+<Warning>
+This action is **permanent** and cannot be undone. The webhook URL will immediately stop working, and any external systems sending webhooks to this URL will receive 404 errors.
+</Warning>
+
+## Error Responses
+
+### 404 Not Found
+- Agent not found, trigger not found, or you don't have access
+
+### 429 Too Many Requests
+- Rate limit exceeded
+
+## See Also
+
+- [Create Trigger](/api/agents/trigger-create)
+- [Update Trigger](/api/agents/trigger-update)
+- [List Triggers](/api/agents/trigger-list)
