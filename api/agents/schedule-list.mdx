@@ -1,0 +1,90 @@
+---
+title: "List Schedules"
+description: "List all cron schedules for an agent"
+api: "GET /v1/agent/:id/schedules"
+---
+
+## Authentication
+
+Requires JWT token or Platform API key via `Authorization: Bearer <token>` header.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>Agent UUID</ParamField>
+
+## Query Parameters
+
+<ParamField query="page" type="number" default="1">Page number (min: 1)</ParamField>
+<ParamField query="limit" type="number" default="20">Results per page (min: 1, max: 100)</ParamField>
+
+## Example Request
+
+```bash
+curl -X GET "https://api.app.shinzo.ai/v1/agent/:id/schedules?page=1&limit=20" \
+  -H "Authorization: Bearer <token>"
+```
+
+## Response
+
+```json
+{
+  "schedules": [
+    {
+      "uuid": "schedule-abc-123",
+      "agent_uuid": "agent-xyz-789",
+      "name": "Daily Standup",
+      "cron_expression": "0 9 * * 1-5",
+      "message_template": "Generate a daily standup report for {{date}}.",
+      "timezone": "America/Los_Angeles",
+      "enabled": true,
+      "last_run_at": "2026-02-26T09:00:00-08:00",
+      "next_run_at": "2026-02-27T09:00:00-08:00",
+      "created_at": "2026-02-20T10:30:00Z",
+      "updated_at": "2026-02-20T10:30:00Z"
+    },
+    {
+      "uuid": "schedule-def-456",
+      "agent_uuid": "agent-xyz-789",
+      "name": "Weekly Metrics",
+      "cron_expression": "0 17 * * 5",
+      "message_template": "Create weekly metrics summary for {{date}}.",
+      "timezone": "UTC",
+      "enabled": false,
+      "last_run_at": "2026-02-21T17:00:00Z",
+      "next_run_at": null,
+      "created_at": "2026-02-15T08:00:00Z",
+      "updated_at": "2026-02-24T12:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 2,
+    "total_pages": 1
+  }
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `uuid` | string | Schedule UUID |
+| `agent_uuid` | string | Agent UUID |
+| `name` | string | Schedule name |
+| `cron_expression` | string | Cron expression |
+| `message_template` | string | Message template with variables |
+| `timezone` | string | Timezone for schedule evaluation |
+| `enabled` | boolean | Whether schedule is active |
+| `last_run_at` | string\|null | Last execution timestamp (ISO 8601) |
+| `next_run_at` | string\|null | Next scheduled run (ISO 8601, null if disabled) |
+| `created_at` | string | Creation timestamp |
+| `updated_at` | string | Last update timestamp |
+
+## Error Responses
+
+### 404 Not Found
+- Agent not found or you don't have access
+
+### 429 Too Many Requests
+- Rate limit exceeded

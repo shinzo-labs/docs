@@ -1,0 +1,195 @@
+---
+title: "Agent Schedules & Triggers"
+description: "Automate agent tasks with recurring cron schedules and event-driven webhook triggers"
+---
+
+# Agent Schedules & Triggers
+
+Automate your agents with two powerful automation primitives:
+
+- **Cron Schedules**: Recurring tasks that run on a fixed schedule (e.g., daily reports, weekly summaries)
+- **Webhook Triggers**: Event-driven tasks that fire when external systems POST to a webhook URL
+
+Both schedule types send messages to your agent's message queue, allowing agents to respond to automated prompts just like they respond to user messages.
+
+---
+
+## Cron Schedules
+
+Create recurring tasks using standard cron expressions. When a schedule fires, the agent receives a message with template variables substituted.
+
+### Template Variables
+
+Schedule messages support these template variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `{{date}}` | Current date (ISO 8601) | `2026-02-26` |
+| `{{time}}` | Current time (ISO 8601) | `14:30:00` |
+| `{{schedule.name}}` | Schedule name | `Daily Standup` |
+
+### Cron Expression Examples
+
+| Expression | Description |
+|------------|-------------|
+| `0 9 * * 1-5` | Every weekday at 9:00 AM |
+| `0 */4 * * *` | Every 4 hours |
+| `0 0 * * 0` | Every Sunday at midnight |
+| `30 14 1 * *` | First day of every month at 2:30 PM |
+| `0 8 * * 1` | Every Monday at 8:00 AM |
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/agent/:id/schedules` | Create a new cron schedule |
+| GET | `/v1/agent/:id/schedules` | List all schedules for an agent |
+| GET | `/v1/agent/:id/schedules/:scheduleId` | Get schedule details |
+| PATCH | `/v1/agent/:id/schedules/:scheduleId` | Update a schedule |
+| POST | `/v1/agent/:id/schedules/:scheduleId/toggle` | Toggle schedule enabled state |
+| DELETE | `/v1/agent/:id/schedules/:scheduleId` | Delete a schedule |
+| GET | `/v1/agent/:id/schedules/:scheduleId/executions` | Get execution history |
+
+---
+
+## Webhook Triggers
+
+Create event-driven automation by exposing webhook URLs that external systems can call. When a webhook receives a POST request with a JSON payload, the agent receives a message with template variables substituted from the payload.
+
+### Template Variables
+
+Webhook messages support `{{payload.*}}` dot-path substitution from the JSON payload:
+
+**Example webhook payload:**
+```json
+{
+  "event": "deployment",
+  "status": "success",
+  "repo": "myapp",
+  "commit": {
+    "sha": "abc123",
+    "author": "john@example.com"
+  }
+}
+```
+
+**Message template:**
+```
+Deployment {{payload.status}} for {{payload.repo}}. Commit {{payload.commit.sha}} by {{payload.commit.author}}.
+```
+
+**Rendered message:**
+```
+Deployment success for myapp. Commit abc123 by john@example.com.
+```
+
+### Webhook Authentication
+
+Webhooks support two authentication methods:
+
+#### 1. Plain Secret (X-Webhook-Secret)
+```bash
+curl -X POST https://api.app.shinzo.ai/v1/webhooks/triggers/:triggerId \
+  -H "X-Webhook-Secret: your-webhook-secret" \
+  -H "Content-Type: application/json" \
+  -d '{"event": "test"}'
+```
+
+#### 2. HMAC Signature (X-Hub-Signature-256)
+GitHub-style HMAC-SHA256 signature validation:
+
+```bash
+# Compute signature
+signature=$(echo -n "$payload" | openssl dgst -sha256 -hmac "$secret" | sed 's/^.* //')
+
+# Send request
+curl -X POST https://api.app.shinzo.ai/v1/webhooks/triggers/:triggerId \
+  -H "X-Hub-Signature-256: sha256=$signature" \
+  -H "Content-Type: application/json" \
+  -d "$payload"
+```
+
+Both methods use timing-safe comparison to prevent timing attacks.
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/v1/agent/:id/triggers` | Create a new webhook trigger |
+| GET | `/v1/agent/:id/triggers` | List all triggers for an agent |
+| PATCH | `/v1/agent/:id/triggers/:triggerId` | Update a trigger |
+| DELETE | `/v1/agent/:id/triggers/:triggerId` | Delete a trigger |
+| POST | `/v1/webhooks/triggers/:triggerId` | Inbound webhook endpoint (no auth header required — secret in body or signature) |
+
+---
+
+## Use Cases
+
+### Daily Standup Reports
+```json
+{
+  "name": "Daily Standup",
+  "cron_expression": "0 9 * * 1-5",
+  "message_template": "Generate a daily standup report for {{date}}. Review yesterday's work, identify blockers, and summarize today's priorities.",
+  "timezone": "America/Los_Angeles"
+}
+```
+
+### Weekly Metrics Summary
+```json
+{
+  "name": "Weekly Metrics",
+  "cron_expression": "0 17 * * 5",
+  "message_template": "Create a weekly metrics summary for the week ending {{date}}. Include key performance indicators, trends, and actionable insights.",
+  "timezone": "UTC"
+}
+```
+
+### GitHub CI/CD Integration
+```json
+{
+  "name": "Deployment Webhook",
+  "message_template": "Deployment {{payload.status}} for {{payload.repository.name}}. Environment: {{payload.environment}}. Commit: {{payload.deployment.sha}} by {{payload.sender.login}}. Review logs and notify team if issues detected."
+}
+```
+
+### Incident Response
+```json
+{
+  "name": "PagerDuty Alert",
+  "message_template": "🚨 INCIDENT: {{payload.incident.title}}. Severity: {{payload.incident.urgency}}. Service: {{payload.incident.service.name}}. Investigate and coordinate response."
+}
+```
+
+---
+
+## Best Practices
+
+### Schedules
+- Use descriptive names for easy identification
+- Set appropriate timezones to match your team's working hours
+- Monitor execution history to catch failures
+- Use `toggle_schedule` instead of delete when temporarily disabling
+- Keep message templates clear and actionable
+
+### Triggers
+- Validate webhook secrets on the sending side
+- Use descriptive message templates that include relevant payload fields
+- Monitor trigger execution logs for debugging
+- Consider rate limiting on the sending system to prevent abuse
+- Store webhook secrets securely (they're shown only once on creation)
+
+### Message Queue Behavior
+- Both schedules and triggers add messages to the agent's queue
+- If the agent is busy, messages queue up (first-in, first-out)
+- Use the agent's `queue_mode` setting to control interrupt behavior
+- Monitor message queue depth to detect backlog issues
+
+---
+
+## See Also
+
+- [Create Schedule API](/api/agents/schedule-create)
+- [Create Trigger API](/api/agents/trigger-create)
+- [Agent Messaging Overview](/api/agents/messaging-overview)
+- [Agent Management](/api/agents/overview)
