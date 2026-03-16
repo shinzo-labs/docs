@@ -343,7 +343,19 @@ Before linking, you must create a Slack app and configure it in Shinzo. Slack re
 3. Copy the **App-Level Token** (starts with `xapp-`)
 4. Navigate to **Basic Information** and copy your **Signing Secret**
 
-**Step 4: Configure credentials in your agent**
+**Step 4: Enable the Messages Tab**
+
+This step is required so users can send direct messages to your bot. Without it, Slack shows "Sending messages to this app has been turned off."
+
+1. Navigate to **App Home** in the left sidebar
+2. Scroll down to the **Show Tabs** section
+3. Enable **"Allow users to send Slash commands and messages from the messages tab"**
+
+<Warning>
+If you skip this step, users will see "Sending messages to this app has been turned off" when they try to DM the bot, and the `/link` command will not work.
+</Warning>
+
+**Step 5: Configure credentials in your agent**
 
 Add all three credentials to your agent's configuration:
 
