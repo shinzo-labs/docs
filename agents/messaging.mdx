@@ -170,7 +170,7 @@ An agent can maintain active conversations across multiple channels simultaneous
 
 ## Discord Integration
 
-Discord is a fully supported external channel. You can connect your Shinzo agent to Discord by creating your own Discord bot application and providing the bot token to Shinzo.
+Discord is a fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
 
 **Use cases:**
 - **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
@@ -178,23 +178,31 @@ Discord is a fully supported external channel. You can connect your Shinzo agent
 - **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
 - **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
 
-### Creating Your Discord Bot
+### Setting Up the Shinzo Bot
 
 Before linking, you must create a Discord bot application and configure it in Shinzo:
 
-**Step 1: Create a bot via Discord Developer Portal**
+**Step 1: Create a Discord application**
 
-1. Visit the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Click **"New Application"** and give it a name (this will be your bot's display name)
-3. Navigate to the **"Bot"** tab in the left sidebar
+1. Visit [discord.com/developers/applications](https://discord.com/developers/applications) and click **"New Application"**
+2. Give your application a name and click **Create**
+3. Navigate to the **Bot** section in the left sidebar
 4. Click **"Add Bot"** and confirm
-5. Under the bot's username, click **"Reset Token"** and copy the token that appears
+
+**Step 2: Get your bot token**
+
+1. Under the Bot section, click **"Reset Token"** to generate a new bot token
+2. Copy the token immediately — it won't be shown again
+3. Enable the following **Privileged Gateway Intents**:
+   - Message Content Intent
+   - Server Members Intent
+   - Presence Intent
 
 <Warning>
 Keep your bot token secret! Anyone with this token can control your bot. Never commit it to version control or share it publicly.
 </Warning>
 
-**Step 2: Configure the bot token in your agent**
+**Step 3: Configure the bot token in your agent**
 
 Add the bot token to your agent's configuration:
 
@@ -203,21 +211,14 @@ curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "discord_bot_token": "YOUR_DISCORD_BOT_TOKEN"
+    "discord_bot_token": "your-discord-bot-token"
   }'
 ```
 
 Alternatively, set this during agent creation with the `discord_bot_token` field in the `POST /v1/agent` request.
 
-**Step 3: Invite your bot to a server (optional)**
-
-If you want your bot to be accessible in a Discord server:
-1. In the Developer Portal, go to **OAuth2** → **URL Generator**
-2. Select the `bot` scope
-3. Copy the generated URL and open it in your browser to invite the bot to a server
-
 <Info>
-**Need help?** See Discord's official documentation on [Creating a Bot Account](https://discord.com/developers/docs/getting-started) and [Bot Tokens](https://discord.com/developers/docs/topics/oauth2#bot-vs-user-accounts).
+**Need help?** See Discord's official documentation on [Creating a Bot](https://discord.com/developers/docs/intro) and [Bot Tokens](https://discord.com/developers/docs/topics/oauth2#bots) for detailed instructions.
 </Info>
 
 ### Linking Your Discord Account
@@ -302,7 +303,7 @@ curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/discord/unlink" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-This deactivates the channel binding. The agent stops receiving messages from Discord, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
+This deactivates the channel binding. The agent stops receiving messages from Discord, and any messages sent to your bot are no longer forwarded to the agent.
 
 ## Slack Integration
 
@@ -310,7 +311,7 @@ Slack is a fully supported external channel. You can connect your Shinzo agent t
 
 **Use cases:**
 - **Workspace assistant.** Link your agent to Slack and interact with it throughout your workday without leaving your communication tool.
-- **Team collaboration.** Team members can each link to shared agents for access to company knowledge and tools.
+- **Team productivity.** Access agent capabilities directly from your team's Slack workspace.
 - **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Slack DMs.
 - **Rapid prototyping.** Test agent behavior interactively through Slack during development without building a custom interface.
 - **Cross-platform access.** Use the same agent through both Discord and Slack depending on your context.
@@ -352,7 +353,7 @@ This step is required so users can send direct messages to your bot. Without it,
 3. Enable **"Allow users to send Slash commands and messages from the messages tab"**
 
 <Warning>
-If you skip this step, users will see "Sending messages to this app has been turned off" when they try to DM the bot, and the `/link` command will not work.
+If you skip this step, users will see "Sending messages to this app has been turned off" when they try to DM the bot, and linking will not work.
 </Warning>
 
 **Step 5: Configure credentials in your agent**
@@ -410,11 +411,15 @@ Link codes expire after 10 minutes. If the code expires before it is used, gener
 
 **Step 2: Link via Slack**
 
-Send the following command as a direct message to **your bot** on Slack:
+Send the following message as a direct message to **your bot** on Slack:
 
 ```
-/link X7Y8Z9
+link X7Y8Z9
 ```
+
+<Warning>
+Do **not** use a leading `/` — type `link X7Y8Z9` as a plain message, not `/link X7Y8Z9`. Slack intercepts messages that start with `/` as slash commands, which will fail with "not a valid command."
+</Warning>
 
 The bot confirms the link and your agent is now connected to your Slack account.
 
@@ -594,51 +599,7 @@ curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/telegram/unlink" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-This deactivates the channel binding. The agent stops receiving messages from Telegram, and any messages sent to your agent's Telegram bot are no longer forwarded to the agent.
-
-## Listing Channel Bindings
-
-View all active channel bindings for an agent with `GET /v1/agent/:id/channels`:
-
-```bash
-curl -X GET "https://api.app.shinzo.ai/v1/agent/AGENT_ID/channels" \
-  -H "Authorization: Bearer YOUR_TOKEN"
-```
-
-This returns all connected channels, including API (always present) and any linked external channels:
-
-```json
-{
-  "bindings": [
-    {
-      "channel": "api",
-      "status": "active",
-      "created_at": "2026-03-09T09:00:00Z"
-    },
-    {
-      "channel": "discord",
-      "status": "active",
-      "discord_user_id": "123456789012345678",
-      "discord_username": "discord-user",
-      "created_at": "2026-03-09T10:35:00Z"
-    },
-    {
-      "channel": "slack",
-      "status": "active",
-      "slack_user_id": "U01234ABCDE",
-      "slack_username": "slack-user",
-      "created_at": "2026-03-09T10:45:00Z"
-    },
-    {
-      "channel": "telegram",
-      "status": "active",
-      "telegram_user_id": "123456789",
-      "telegram_username": "telegram-user",
-      "created_at": "2026-03-09T18:55:00Z"
-    }
-  ]
-}
-```
+This deactivates the channel binding. The agent stops receiving messages from Telegram, and any messages sent to your bot are no longer forwarded to the agent.
 
 ## Best Practices
 
@@ -647,10 +608,9 @@ This returns all connected channels, including API (always present) and any link
 - **Paginate large histories.** Use cursor-based pagination instead of fetching all messages at once to keep response times low.
 - **Filter by channel when needed.** If your agent handles messages from multiple channels, use the `channel` filter to retrieve conversations for a specific integration.
 - **Monitor message status.** Track `pending` messages to detect processing delays and ensure your agent is keeping up with demand.
-- **Generate link codes close to when they will be used.** Codes expire after 10 minutes for all channels, so avoid generating them far in advance.
-- **Check link status before generating new codes.** If a channel account is already linked, you do not need a new code.
-- **Unlink before re-linking.** If you need to change the linked account on a channel, unlink the current one first.
-- **Use multiple channels simultaneously.** An agent can maintain active connections to Discord, Slack, and Telegram at the same time, allowing users to choose their preferred platform.
+- **Generate link codes close to when they will be used.** Codes expire after 10 minutes, so avoid generating them far in advance.
+- **Check link status before generating new codes.** If an account is already linked, you do not need a new code.
+- **Unlink before re-linking.** If you need to change the linked account, unlink the current one first.
 
 ## Next Steps
 
