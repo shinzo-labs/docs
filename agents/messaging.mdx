@@ -170,40 +170,59 @@ An agent can maintain active conversations across multiple channels simultaneous
 
 ## Discord Integration
 
-Discord is a fully supported external channel. Linking your agent to Discord allows users to interact with it directly through Discord direct messages via the Shinzo bot.
+Discord is a fully supported external channel. You can connect your Shinzo agent to Discord by creating your own Discord bot application and providing the bot token to Shinzo.
 
 **Use cases:**
 - **Personal assistant.** Link your agent to Discord and interact with it throughout the day without leaving your chat client.
-- **Team collaboration.** Team members can each link to the same agent type for shared access to tools and knowledge.
+- **Team collaboration.** Team members can each link to the same agent for shared access to tools and knowledge.
 - **Notification delivery.** Configure webhooks to trigger agent messages that are delivered directly to your Discord DMs.
 - **Rapid prototyping.** Test agent behavior interactively through Discord during development without building a custom frontend.
 
-### Setting Up the Shinzo Discord Bot
+### Creating Your Discord Bot
 
-Before linking your agent, you need to add the **Shinzo bot** to your Discord account:
+Before linking, you must create a Discord bot application and configure it in Shinzo:
 
-**Step 1: Add the Shinzo bot to Discord**
+**Step 1: Create a bot via Discord Developer Portal**
 
-Visit the Shinzo Discord bot invitation link (contact support for the official bot invite link) and authorize the bot to send you direct messages.
+1. Visit the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Click **"New Application"** and give it a name (this will be your bot's display name)
+3. Navigate to the **"Bot"** tab in the left sidebar
+4. Click **"Add Bot"** and confirm
+5. Under the bot's username, click **"Reset Token"** and copy the token that appears
 
-**Step 2: Enable DMs from server members**
+<Warning>
+Keep your bot token secret! Anyone with this token can control your bot. Never commit it to version control or share it publicly.
+</Warning>
 
-Ensure your Discord privacy settings allow direct messages from server members:
-1. Open Discord **User Settings** → **Privacy & Safety**
-2. Under "Server Privacy Defaults," enable **"Allow direct messages from server members"**
-3. For the specific server where Shinzo bot resides, right-click the server icon → **Privacy Settings** → Enable **"Direct Messages"**
+**Step 2: Configure the bot token in your agent**
 
-**Step 3: Verify the bot is accessible**
+Add the bot token to your agent's configuration:
 
-Send a test message directly to the Shinzo bot. If the bot doesn't appear in your DM list, search for it in Discord or check the server member list.
+```bash
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "discord_bot_token": "YOUR_DISCORD_BOT_TOKEN"
+  }'
+```
+
+Alternatively, set this during agent creation with the `discord_bot_token` field in the `POST /v1/agent` request.
+
+**Step 3: Invite your bot to a server (optional)**
+
+If you want your bot to be accessible in a Discord server:
+1. In the Developer Portal, go to **OAuth2** → **URL Generator**
+2. Select the `bot` scope
+3. Copy the generated URL and open it in your browser to invite the bot to a server
 
 <Info>
-**Need help?** See Discord's official documentation on [Privacy & Safety Settings](https://support.discord.com/hc/en-us/articles/217916488-Blocking-Privacy-Settings) and [Direct Messages](https://support.discord.com/hc/en-us/articles/360060145013-Direct-Messages-DMs-101).
+**Need help?** See Discord's official documentation on [Creating a Bot Account](https://discord.com/developers/docs/getting-started) and [Bot Tokens](https://discord.com/developers/docs/topics/oauth2#bot-vs-user-accounts).
 </Info>
 
-### Link Code Workflow
+### Linking Your Discord Account
 
-Connecting an agent to Discord follows a simple three-step process:
+After configuring your bot token, you can link your Discord user account to your agent:
 
 **Step 1: Generate a link code**
 
@@ -229,7 +248,7 @@ Link codes expire after 10 minutes. If the code expires before it is used, gener
 
 **Step 2: Link via Discord**
 
-Send the following command as a direct message to the **Shinzo bot** on Discord:
+Send the following command as a direct message to **your bot** on Discord:
 
 ```
 /link A1B2C3
@@ -239,7 +258,11 @@ The bot confirms the link and your agent is now connected to your Discord accoun
 
 **Step 3: Start chatting**
 
-Send any message to the Shinzo bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message.
+Send any message to your bot on Discord, and it will be routed to your linked agent. The agent's response comes back as a Discord message.
+
+<Info>
+**What are link codes for?** Link codes pair your Discord user identity with your Shinzo account so messages from you are properly attributed. The bot token setup and link code flow are two separate steps — the token activates the bot, and the link code associates your user account with it.
+</Info>
 
 ### Check Link Status
 
@@ -283,7 +306,7 @@ This deactivates the channel binding. The agent stops receiving messages from Di
 
 ## Slack Integration
 
-Slack is a fully supported external channel. Linking your agent to Slack allows users to interact with it directly through Slack direct messages via the Shinzo bot.
+Slack is a fully supported external channel. You can connect your Shinzo agent to Slack by creating your own Slack app and providing the required credentials to Shinzo.
 
 **Use cases:**
 - **Workspace assistant.** Link your agent to Slack and interact with it throughout your workday without leaving your communication tool.
@@ -292,35 +315,64 @@ Slack is a fully supported external channel. Linking your agent to Slack allows 
 - **Rapid prototyping.** Test agent behavior interactively through Slack during development without building a custom interface.
 - **Cross-platform access.** Use the same agent through both Discord and Slack depending on your context.
 
-### Setting Up the Shinzo Slack Bot
+### Creating Your Slack App
 
-Before linking your agent, you need to add the **Shinzo bot** to your Slack workspace:
+Before linking, you must create a Slack app and configure it in Shinzo. Slack requires **three credentials** for bot operation:
 
-**Step 1: Install the Shinzo app to your Slack workspace**
+**Step 1: Create a Slack app**
 
-Contact Shinzo support to receive the official Slack app installation link for your workspace. Click the link and authorize the app to access your workspace.
+1. Visit [api.slack.com/apps](https://api.slack.com/apps) and click **"Create New App"**
+2. Choose **"From scratch"** and give your app a name
+3. Select the Slack workspace where you want to install the app
 
-**Step 2: Invite the bot to send you DMs**
+**Step 2: Configure bot permissions**
 
-Once installed, the Shinzo bot will appear in your workspace's app list. Click on the bot's name in the Apps section and send it a test message to open a direct message thread.
+1. In your app settings, navigate to **OAuth & Permissions**
+2. Under **Bot Token Scopes**, add the following scopes:
+   - `chat:write` - Send messages as the bot
+   - `im:write` - Send direct messages
+   - `im:history` - Read direct message history
+   - `users:read` - Access user profile information
+3. Click **"Install to Workspace"** and authorize the app
+4. Copy the **Bot User OAuth Token** (starts with `xoxb-`)
 
-**Step 3: Verify bot permissions**
+**Step 3: Enable Socket Mode and get tokens**
 
-Ensure the Shinzo app has the following permissions in your Slack workspace:
-- `chat:write` - Send messages as the bot
-- `im:write` - Send direct messages
-- `im:history` - Read direct message history
-- `users:read` - Access user profile information
+1. Navigate to **Socket Mode** in the left sidebar and toggle it **on**
+2. When prompted, generate an app-level token with the `connections:write` scope
+3. Copy the **App-Level Token** (starts with `xapp-`)
+4. Navigate to **Basic Information** and copy your **Signing Secret**
 
-These permissions are typically granted during installation. If you encounter issues, workspace admins can verify permissions in **Slack Admin → Apps → Shinzo → Permissions**.
+**Step 4: Configure credentials in your agent**
+
+Add all three credentials to your agent's configuration:
+
+```bash
+curl -X PATCH "https://api.app.shinzo.ai/v1/agent/AGENT_ID" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slack_bot_token": {
+      "bot_token": "xoxb-YOUR-BOT-TOKEN",
+      "signing_secret": "YOUR-SIGNING-SECRET",
+      "app_token": "xapp-YOUR-APP-TOKEN"
+    }
+  }'
+```
+
+Alternatively, set this during agent creation with the `slack_bot_token` field in the `POST /v1/agent` request.
+
+<Warning>
+Keep all three credentials secret! Never commit them to version control or share them publicly.
+</Warning>
 
 <Info>
-**Need help?** See Slack's official documentation on [Installing Apps](https://slack.com/help/articles/202035138-Add-apps-to-your-Slack-workspace) and [Managing App Permissions](https://slack.com/help/articles/222386767-Manage-app-approval-for-your-workspace).
+**Need help?** See Slack's official documentation on [Creating Apps](https://api.slack.com/start/quickstart), [Bot Tokens](https://api.slack.com/authentication/token-types#bot), and [Socket Mode](https://api.slack.com/apis/connections/socket).
 </Info>
 
-### Link Code Workflow
+### Linking Your Slack Account
 
-Connecting an agent to Slack follows the same simple three-step process as Discord:
+After configuring your bot credentials, you can link your Slack user account to your agent:
 
 **Step 1: Generate a link code**
 
@@ -346,7 +398,7 @@ Link codes expire after 10 minutes. If the code expires before it is used, gener
 
 **Step 2: Link via Slack**
 
-Send the following command as a direct message to the **Shinzo bot** on Slack:
+Send the following command as a direct message to **your bot** on Slack:
 
 ```
 /link X7Y8Z9
@@ -356,7 +408,11 @@ The bot confirms the link and your agent is now connected to your Slack account.
 
 **Step 3: Start chatting**
 
-Send any message to the Shinzo bot on Slack, and it will be routed to your linked agent. The agent's response comes back as a Slack message.
+Send any message to your bot on Slack, and it will be routed to your linked agent. The agent's response comes back as a Slack message.
+
+<Info>
+**What are link codes for?** Link codes pair your Slack user identity with your Shinzo account so messages from you are properly attributed. The bot credentials setup and link code flow are two separate steps — the credentials activate the bot, and the link code associates your user account with it.
+</Info>
 
 ### Check Link Status
 
@@ -396,7 +452,7 @@ curl -X DELETE "https://api.app.shinzo.ai/v1/agent/AGENT_ID/slack/unlink" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-This deactivates the channel binding. The agent stops receiving messages from Slack, and any messages sent to the Shinzo bot are no longer forwarded to the agent.
+This deactivates the channel binding. The agent stops receiving messages from Slack, and any messages sent to your bot are no longer forwarded to the agent.
 
 ## Telegram Integration
 
