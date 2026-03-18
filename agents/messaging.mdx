@@ -356,7 +356,19 @@ This step is required so users can send direct messages to your bot. Without it,
 If you skip this step, users will see "Sending messages to this app has been turned off" when they try to DM the bot, and linking will not work.
 </Warning>
 
-**Step 5: Configure credentials in your agent**
+**Step 5: Enable Event Subscriptions**
+
+1. Navigate to **Event Subscriptions** in the left sidebar and toggle it **on**
+2. Under **Subscribe to bot events**, add the following events:
+   - `app_mention` - To receive messages when your bot is @mentioned
+   - `message.im` - To receive direct messages sent to your bot
+3. Click **Save Changes**
+
+<Warning>
+**Required step!** Your Slack bot will not receive messages without Event Subscriptions enabled. Make sure to add both `app_mention` and `message.im` events.
+</Warning>
+
+**Step 6: Configure credentials in your agent**
 
 Add all three credentials to your agent's configuration:
 
